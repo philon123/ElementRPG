@@ -1,6 +1,8 @@
 package com.philon.rpg.mos.item;
 
+import com.philon.engine.FrameAnimation;
 import com.philon.engine.util.Vector;
+import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.mo.Selectable;
 import com.philon.rpg.mo.UpdateMapObj;
@@ -28,7 +30,7 @@ public abstract class AbstractItem extends UpdateMapObj implements Selectable {
 	public AbstractPrefix prefix;
 	public AbstractSuffix suffix;
 	public StatsObj requirements;
-	
+
 	public int souDrop;
 	public int souFlip;
 	public int imgMap;
@@ -36,12 +38,12 @@ public abstract class AbstractItem extends UpdateMapObj implements Selectable {
 
 	public AbstractItem() {
 	  super();
-	  
+
 	  addState( StateIdle.class );
     addState( StatePickedUp.class );
     addState( StateMap.class );
     addState( StateInv.class );
-    
+
     displayText = getItemName();
     dropValue   = getDropValue();
     baseEffects = getBaseEffects();
@@ -54,7 +56,7 @@ public abstract class AbstractItem extends UpdateMapObj implements Selectable {
 
     updateEffects();
 	}
-  
+
 	public abstract String getItemName();
 	public abstract int getDropValue();
   public abstract int getBaseDurability();
@@ -63,18 +65,18 @@ public abstract class AbstractItem extends UpdateMapObj implements Selectable {
 	public abstract int getSouFlip();
 	public abstract int getImgMap();
 	public abstract int getImgInv();
-	
+
 	public EffectsObj getBaseEffects() {
     EffectsObj result = new EffectsObj();
     result.addOrCreateEffect( EffectAddDurability.class, getBaseDurability() );
     return result;
   }
-	
+
 	@Override
 	public boolean getIsAutoInsert() {
 	  return false;
 	}
-	
+
   @Override
   public int getImgIdle() {
     return 0;
@@ -104,12 +106,12 @@ public abstract class AbstractItem extends UpdateMapObj implements Selectable {
   public Vector getCollRect() {
     return new Vector();
   }
-	
-	
+
+
 	public StatsObj getRequirements() {
     return new StatsObj();
   }
-	
+
 	public ItemSaveData save() {
 		return new ItemSaveData(this);
 	}
@@ -122,7 +124,7 @@ public abstract class AbstractItem extends UpdateMapObj implements Selectable {
 		if (isd.suffix!=null) it.suffix=(AbstractSuffix) PrefixSuffixData.load(isd.suffix);
 
 		it.updateEffects();
-		
+
 		if( !isd.isIdentified ) {
 			it.deidentify();
 		}
@@ -148,7 +150,7 @@ public abstract class AbstractItem extends UpdateMapObj implements Selectable {
 		}
 		updateStats();
 	}
-	
+
 	public void updateStats() {
 	  stats = effects.getStats();
 	}
@@ -201,17 +203,17 @@ public abstract class AbstractItem extends UpdateMapObj implements Selectable {
 
 		return dt;
 	}
-	
+
 	@Override
 	public void interactTrigger(UpdateMapObj objInteracting) {
-    
+
   }
 
 	public class StatePickedUp extends AbstractMapObjState {
 	  @Override
 	  public void execOnChange() {
 	    pos = new Vector( -1 );
-	    setImage( imgInv );
+	    setAnimation(new FrameAnimation(ImageData.images[imgInv]));
 
 	    if( currState==AbstractItem.StateMap.class ) {
 	      deleteObject();
@@ -226,14 +228,14 @@ public abstract class AbstractItem extends UpdateMapObj implements Selectable {
 	}
 
 	//----------
-	
+
 	public class StateMap extends AbstractMapObjState {
     @Override
     public void execOnChange() {
       turnToDirection( new Vector(0, 1) );
       collRect = new Vector(0.5f);
       updateOccTiles();
-      setImage( imgMap );
+      setAnimation(new FrameAnimation(ImageData.images[imgMap]));
 
       if (souFlip>0) RpgGame.playSoundFX( souFlip );
       RpgGame.inst.dynamicMapObjs.addLast(AbstractItem.this);
@@ -247,7 +249,7 @@ public abstract class AbstractItem extends UpdateMapObj implements Selectable {
   }
 
   //----------
-	
+
 	public class StateInv extends AbstractMapObjState {
     @Override
     public void execOnChange() {
@@ -260,5 +262,5 @@ public abstract class AbstractItem extends UpdateMapObj implements Selectable {
   }
 
   //----------
-	
+
 }

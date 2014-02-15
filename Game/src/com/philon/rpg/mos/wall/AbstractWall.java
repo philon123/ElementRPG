@@ -1,54 +1,60 @@
 package com.philon.rpg.mos.wall;
 
+import com.philon.engine.FrameAnimation;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.mo.AbstractMapObj;
+import com.philon.rpg.ImageData;
+import com.philon.rpg.mo.GameMapObj;
 
-public abstract class AbstractWall extends AbstractMapObj {
+public abstract class AbstractWall extends GameMapObj {
   public boolean isBlock; //must be set before use of setWallType()
-  
+
   @Override
   public Vector getCollRect() {
     return new Vector( 1, 1 );
   }
-  
+
+  private void setImageHelper(int newImage) {
+    setAnimation(new FrameAnimation(ImageData.images[newImage]));
+  }
+
   public void setWallType(int newWallType) {
     switch (newWallType) {
       case WallData.WALLTYPE_PILLAR :
-        setImage( getImgBlock() );
+        setImageHelper( getImgBlock() );
         break;
       case WallData.WALLTYPE_STRAIGHT :
         if (isBlock) {
-          setImage( getImgBlockSingleSide() );
+          setImageHelper( getImgBlockSingleSide() );
         } else {
-          setImage( getImgWallStraight() );
+          setImageHelper( getImgWallStraight() );
         }
         break;
       case WallData.WALLTYPE_STUB :
         if (isBlock) {
-          setImage( getImgBlockSingleSide() );
+          setImageHelper( getImgBlockSingleSide() );
         } else {
-          setImage( getImgWallStub() );
+          setImageHelper( getImgWallStub() );
         }
         break;
       case WallData.WALLTYPE_CORNER :
         if (isBlock) {
-          setImage( getImgBlockCorner() );
+          setImageHelper( getImgBlockCorner() );
         } else {
-          setImage( getImgWallCorner() );
+          setImageHelper( getImgWallCorner() );
         }
         break;
       case WallData.WALLTYPE_TRIPOD :
         if (isBlock) {
-          setImage( getImgBlockSingleSide() );
+          setImageHelper( getImgBlockSingleSide() );
         } else {
-          setImage( getImgWallTripod() );
+          setImageHelper( getImgWallTripod() );
         }
         break;
       case WallData.WALLTYPE_CROSS :
         if (isBlock) {
-          setImage( getImgBlockCross() );
+          setImageHelper( getImgBlockCross() );
         } else {
-          setImage( getImgWallCross() );
+          setImageHelper( getImgWallCross() );
         }
         break;
     }

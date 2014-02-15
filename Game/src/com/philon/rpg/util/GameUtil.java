@@ -1,6 +1,6 @@
 package com.philon.rpg.util;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.mo.AbstractMapObj;
+import com.philon.rpg.mo.GameMapObj;
 
 public class GameUtil {
 	public float sqrMap[];
@@ -36,7 +36,7 @@ public class GameUtil {
 
 	//----------
 
-	public static boolean isPixelInMapObj( AbstractMapObj newMo, Vector newPixel ) {
+	public static boolean isPixelInMapObj( GameMapObj newMo, Vector newPixel ) {
 	  return true; //TODO isPixelInMapObj
 //		if (newMo.baseImgPixPos==null || newMo.image==0 || newMo.baseImgPixSize==null) return false;
 //

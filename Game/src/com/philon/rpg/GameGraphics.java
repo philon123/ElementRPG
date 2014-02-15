@@ -12,7 +12,7 @@ import com.philon.engine.Game;
 import com.philon.engine.Graphics;
 import com.philon.engine.forms.AbstractForm;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.mo.AbstractMapObj;
+import com.philon.rpg.mo.GameMapObj;
 import com.philon.rpg.mo.BreakableMapObj;
 import com.philon.rpg.mo.Selectable;
 import com.philon.rpg.mo.BreakableMapObj.IntactState;
@@ -27,38 +27,38 @@ public class GameGraphics extends Graphics {
 
   public Vector baseOffset;
   public Vector currOffset;
-  public AbstractMapObj centeredMo;
+  public GameMapObj centeredMo;
 
-  public HashSet<AbstractMapObj> seeThroughObjects=new HashSet<AbstractMapObj>();
-  public HashSet<AbstractMapObj> staticSeeThroughObjects=new HashSet<AbstractMapObj>();
+  public HashSet<GameMapObj> seeThroughObjects=new HashSet<GameMapObj>();
+  public HashSet<GameMapObj> staticSeeThroughObjects=new HashSet<GameMapObj>();
 
   public Vector minTileOnScreen=new Vector();
   public Vector maxTileOnScreen=new Vector();
 
-  public LinkedList<AbstractMapObj> staticLightSources;
-  public LinkedList<AbstractMapObj> dynamicLightSources;
+  public LinkedList<GameMapObj> staticLightSources;
+  public LinkedList<GameMapObj> dynamicLightSources;
 
-  public TreeMap<RenderMapKey, AbstractMapObj> renderMap;
-  
+  public TreeMap<RenderMapKey, GameMapObj> renderMap;
+
   public BitmapFont font;
-  
+
   public GameGraphics() {
     super();
-    
+
     font = new BitmapFont(Gdx.files.internal("assets/" + "data/Media/font/centaur25.fnt"), false);
     font.setColor(new Color(1, 1, 1, 1));
 //    font.setScale(0.8f);
-    
-    renderMap = new TreeMap<RenderMapKey, AbstractMapObj>();
 
-    dynamicLightSources = new LinkedList<AbstractMapObj>();
-    staticLightSources  = new LinkedList<AbstractMapObj>();
+    renderMap = new TreeMap<RenderMapKey, GameMapObj>();
+
+    dynamicLightSources = new LinkedList<GameMapObj>();
+    staticLightSources  = new LinkedList<GameMapObj>();
 
     squashFactor = new Vector(1, 0.57f);
     tilePixSize = new Vector(64f);
     updateOffset();
   }
-  
+
   public void updateOffset() {
     if( centeredMo!=null ) {
       Vector tmpOffset = getPixDirByTileDir(centeredMo.pos).mulScalarInst(-1);
@@ -67,21 +67,21 @@ public class GameGraphics extends Graphics {
       currOffset = baseOffset.copy();
     }
   }
-  
+
   public void resizedTrigger(Vector newScreenSize) {
     super.resizedTrigger(newScreenSize);
-    
+
     baseOffset = newScreenSize.copy().mulInst(new Vector(0.5f));
   }
-  
+
   public Vector getTilePosByScreenPos( Vector newScreenPos ) {
     return newScreenPos.copy().subInst(currOffset).divInst(tilePixSize).divInst(squashFactor);
   }
-  
+
   public Vector getBasePixPosByTilePos( Vector newTilePos ) { //does not include global offset, allows baking static positions
     return newTilePos.copy().rotateDegInst(45).mulInst(tilePixSize).mulInst(squashFactor);
   }
-  
+
   public Vector getTilePosByPixPos( Vector newPixel ) {
     Vector result = newPixel.copy().subInst(currOffset).divInst(squashFactor).divInst(tilePixSize).rotateDegInst(-45);
     if (result.isEitherSmaller(new Vector()) || result.isEitherLarger(Vector.sub(RpgGame.inst.gMap.gridSize, new Vector(1)))) return null;
@@ -89,7 +89,7 @@ public class GameGraphics extends Graphics {
   }
 
   //----------
-  
+
   public Vector getPixSizeByTileSize( Vector newTileSize ) {
     return newTileSize.copy().mulInst(tilePixSize).mulScalarInst(1.4142f).mulInst(squashFactor);
   }
@@ -102,19 +102,19 @@ public class GameGraphics extends Graphics {
 
   //----------
 
-  public void insertStaticLightSource( AbstractMapObj mo ) {
+  public void insertStaticLightSource( GameMapObj mo ) {
     staticLightSources.addLast(mo);
   }
 
   //----------
 
-  public void insertDynamicLightSource( AbstractMapObj mo ) {
+  public void insertDynamicLightSource( GameMapObj mo ) {
     dynamicLightSources.addLast(mo);
   }
 
   //----------
 
-  public void removeDynamicLightSource( AbstractMapObj mo ) {
+  public void removeDynamicLightSource( GameMapObj mo ) {
     dynamicLightSources.remove(mo);
   }
 
@@ -129,9 +129,9 @@ public class GameGraphics extends Graphics {
         tmpLightGrid[y][x] = 0.1f;
       }
     }
-    
+
     //fill light grid
-    for( AbstractMapObj mo : staticLightSources ) {
+    for( GameMapObj mo : staticLightSources ) {
       int tmpRadius = 5;
       Vector moTile = mo.pos.copy().roundAllInst();
       for( int y = (int) moTile.y-tmpRadius; y <= moTile.y+tmpRadius; y++ ) {
@@ -147,7 +147,7 @@ public class GameGraphics extends Graphics {
         }
       }
     }
-    
+
     //apply light grid on screen
     for (int y=0; y<tmpLightGrid.length; y++) {
       for (int x=0; x<tmpLightGrid[0].length; x++) {
@@ -159,21 +159,21 @@ public class GameGraphics extends Graphics {
   //----------
 
   public void updateLightGrid() {
-    LinkedList<AbstractMapObj> tmpLightSources = new LinkedList<AbstractMapObj>();
-    for( AbstractMapObj mo : dynamicLightSources ) {
+    LinkedList<GameMapObj> tmpLightSources = new LinkedList<GameMapObj>();
+    for( GameMapObj mo : dynamicLightSources ) {
       if (isTileOnScreen(mo.pos)) {
         tmpLightSources.add(mo);
       }
     }
-    
+
     //create light grid for screen
     float[][] tmpLightGrid = new float[(int) (maxTileOnScreen.y-minTileOnScreen.y)+1][];
     for (int y=0; y<tmpLightGrid.length; y++) {
       tmpLightGrid[y] = new float[(int) (maxTileOnScreen.x-minTileOnScreen.x)+1];
     }
-    
+
     //fill light grid
-    for( AbstractMapObj mo : tmpLightSources ) {
+    for( GameMapObj mo : tmpLightSources ) {
       int tmpRadius = 5;
       Vector moTile = mo.pos.copy().roundAllInst();
       for( int y = (int) moTile.y-tmpRadius; y <= moTile.y+tmpRadius; y++ ) {
@@ -190,12 +190,12 @@ public class GameGraphics extends Graphics {
         }
       }
     }
-    
+
     //apply light grid on screen
     for (int y=0; y<tmpLightGrid.length; y++) {
       for (int x=0; x<tmpLightGrid[0].length; x++) {
         Vector tmpTile = Vector.add( minTileOnScreen, new Vector(x, y) );
-        RpgGame.inst.gMap.grid[(int) tmpTile.y][(int) tmpTile.x].currBrightness 
+        RpgGame.inst.gMap.grid[(int) tmpTile.y][(int) tmpTile.x].currBrightness
             = RpgGame.inst.gMap.grid[(int) tmpTile.y][(int) tmpTile.x].staticBrightness + tmpLightGrid[y][x];
       }
     }
@@ -229,7 +229,7 @@ public class GameGraphics extends Graphics {
   //----------
 
   public void updateStaticSeeThroughObjects() {
-    HashSet<AbstractMapObj> result = new HashSet<AbstractMapObj>();
+    HashSet<GameMapObj> result = new HashSet<GameMapObj>();
 
 //    Local TVector tmpTile, MapObj mo, MapObj tmpMo, x%, y%, TVector moTile
 //    For mo=EachIn staticMos
@@ -239,7 +239,7 @@ public class GameGraphics extends Graphics {
 //          For y=-2 To 0
 //            If x=0 And y=0 Continue
 //            If (x=-2 And y=0) Or (x=0 And y=-2) Continue
-//            
+//
 //            tmpTile = TVector.add( moTile, TVector.Create(x, y) )
 //            If tmpTile.isAllLarger(TVector.createEmpty()) Then
 //              For tmpMo=EachIn collGrid[tmpTile.y][tmpTile.x]
@@ -249,7 +249,7 @@ public class GameGraphics extends Graphics {
 //                EndIf
 //              Next
 //            EndIf
-//            
+//
 //          Next
 //        Next
 //      EndIf
@@ -262,7 +262,7 @@ public class GameGraphics extends Graphics {
 
   public void updateSeeThroughObjects() {
     seeThroughObjects.clear();
-    for(AbstractMapObj mo : staticSeeThroughObjects) {
+    for(GameMapObj mo : staticSeeThroughObjects) {
       seeThroughObjects.add(mo);
     }
 
@@ -277,7 +277,7 @@ public class GameGraphics extends Graphics {
     tilesToTest.addLast( new Vector(3, 2) );
     tilesToTest.addLast( new Vector(3, 3) );
 
-    for( AbstractMapObj mo : RpgGame.inst.dynamicMapObjs ) {
+    for( GameMapObj mo : RpgGame.inst.dynamicMapObjs ) {
       if (!(mo instanceof Selectable)) continue;
 
       Vector moTile = mo.pos.copy().roundAllInst();
@@ -285,7 +285,7 @@ public class GameGraphics extends Graphics {
         for( Vector currTile : tilesToTest ) {
           Vector tmpTile = Vector.add( currTile, moTile );
           if( tmpTile.isAllSmaller(RpgGame.inst.gMap.gridSize) ) {
-            for( AbstractMapObj tmpMo : RpgGame.inst.gMap.grid[(int) tmpTile.y][(int) tmpTile.x].collList ) {
+            for( GameMapObj tmpMo : RpgGame.inst.gMap.grid[(int) tmpTile.y][(int) tmpTile.x].collList ) {
               if( (tmpMo instanceof AbstractWall || tmpMo instanceof AbstractDoor) && tmpMo.pos.copy().isAllEqual(tmpTile) ) {
                 seeThroughObjects.add(tmpMo);
               }
@@ -298,11 +298,11 @@ public class GameGraphics extends Graphics {
 
   //----------
 
-  public LinkedList<AbstractMapObj> getMOsAtPixel( Vector newPixel ) { 
+  public LinkedList<GameMapObj> getMOsAtPixel( Vector newPixel ) {
     Vector clickedTile = getTilePosByPixPos(newPixel);
     if (clickedTile==null) return null;
     clickedTile.roundAllInst();
-    LinkedList<AbstractMapObj> result=new LinkedList<AbstractMapObj>();
+    LinkedList<GameMapObj> result=new LinkedList<GameMapObj>();
 
     LinkedList<Vector> tilesToTest = new LinkedList<Vector>();
     tilesToTest.addLast( new Vector(0, 0) );
@@ -316,8 +316,8 @@ public class GameGraphics extends Graphics {
     for( Vector currTile : tilesToTest ) {
       currTile.addInst(clickedTile);
       if( currTile.isAllSmaller(RpgGame.inst.gMap.gridSize) ) {
-        for( AbstractMapObj tmpMo : RpgGame.inst.gMap.grid[(int) currTile.y][(int) currTile.x].collList ) {
-          if( !(tmpMo.image==null || tmpMo instanceof AbstractWall) ) {
+        for( GameMapObj tmpMo : RpgGame.inst.gMap.grid[(int) currTile.y][(int) currTile.x].collList ) {
+          if( !(tmpMo.animation==null || tmpMo instanceof AbstractWall) ) {
             if(!(tmpMo instanceof BreakableMapObj && ((BreakableMapObj) tmpMo).currState!=IntactState.class)) {
               if( !result.contains(tmpMo) ) {
                 if( GameUtil.isPixelInMapObj(tmpMo, newPixel) ) {
@@ -337,23 +337,23 @@ public class GameGraphics extends Graphics {
   }
 
   //----------
-  
+
   public void drawAll() {
     batch.begin();
-    
+
 //    long time= System.currentTimeMillis();
-    
+
     drawMap();
 //    System.out.println(" draw Map: " + (System.currentTimeMillis()-time)); time=System.currentTimeMillis();
-    
+
     drawForms();
 //    System.out.println(" draw Forms: " + (System.currentTimeMillis()-time)); time=System.currentTimeMillis();
-    
+
     batch.end();
   }
 
   //----------
-  
+
   public void drawMap() {
     //center screen on player
     updateOffset();
@@ -368,15 +368,15 @@ public class GameGraphics extends Graphics {
 //
     drawFloor();
 //    System.out.println( "floor: " + (System.currentTimeMillis()-time)) ; time=System.currentTimeMillis();
-    
+
     //draw objects
     RenderMapKey minKeyY = new RenderMapKey(minTileOnScreen, 0);
     RenderMapKey maxKeyY = new RenderMapKey(maxTileOnScreen, 0);
-    NavigableMap<RenderMapKey, AbstractMapObj> subMap = renderMap.subMap(minKeyY, true, maxKeyY, true);
-    
+    NavigableMap<RenderMapKey, GameMapObj> subMap = renderMap.subMap(minKeyY, true, maxKeyY, true);
+
     Vector newPixPos;
 //    int i=0; int j=0;
-    for( AbstractMapObj mo : subMap.values() ) {
+    for( GameMapObj mo : subMap.values() ) {
 //      i += 1;
 //      time= System.currentTimeMillis();
       Vector moTile = mo.pos.copy().roundAllInst();
@@ -395,11 +395,11 @@ public class GameGraphics extends Graphics {
         if( seeThroughObjects.contains(mo) ) {
           isTransparent=true;
         }
-        drawBaseImageRect( mo.image, newPixPos, mo.baseImgPixSize, tmpBrightness, mo.currFrame, isTransparent, isHighlighted );
+        drawBaseImageRect( mo.animation.image, newPixPos, mo.baseImgPixSize, tmpBrightness, mo.animation.getCurrFrame(), isTransparent, isHighlighted );
 //        if ((System.currentTimeMillis()-time)>1) System.out.println("single mo: " + (System.currentTimeMillis()-time)); time=System.currentTimeMillis();
       }
     }
-//    
+//
 //    System.out.println(renderMap.size() + " " + i);// + ", " + j);
 //    System.out.println("mos: " + (System.currentTimeMillis()-time)); time=System.currentTimeMillis();
 //    System.out.println("---");
@@ -421,21 +421,21 @@ public class GameGraphics extends Graphics {
 //      Vector tmpMouseScreenPos = getBasePixPosByTilePos(mouseTilePos).addInst(currOffset);
 //      drawTextureRect(new TextureRegion(texture), tmpMouseScreenPos, getPixSizeByTileSize(new Vector(0.1f)));
 //    }
-    
+
 //    for (int i=0; i<5; i++) {
 //      for (int j=0; j<5; j++) {
-//        drawTextureRect(new TextureRegion(texture), 
-//            getBaseScreenPosByTilePos(new Vector(i, j)).addInst(currOffset), 
+//        drawTextureRect(new TextureRegion(texture),
+//            getBaseScreenPosByTilePos(new Vector(i, j)).addInst(currOffset),
 //            getScreenSizeByTileSize(new Vector(1, 1.818f*2)));
 //      }
 //    }
-    
+
 //    batch.setColor((float)Math.random(), (float)Math.random(), (float)Math.random(), 1f);
-//    drawTextureRect(new TextureRegion(texture), 
-//        getBaseScreenPosByTilePos(new Vector(0, 0)).addInst(currOffset), 
+//    drawTextureRect(new TextureRegion(texture),
+//        getBaseScreenPosByTilePos(new Vector(0, 0)).addInst(currOffset),
 //        getScreenSizeByTileSize(new Vector(1, 1.818f*2)));
   }
-  
+
   //----------
 
   public void drawForms() {
@@ -444,7 +444,7 @@ public class GameGraphics extends Graphics {
       currForm.draw();
     }
 //    System.out.println(System.currentTimeMillis()-time);
-    
+
     //mouse
     if( RpgGame.inst.localPlayer.inv.pickedUpItem!=null ) {
       Vector itSize = Vector.mul( RpgGame.inst.localPlayer.inv.pickedUpItem.invSize, new Vector(64) );
@@ -471,11 +471,11 @@ public class GameGraphics extends Graphics {
         tmpScreenPos = Vector.add( RpgGame.inst.gMap.grid[y][x].basePixPos, tmpScreenOffset );
         if( isPixRectOnScreen( tmpScreenPos, tmpScreenSize ) ) {
           tmpBrightness = RpgGame.inst.gMap.grid[y][x].currBrightness;
-          drawBaseImageRect( ImageData.images[ImageData.IMG_MAP_TILE_DEFAULT], 
+          drawBaseImageRect( ImageData.images[ImageData.IMG_MAP_TILE_DEFAULT],
               tmpScreenPos, tmpScreenSize, tmpBrightness, 0, false, false );
         }
       }
     }
   }
-  
+
 }

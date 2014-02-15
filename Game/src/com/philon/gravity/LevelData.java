@@ -12,7 +12,7 @@ public class LevelData {
     massObjects = new ArrayList<MassObjectData>();
   }
   
-  public void addObject(AnimTextureRegion newImage, Vector newPosition, float newMass, float newRadius, float newRadiance, Vector newInitDirection, float newInitSpeed) {
+  public void addObject(AnimTextureRegion newImage, Vector newPosition, float newMass, float newRadius, float newRadiance, Vector newInitSpeed) {
     MassObjectData newData = new MassObjectData();
     
     newData.image = newImage;
@@ -20,7 +20,6 @@ public class LevelData {
     newData.mass = newMass;
     newData.radius = newRadius;
     newData.radiance = newRadiance;
-    newData.initDirection = newInitDirection;
     newData.initSpeed = newInitSpeed;
     
     massObjects.add(newData);
@@ -32,7 +31,6 @@ public class LevelData {
     public float mass;
     public float radius;
     public float radiance;
-    public Vector initDirection;
-    public float initSpeed;
+    public Vector initSpeed;
   }
 }

@@ -42,8 +42,10 @@ public class Data {
     levelData = new ArrayList<LevelData>();
     
     LevelData level1 = new LevelData();
-    level1.addObject(textures.get(IMG_STAR), new Vector(100, 100), 10000f, 50f, 0.5f, new Vector(1, 0), 10f);
-    level1.addObject(textures.get(IMG_STAR), new Vector(300, 100), 10000f, 50f, 0.5f, new Vector(0, 1), 10f);
+    level1.addObject(textures.get(IMG_STAR), new Vector(350, 250), 1000000f, 10f, 5f, new Vector(3, 0));
+    level1.addObject(textures.get(IMG_STAR), new Vector(350, 450), 1000000f, 10f, 0.5f, new Vector(-3, 0));
+    level1.addObject(textures.get(IMG_ASTEROID), new Vector(350, 0), 100000f, 10f, 0f, new Vector(7, 0));
+    level1.addObject(textures.get(IMG_ASTEROID), new Vector(350, 800), 100000f, 10f, 0f, new Vector(7, 0));
     levelData.add(level1);
   }
   

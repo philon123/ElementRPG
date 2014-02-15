@@ -3,7 +3,7 @@ import java.util.LinkedList;
 
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.mo.AbstractMapObj;
+import com.philon.rpg.mo.GameMapObj;
 import com.philon.rpg.mo.CombatMapObj;
 import com.philon.rpg.mo.state.AbstractMapObjState;
 import com.philon.rpg.spell.AbstractSpell;
@@ -18,11 +18,11 @@ public abstract class AbstractShot extends CombatMapObj {
 	
 	@Override
   public Vector getNewPositionOffset( Vector targetOffset ) {
-    LinkedList<AbstractMapObj> potentialColls;
+    LinkedList<GameMapObj> potentialColls;
 
     potentialColls = getPotentialCollisions( targetOffset );
     if( !(potentialColls==null || potentialColls.isEmpty()) ) {
-      collisionTrigger( (AbstractMapObj)(potentialColls.getFirst()) );
+      collisionTrigger( (GameMapObj)(potentialColls.getFirst()) );
       if (currState==StateDying.class) return null;
     }
 
@@ -30,9 +30,9 @@ public abstract class AbstractShot extends CombatMapObj {
   }
   
   @Override
-  public LinkedList<AbstractMapObj> getPotentialCollisions( Vector newOffset ) {
-    LinkedList<AbstractMapObj> result = RpgGame.inst.gMap.getRectColls(Vector.add(pos, newOffset), collRect);
-    result =  AbstractMapObj.filterList( result, true, true, false, false, false, true );
+  public LinkedList<GameMapObj> getPotentialCollisions( Vector newOffset ) {
+    LinkedList<GameMapObj> result = RpgGame.inst.gMap.getRectColls(Vector.add(pos, newOffset), collRect);
+    result =  GameMapObj.filterList( result, true, true, false, false, false, true );
     if (result==null) return null;
     result.remove(this);
     if (result.isEmpty()) return null;
@@ -40,7 +40,7 @@ public abstract class AbstractShot extends CombatMapObj {
     return result;
   }
 
-  public void collisionTrigger( AbstractMapObj otherMO ) {
+  public void collisionTrigger( GameMapObj otherMO ) {
     ownerSpell.shotImpactTrigger( this, otherMO );
   }
 

@@ -6,7 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.philon.engine.Input;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.mo.AbstractMapObj;
+import com.philon.rpg.mo.GameMapObj;
 import com.philon.rpg.mo.BreakableMapObj;
 import com.philon.rpg.mo.CombatMapObj;
 import com.philon.rpg.mo.Selectable;
@@ -128,14 +128,14 @@ public class GameInput extends Input {
     Vector mouseTile = Vector.floorAll( newTilePos );
     if( !RpgGame.inst.gMap.isTileOnMap(mouseTile) ) return null;
 
-    LinkedList<AbstractMapObj> selectedList = RpgGame.inst.gGraphics.getMOsAtPixel( realMousePos );
+    LinkedList<GameMapObj> selectedList = RpgGame.inst.gGraphics.getMOsAtPixel( realMousePos );
     if( selectedList==null ) return null;
     
     //remove irrelevant mos
     selectedList.remove(RpgGame.inst.localPlayer);
-    LinkedList<AbstractMapObj> removeList = new LinkedList<AbstractMapObj>();
+    LinkedList<GameMapObj> removeList = new LinkedList<GameMapObj>();
     
-    for (AbstractMapObj tmpMO :selectedList) {
+    for (GameMapObj tmpMO :selectedList) {
       if(!(tmpMO instanceof Selectable)) {
         removeList.addLast(tmpMO);
       }
@@ -144,7 +144,7 @@ public class GameInput extends Input {
     if (selectedList.isEmpty()) return null;
     
     //prioritize enemies to be selected
-    for( AbstractMapObj tmpMO : selectedList ) {
+    for( GameMapObj tmpMO : selectedList ) {
       if(tmpMO instanceof AbstractEnemy) {
         return (Selectable)tmpMO;
       }

@@ -1,5 +1,7 @@
 package com.philon.rpg.mo;
 
+import com.philon.engine.FrameAnimation;
+import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.mo.state.AbstractMapObjState;
 
@@ -12,36 +14,36 @@ public abstract class ToggleMapObj extends UpdateMapObj implements Selectable {
   public int getImgIdle() {
     return getToggleImage();
   }
-  
+
   @Override
   public Class<? extends AbstractMapObjState> getDefaultState() {
     return StateClosed.class;
   }
-  
+
   public int getToggleTime() {
     return (int)RpgGame.fps/3;
   }
-  
+
   @Override
   public int getImgMoving() {
     return 0;
   }
-  
+
   @Override
   public int getImgDying() {
     return 0;
   }
-  
+
   @Override
   public int getSouDie() {
     return 0;
   }
-  
+
   @Override
   public float getTilesPerSecond() {
     return 0;
   }
-  
+
   public int getSouOpening() {
     return 0;
   }
@@ -57,8 +59,6 @@ public abstract class ToggleMapObj extends UpdateMapObj implements Selectable {
   public int getSouClosed() {
     return 0;
   }
-  
-	//----------
 
 	public void updateCooldowns() {
 		super.updateCooldowns();
@@ -77,8 +77,6 @@ public abstract class ToggleMapObj extends UpdateMapObj implements Selectable {
 
 	}
 
-	//----------
-	
 	public void toggle() {
 		if( currState==StateClosed.class ) {
 			changeState( StateOpening.class );
@@ -87,84 +85,70 @@ public abstract class ToggleMapObj extends UpdateMapObj implements Selectable {
 		}
 	}
 
-	//----------
-	
 	public void interactTrigger(UpdateMapObj objInteracting) {
 	  toggle();
 	}
-	
-	//----------
 
 	public class StateClosed extends AbstractMapObjState {
-	  
+
 	  @Override
 	  public void execOnChange() {
-	    setImage( getToggleImage(), 0 );
+	    setAnimation(new FrameAnimation(ImageData.images[getToggleImage()]));
 	    RpgGame.playSoundFX( getSouClosed() );
 	  }
-	  
+
 	  @Override
 	  public boolean execUpdate() {
 	    return true;
 	  }
-	  
+
 	}
 
-	//----------
-	
 	public class StateClosing extends AbstractMapObjState {
-	  
+
 	  @Override
 	  public void execOnChange() {
-	    setImage( getToggleImage(), imgAnimFrames-1 );
-	    startAnim( getToggleTime(), true );
+	    setAnimation(new FrameAnimation(ImageData.images[getToggleImage()], getToggleTime(), true));
 	    RpgGame.playSoundFX( getSouClosing() );
 	    openCloseCooldown = getToggleTime();
 	  }
-	  
+
 	  @Override
 	  public boolean execUpdate() {
 	    return true;
 	  }
-	  
+
 	}
 
-	//----------
-	
 	public class StateOpen extends AbstractMapObjState {
-	  
+
 	  @Override
 	  public void execOnChange() {
-	    setImage( getToggleImage(), imgAnimFrames-1 );
+	    setAnimation(new FrameAnimation(ImageData.images[getToggleImage()], 0, true));
 	    RpgGame.playSoundFX( getSouOpened() );
 	  }
-	  
+
 	  @Override
 	  public boolean execUpdate() {
 	    return true;
 	  }
-	  
+
 	}
 
-	//----------
-	
 	public class StateOpening extends AbstractMapObjState {
-	  
+
 	  @Override
 	  public void execOnChange() {
-	    setImage( getToggleImage() );
-	    startAnim( getToggleTime() );
+	    setAnimation(new FrameAnimation(ImageData.images[getToggleImage()], getToggleTime(), false));
 	    openCloseCooldown = getToggleTime();
 	    RpgGame.playSoundFX( getSouOpening() );
 	  }
-	  
+
 	  @Override
 	  public boolean execUpdate() {
 	    return true;
 	  }
-	  
+
 	}
 
-	//----------
-	
 }

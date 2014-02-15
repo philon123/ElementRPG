@@ -4,21 +4,22 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
+import com.philon.engine.FrameAnimation;
 import com.philon.engine.util.Path;
 import com.philon.engine.util.Vector;
+import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.mo.state.AbstractMapObjState;
-import com.philon.rpg.util.GameUtil;
 
-public abstract class UpdateMapObj extends AbstractMapObj {
+public abstract class UpdateMapObj extends GameMapObj {
 	public Class<? extends AbstractMapObjState> currState = null;
 	public Class<? extends AbstractMapObjState> defaultState;
-	public LinkedHashMap<Class<? extends AbstractMapObjState>, AbstractMapObjState> states 
+	public LinkedHashMap<Class<? extends AbstractMapObjState>, AbstractMapObjState> states
 	 = new LinkedHashMap<Class<? extends AbstractMapObjState>, AbstractMapObjState>();
 
 	public float v=0;
 	public float tilesPerSecond=0;
-	
+
 	public Selectable currTarget;
 	public Vector currTargetPos;
 	public Vector currTargetDelta;
@@ -28,47 +29,47 @@ public abstract class UpdateMapObj extends AbstractMapObj {
 
 	public int dieCooldown;
 	public int pathfindCooldown;
-	
+
 	public CombatMapObj killedBy=null;
-	
+
 	public UpdateMapObj() {
 	  super();
-	  
+
 		loadStates();
-		
+
 		tilesPerSecond = getTilesPerSecond();
 		defaultState = getDefaultState();
 		changeState(defaultState);
-		
+
 		if (getIsAutoInsert()) RpgGame.inst.dynamicMapObjs.addLast(this);
 	}
-	
+
 	public abstract float getTilesPerSecond();
 	public abstract int getImgIdle();
   public abstract int getImgMoving();
   public abstract int getImgDying();
   public abstract int getSouDie();
-  
+
   public Class<? extends AbstractMapObjState> getDefaultState() {
     return StateIdle.class;
   }
-  
+
   public boolean getIsAutoInsert() {
     return true;
   }
-  
+
   public int getDieCooldown() {
     return (int) (RpgGame.fps/3);
   }
-	
+
 	public void loadStates() {
 	  LinkedList<Class<?>> hierarchy = new LinkedList<Class<?>>();
     Class<?> currClass = getClass();
     do {
       hierarchy.addFirst(currClass);
       currClass = currClass.getSuperclass();
-    } while(currClass!=AbstractMapObj.class);
-    
+    } while(currClass!=GameMapObj.class);
+
     for (Class<?> currentClass : hierarchy) {
       for (Class<?> tmpClass : currentClass.getDeclaredClasses()) {
         if (AbstractMapObjState.class.isAssignableFrom(tmpClass)) {
@@ -77,11 +78,11 @@ public abstract class UpdateMapObj extends AbstractMapObj {
       }
     }
 	}
-	
+
 	public void addState(Class<? extends AbstractMapObjState> newStateClass) {
 	  addStateInternal(newStateClass, newStateClass);
 	}
-	
+
 	public void addStateInternal(Class<? extends AbstractMapObjState> newKeyClass, Class<? extends AbstractMapObjState> newStateClass) {
 	  try {
       AbstractMapObjState newState = (AbstractMapObjState) newStateClass.getConstructors()[0].newInstance(this);
@@ -98,7 +99,7 @@ public abstract class UpdateMapObj extends AbstractMapObj {
       e.printStackTrace();
     }
 	}
-	
+
 	public void replaceState( Class<? extends AbstractMapObjState> oldStateClass, Class<? extends AbstractMapObjState> newStateClass ) {
 	  addStateInternal(oldStateClass, newStateClass);
 	}
@@ -108,7 +109,7 @@ public abstract class UpdateMapObj extends AbstractMapObj {
 	  states.get(newState).execOnChange();
 	  currState = newState;
 	}
-	
+
 	public void deleteObject() {
 		RpgGame.inst.dynamicMapObjs.remove(this);
 
@@ -120,15 +121,12 @@ public abstract class UpdateMapObj extends AbstractMapObj {
 	}
 
 	public void update() {
-		//animation
-		if (currAnimStart>-1) updateAnimFrame();
-
 		//cooldowns
 		updateCooldowns();
 
 		//target
 		updateTarget();
-	  
+
 		//state update callback
 		if (currState == null) new IllegalArgumentException("currState is not initialized at obj: " + getClass().getSimpleName());
 		if( !states.get(currState).execUpdate() ) { //update failed, revert to default state
@@ -155,7 +153,7 @@ public abstract class UpdateMapObj extends AbstractMapObj {
 			pathfindCooldown -= 1;
 		}
 	}
-	
+
 	public void interact( Selectable newTargetGO ) {
     newTargetGO.interactTrigger(this);
   }
@@ -163,7 +161,7 @@ public abstract class UpdateMapObj extends AbstractMapObj {
 	public Vector getNewPositionOffset( Vector targetOffset ) {
 		Vector result = targetOffset.copy();
 
-		LinkedList<AbstractMapObj> potentialColls = getPotentialCollisions( result );
+		LinkedList<GameMapObj> potentialColls = getPotentialCollisions( result );
 		if (potentialColls!=null) { //collision occured!
 			//determine main movement axis and attempt to move in that direction instead
 			Vector absDir = Vector.absolute(direction);
@@ -181,7 +179,7 @@ public abstract class UpdateMapObj extends AbstractMapObj {
 			} else if( yIsLarger ) {
 				result = new Vector(0, unitDirection.y);
 			}
-			
+
 			if( getPotentialCollisions(result)!=null ) {
 				boolean isConstraintMet=false;
 				if( xIsLarger ) {
@@ -219,96 +217,92 @@ public abstract class UpdateMapObj extends AbstractMapObj {
 		}
 
 	  lastOffset=newOffset.copy();
-	  dir = GameUtil.getDir( newOffset );
+	  turnToDirection(newOffset);
 		setPosition(Vector.add(pos, newOffset));
 
 		return true;
 	}
-	
+
 	//----------
 
-	public LinkedList<AbstractMapObj> getPotentialCollisions( Vector newOffset ) {
-		LinkedList<AbstractMapObj> result = RpgGame.inst.gMap.getRectColls(Vector.add(pos, newOffset), collRect);
-		result =  AbstractMapObj.filterList( result, true, true, false, false, true, true );
+	public LinkedList<GameMapObj> getPotentialCollisions( Vector newOffset ) {
+		LinkedList<GameMapObj> result = RpgGame.inst.gMap.getRectColls(Vector.add(pos, newOffset), collRect);
+		result =  GameMapObj.filterList( result, true, true, false, false, true, true );
 		if (result==null) return null;
 		result.remove(this);
 		if (result.isEmpty()) return null;
-		
+
 		return result;
 	}
 
 	//----------
-	
+
 	public void setTarget( Selectable newTarget, Vector newTargetPos ) {
 		currTarget = newTarget;
 		currTargetPos = newTargetPos;
 		if( currTargetPos==null && currTarget!=null ) {
-			currTargetPos = ((AbstractMapObj)currTarget).pos.copy();
+			currTargetPos = ((GameMapObj)currTarget).pos.copy();
 		}
 		turnToTarget( currTargetPos );
 		updateTarget();
 	}
 
 	//----------
-	
+
 	public void setTarget( Selectable newTarget) {
 		setTarget(newTarget, null);
 	}
 
 	//####################################
-	
+
 	public class StateIdle extends AbstractMapObjState {
-	  
+
 	  @Override
 	  public void execOnChange() {
-	    setImage( getImgIdle() );
+	    setAnimation(new FrameAnimation(ImageData.images[getImgIdle()], (int)(RpgGame.fps/3), false));
 	    v=0;
-	    startAnim( RpgGame.fps/3 );
 	  }
-	  
+
 	  @Override
 	  public boolean execUpdate() {
 	    return true;
 	  }
-	  
+
 	}
-	
+
 	//----------
-	
+
 	public class StateDying extends AbstractMapObjState {
-	  
+
 	  @Override
 	  public void execOnChange() {
-	    setImage( getImgDying() );
-	    v=0;
+	    setAnimation(new FrameAnimation(ImageData.images[getImgDying()], getDieCooldown(), false));
 	    dieCooldown = getDieCooldown();
-	    startAnim( getDieCooldown() );
-
+	    v=0;
 	    deathTrigger(killedBy);
 	  }
-	  
+
 	  @Override
 	  public boolean execUpdate() {
       if (dieCooldown==0) {
         deleteObject();
       } else {
-        dieCooldown--;  
+        dieCooldown--;
       }
 	    return true;
 	  }
-	  
+
 	}
-	
+
 	//----------
-	
+
 	public class StateMovingStraight extends AbstractMapObjState {
-	  
+
 	  @Override
 	  public void execOnChange() {
-	    setImage( getImgMoving() );
-	    startAnim( RpgGame.fps/3 );
+	    setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(RpgGame.fps/3), false));
 	  }
-	  
+
 	  @Override
 	  public boolean execUpdate() {
 	    v = tilesPerSecond / RpgGame.fps;
@@ -318,18 +312,18 @@ public abstract class UpdateMapObj extends AbstractMapObj {
 
 	    return changePosition( newOffset );
 	  }
-	  
+
 	}
-	
+
 	//----------
-	
+
 	public class StateMovingTarget extends AbstractMapObjState {
-    
+
     @Override
     public void execOnChange() {
       states.get(UpdateMapObj.StateMovingStraight.class).execOnChange();
     }
-    
+
     @Override
     public boolean execUpdate() {
       float tmpDist = Vector.getDistance(pos, currTargetPos);
@@ -338,19 +332,19 @@ public abstract class UpdateMapObj extends AbstractMapObj {
       direction = Vector.sub(currTargetPos, pos).normalizeInst();
       return states.get(UpdateMapObj.StateMovingStraight.class).execUpdate();
     }
-    
+
   }
-  
+
   //----------
-	
+
 	public class StateMovingSmart extends AbstractMapObjState {
-	  
+
 	  @Override
 	  public void execOnChange() {
 	    states.get(UpdateMapObj.StateMovingStraight.class).execOnChange();
 	    pathfindCooldown=0;
 	  }
-	  
+
 	  @Override
 	  public boolean execUpdate() {
 	  //get/update path
@@ -383,10 +377,10 @@ public abstract class UpdateMapObj extends AbstractMapObj {
 
 	    return true;
 	  }
-	  
+
 	}
 
 	//----------
-	
+
 
 }

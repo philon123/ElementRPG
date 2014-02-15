@@ -2,7 +2,7 @@ package com.philon.rpg.mos.enemy;
 
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.mo.AbstractMapObj;
+import com.philon.rpg.mo.GameMapObj;
 import com.philon.rpg.mo.CombatMapObj;
 import com.philon.rpg.mo.Selectable;
 import com.philon.rpg.mo.UpdateMapObj;
@@ -43,7 +43,7 @@ public abstract class AbstractEnemy extends CombatMapObj implements Selectable {
   }
   
 	@Override
-	public boolean getCanSeeGO( AbstractMapObj newTarget ) {
+	public boolean getCanSeeGO( GameMapObj newTarget ) {
     Vector tile1=pos.copy().roundAllInst();
     Vector tile2=newTarget.pos.copy().roundAllInst();
     float aiDist = RpgGame.inst.gUtil.sqrMap[ (int) (Math.pow(tile2.x-tile1.x, 2)+Math.pow(tile2.y-tile1.y, 2)) ];

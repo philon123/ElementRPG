@@ -3,7 +3,7 @@ import java.util.LinkedList;
 
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.mo.AbstractMapObj;
+import com.philon.rpg.mo.GameMapObj;
 import com.philon.rpg.mo.BreakableMapObj;
 import com.philon.rpg.mo.CombatMapObj;
 import com.philon.rpg.mo.Selectable;
@@ -41,7 +41,7 @@ public abstract class AbstractSpell {
 	  
 	  ownerMO = newOwnerMO;
 	  if( newTarget!=null ) {
-	    tarPos = ((AbstractMapObj)newTarget).pos.copy();
+	    tarPos = ((GameMapObj)newTarget).pos.copy();
 	  } else {
 	    tarPos = newTarPos;
 	  }
@@ -79,7 +79,7 @@ public abstract class AbstractSpell {
 
 	//----------
 
-	public void shotImpactTrigger( AbstractShot shotObj, AbstractMapObj mo ) {
+	public void shotImpactTrigger( AbstractShot shotObj, GameMapObj mo ) {
 		for( TimerListObject tlo : hitObjects ) {
 			if( tlo.mo == mo ) {
 				return;

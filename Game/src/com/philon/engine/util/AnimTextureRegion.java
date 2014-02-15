@@ -8,34 +8,33 @@ public class AnimTextureRegion {
 	public Vector frameSize;
 	public int numFrames;
 	public TextureRegion[] frames;
-	
+	public Vector dimensions;
+
 	public AnimTextureRegion( Texture newTexture, Vector newFrameSize ) {
 	  texture = newTexture;
 	  if (newFrameSize.isAllEqual(new Vector())) {
 	    frameSize = new Vector( texture.getWidth(), texture.getHeight());
 	    frames = new TextureRegion[]{new TextureRegion(texture)};
+	    dimensions = new Vector(1);
 	  } else {
 	    frameSize = newFrameSize.copy();
-	    frames = split(newTexture, newFrameSize);
+	    split(newFrameSize);
 	  }
 	  numFrames = frames.length;
 	}
-	
-	public TextureRegion[] split (Texture newTexture, Vector newFrameSize) {
-    int width = newTexture.getWidth();
-    int height = newTexture.getHeight();
 
-    int rows = height / (int)newFrameSize.y;
-    int cols = width / (int)newFrameSize.x;
+	public void split(Vector newFrameSize) {
+	  Vector pixSize = new Vector(texture.getWidth(), texture.getHeight());
+	  dimensions = pixSize.copy().divInst(newFrameSize.copy().floorAllInst()).floorAllInst();
 
-    TextureRegion[] tiles = new TextureRegion[rows*cols];
-    for (int row = 0; row < rows; row++) {
-      for (int col = 0; col < cols; col++) {
-        tiles[(row*cols)+col] = new TextureRegion(texture, (int)(col*newFrameSize.x), (int)(row*newFrameSize.y), (int)(newFrameSize.x), (int)(newFrameSize.y));
+    TextureRegion[] tiles = new TextureRegion[(int) (dimensions.x*dimensions.y)];
+    for (int row = 0; row < dimensions.y; row++) {
+      for (int col = 0; col < dimensions.x; col++) {
+        tiles[(row*((int)dimensions.x))+col] = new TextureRegion(texture, (int)(col*newFrameSize.x), (int)(row*newFrameSize.y), (int)(newFrameSize.x), (int)(newFrameSize.y));
       }
     }
 
-    return tiles;
+    frames = tiles;
   }
-	
+
 }

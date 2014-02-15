@@ -1,8 +1,8 @@
 package com.philon.rpg.mo;
 import java.util.LinkedList;
 
-import com.philon.engine.AnimImage;
-import com.philon.engine.Game;
+import com.philon.engine.FrameAnimation;
+import com.philon.engine.MapObject;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
@@ -16,16 +16,10 @@ import com.philon.rpg.mos.shot.AbstractShot;
 import com.philon.rpg.mos.stairs.StairsDown;
 import com.philon.rpg.mos.stairs.StairsUp;
 import com.philon.rpg.mos.wall.AbstractWall;
-import com.philon.rpg.util.GameImage;
 import com.philon.rpg.util.GameUtil;
 import com.philon.rpg.util.RenderMapKey;
 
-public abstract class AbstractMapObj extends AnimImage {
-  public Vector imgTileSize=new Vector();
-  public int currAnimFrame;
-  public Vector imgScale=new Vector(1);
-	public int dir;
-	
+public abstract class GameMapObj extends MapObject {
 	public LinkedList<Vector> currOccTiles;
 	public LinkedList<Vector> oldOccTiles;
 	public RenderMapKey renderMapKey;
@@ -35,11 +29,13 @@ public abstract class AbstractMapObj extends AnimImage {
 
 	public float luminance = 0;
 
+	public Vector imgTileSize;
+
 	public Vector basePixPos;
 	public Vector baseImgPixPos;
 	public Vector baseImgPixSize;
 
-	public AbstractMapObj() {
+	public GameMapObj() {
 	  collRect = getCollRect();
 	}
 
@@ -48,7 +44,7 @@ public abstract class AbstractMapObj extends AnimImage {
 	@Override
 	public void setPosition(Vector newPosition) {
     super.setPosition(newPosition);
-    
+
     updateOccTiles();
     bakeBasePosition();
     updateRenderMapKey();
@@ -64,7 +60,7 @@ public abstract class AbstractMapObj extends AnimImage {
 
 	public void bakeBasePosition() {
 		basePixPos = RpgGame.inst.gGraphics.getBasePixPosByTilePos( pos );
-		baseImgPixSize = RpgGame.inst.gGraphics.getPixSizeByTileSize( imgTileSize );
+		baseImgPixSize = RpgGame.inst.gGraphics.getPixSizeByTileSize( animation==null ? new Vector() : imgTileSize );
 
 		Vector tmpPixOffset = baseImgPixSize.copy().mulScalarInst(-1);
 		tmpPixOffset.x *= 0.5;
@@ -85,60 +81,37 @@ public abstract class AbstractMapObj extends AnimImage {
 			renderMapKey = newRenderMapKey;
 		}
 	}
-	
-	public void setImage( int newImgID, int newAnimFrame ) {
-    super.setImage(ImageData.images[newImgID], newAnimFrame);
-    
-    imgAnimFrames /= 8;
-    imgTileSize = ((GameImage)image).tileSize.copy().mulInst(imgScale);
-    currFrame = dir*imgAnimFrames + newAnimFrame;
-  }
 
-	@Override
-	public void updateAnimFrame() { //different logic for multidirectional animation
-		if (imgAnimFrames==0) return;
-
-		currAnimFrame = (int) (( ((Game.currFrame-currAnimStart) / (imgAnimLen*1.0)) * imgAnimFrames ) % imgAnimFrames);
-		if (currAnimReversed) currAnimFrame=(imgAnimFrames-1)-currAnimFrame;
-
-		currFrame = dir*imgAnimFrames + currAnimFrame;
-	}
-	
-	public void setImage( int newImgID ) {
-		setImage(newImgID, 0);
-	}
-
-	public void setImgScale( float scaleFactor ) {
-		imgScale = new Vector(scaleFactor);
-		imgTileSize.mulInst(imgScale);
-		bakeBasePosition();
-	}
-
-	@Override
-	public void startAnim( int newAnimLen, boolean reverseAnim ) { //different logic for multidirectional animation
-		imgAnimLen = newAnimLen;
-		currAnimStart = RpgGame.currFrame;
-		currAnimFrame = 0;
-		currAnimReversed = reverseAnim;
-	}
-	
 	@Override
 	public void turnToDirection( Vector targetDir ) {
+	  int oldDir = direction==null ? 0 : GameUtil.getDir( direction );
+
 	  super.turnToDirection(targetDir);
-	  
+
 		int newDir = GameUtil.getDir( direction );
-		int oldOrientation = getOrientation(dir);
+		int oldOrientation = getOrientation(oldDir);
 		int newOrientation = getOrientation(newDir);
 		if (oldOrientation!=newOrientation) { //turn collRect
 		  float tmp = collRect.y;
 		  collRect.x = collRect.y;
 		  collRect.y = tmp;
 		}
-		dir = newDir;
-		
-		updateAnimFrame();
+		animation.setDir(newDir);
 	}
-	
+
+	@Override
+	public void setAnimation(FrameAnimation newAnimation) {
+	  super.setAnimation(newAnimation);
+
+	  animation.setDir( direction==null ? 0 : GameUtil.getDir(direction) );
+	  imgTileSize = ImageData.imageSize.get(animation.image).copy();
+	}
+
+	public void setImgScale(Vector newScale) {
+	  imgTileSize.mulInst(newScale);
+    bakeBasePosition();
+	}
+
 	public int getOrientation(int newDir) { //returns 0 for facing up/down, 1 for facing left/right. favores 0
 	  if (newDir==0) return 0;
 	  if (newDir==1) return 0;
@@ -190,18 +163,18 @@ public abstract class AbstractMapObj extends AnimImage {
 		}
 	}
 
-	public static LinkedList<AbstractMapObj> filterList( LinkedList<AbstractMapObj> moList, 
-			boolean keepPlayer, 
-			boolean keepEnemy, 
-			boolean keepItem, 
-			boolean keepShot, 
-			boolean keepChest, 
+	public static LinkedList<GameMapObj> filterList( LinkedList<GameMapObj> moList,
+			boolean keepPlayer,
+			boolean keepEnemy,
+			boolean keepItem,
+			boolean keepShot,
+			boolean keepChest,
 			boolean keepBrekable ) {
-		LinkedList<AbstractMapObj> result=new LinkedList<AbstractMapObj>();
+		LinkedList<GameMapObj> result=new LinkedList<GameMapObj>();
 
 		if (moList==null) return null;
 
-		for( AbstractMapObj tmpMo : moList ) {
+		for( GameMapObj tmpMo : moList ) {
 		  if (tmpMo instanceof AbstractWall ||
 		      tmpMo instanceof AbstractDoor ||
 		      tmpMo instanceof StairsUp ||
@@ -221,7 +194,7 @@ public abstract class AbstractMapObj extends AnimImage {
 		return result;
 	}
 
-	public static boolean compareLists( LinkedList<AbstractMapObj> moList1, LinkedList<AbstractMapObj> moList2 ) {
+	public static boolean compareLists( LinkedList<GameMapObj> moList1, LinkedList<GameMapObj> moList2 ) {
 		if (moList1==null && moList2==null) return true;
 		if (moList1==null || moList2==null) return false;
 		if (moList1.size() != moList2.size()) return false;

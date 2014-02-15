@@ -1,13 +1,14 @@
 package com.philon.rpg.map;
 import java.util.LinkedList;
 
+import com.philon.engine.FrameAnimation;
 import com.philon.engine.util.Path;
 import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.generator.RoomData;
-import com.philon.rpg.mo.AbstractMapObj;
+import com.philon.rpg.mo.GameMapObj;
 import com.philon.rpg.mos.SmithyVendor;
 import com.philon.rpg.mos.breakables.BreakableBarrel;
 import com.philon.rpg.mos.breakables.BreakableVase;
@@ -36,17 +37,17 @@ public class GameMap {
 //	public AStarMap aStarMap; //TODO astar
 
 	//----------
-	
+
 	/**
-	 * <p>needs additional call of</p> 
-	 * <p>{@code init( int newMapData[][], int newMapStyle )}</p> 
-	 * <p>to function</p> 
+	 * <p>needs additional call of</p>
+	 * <p>{@code init( int newMapData[][], int newMapStyle )}</p>
+	 * <p>to function</p>
 	 */
 	public GameMap() {
   }
-	
+
 	//----------
-	
+
 	public void init( int newMapData[][], AbstractMapStyle newMapStyle ) { //requires mapData and gridSize
 		mapStyle = newMapStyle;
 		gridSize = new Vector(newMapData.length, newMapData[0].length);
@@ -63,7 +64,7 @@ public class GameMap {
 		initTerrainMos(newMapData);
 		RpgGame.inst.gGraphics.updateStaticSeeThroughObjects();
 		RpgGame.inst.gGraphics.updateStaticLightGrid();
-		
+
 	  //init aStarMap //TODO astar
 //  aStarMap = AStarMap.create( gridSize.x, gridSize.y, 1 );
 //  for( int x = 0; x < gridSize.x; x++ ) {
@@ -73,14 +74,14 @@ public class GameMap {
 //      }
 //    }
 //  }
-		
+
 		//determine spawn tiles
     initMapObjects();
 	}
-	
+
 	public void init( GameMapSaveData saveData ) {
     init( saveData.mapData, saveData.mapStyle );
-    
+
     //restore toggle objects
 //    Local TVector toggledTile, MapObj mo
 //    For toggledTile=EachIn saveData.toggledObjects
@@ -153,22 +154,22 @@ public class GameMap {
 			for( int x = 0; x < gridSize.x; x++ ) {
 				Vector currTile = new Vector(x, y);
 				Vector tmpDir=new Vector(0, 1);
-				
+
 				boolean r;
 				boolean l;
 				boolean t;
 				boolean b;
 
 				//get connections
-				r = (currTile.x+1>gridSize.x-1) ? false : 
+				r = (currTile.x+1>gridSize.x-1) ? false :
 					(newMapData[(int) currTile.y][(int) (currTile.x+1)]==RoomData.TILE_WALL);
-				b = (currTile.y+1>gridSize.y-1) ? false : 
+				b = (currTile.y+1>gridSize.y-1) ? false :
 					(newMapData[(int) (currTile.y+1)][(int) currTile.x]==RoomData.TILE_WALL);
-				l = (currTile.x-1<0) ? false : 
+				l = (currTile.x-1<0) ? false :
 					(newMapData[(int) currTile.y][(int) (currTile.x-1)]==RoomData.TILE_WALL);
-				t = (currTile.y-1<0) ? false : 
+				t = (currTile.y-1<0) ? false :
 					(newMapData[(int) (currTile.y-1)][(int) currTile.x]==RoomData.TILE_WALL);
-				
+
 				switch( newMapData[y][x] ) {
 					case RoomData.TILE_WALL : //wall
 
@@ -187,22 +188,19 @@ public class GameMap {
 						if ( getIsBlock(new Vector(x-1, y), newMapData) ) { //create torch
 						  Torch newTorch = new Torch();
               newTorch.setPosition(new Vector(x-1, y));
-              newTorch.turnToDirection(tmpDir);
-              newTorch.setImage(ImageData.IMG_MAP_TORCH);
-              newTorch.startAnim(RpgGame.fps/3);
+              newTorch.turnToDirection(new Vector(1, 0));
+              newTorch.setAnimation(new FrameAnimation(ImageData.images[ImageData.IMG_MAP_TORCH], (int)(RpgGame.fps/3), false));
 						} else if( getIsBlock(new Vector(x, y-1), newMapData) ) {
 						  Torch newTorch = new Torch();
               newTorch.setPosition(new Vector(x, y-1));
               newTorch.turnToDirection(new Vector(0, 1));
-              newTorch.setImage(ImageData.IMG_MAP_TORCH);
-              newTorch.startAnim(RpgGame.fps/3);
+              newTorch.setAnimation(new FrameAnimation(ImageData.images[ImageData.IMG_MAP_TORCH], (int)(RpgGame.fps/3), false));
 						} else { //create firestand
 						  Firestand newFireStand = new Firestand();
 						  newFireStand.setPosition(new Vector(x, y));
-						  newFireStand.setImage(ImageData.IMG_MAP_FIRESTAND);
-						  newFireStand.startAnim(RpgGame.fps/3);
+						  newFireStand.setAnimation(new FrameAnimation(ImageData.images[ImageData.IMG_MAP_FIRESTAND], (int)(RpgGame.fps/3), false));
 						}
-						
+
 						break;
 					case RoomData.TILE_DOOR:
 						if (l && r) tmpDir=new Vector(0, 1);
@@ -212,7 +210,7 @@ public class GameMap {
 						  AbstractDoor newDoor = DoorData.createDoor(mapStyle.getDoorClass());
 						  newDoor.setPosition(new Vector(x, y));
 						  newDoor.turnToDirection(tmpDir);
-						  newDoor.setImgScale( 2 ); //TODO square images
+						  newDoor.setImgScale(new Vector(2)); //TODO square images
 						}
 
 						break;
@@ -295,7 +293,7 @@ public class GameMap {
 	}
 
 	//----------
-	
+
 	public void initMapObjects() {
     for( int x = 0; x < gridSize.x; x++ ) {
       for( int y = 0; y < gridSize.y; y++ ) {
@@ -315,11 +313,11 @@ public class GameMap {
         }
       }
     }
-    
+
     SmithyVendor newSmithyVendor = new SmithyVendor();
     newSmithyVendor.setPosition(new Vector(2, 5));
 	}
-	
+
 	public void addMonsterGroup( Class<? extends AbstractEnemy> clazz, Vector newPos, int count ) {
 		//place army
 		int tmpEneCount = 3;
@@ -329,7 +327,7 @@ public class GameMap {
 				AbstractEnemy tmpEnemy = EnemyData.createEnemy(clazz);
 				tmpEnemy.setPosition(tmpTile.copy());
 				if (!(tmpEnemy instanceof EnemySkeleton)) {
-				  tmpEnemy.setImgScale(2); //TODO enemy images
+				  tmpEnemy.setImgScale(new Vector(2)); //TODO enemy images
 	      }
 			}
 		}
@@ -358,19 +356,19 @@ public class GameMap {
 	//----------
 
 	public boolean isTileFree( Vector newTile, boolean checkForPlayer, boolean checkForEnemy, boolean checkForItem, boolean checkForBreakable ) {
-	  LinkedList<AbstractMapObj> mosOnTile = new LinkedList<AbstractMapObj>();
-		for( AbstractMapObj tmpMo : grid[(int) newTile.y][(int) newTile.x].collList ) {
+	  LinkedList<GameMapObj> mosOnTile = new LinkedList<GameMapObj>();
+		for( GameMapObj tmpMo : grid[(int) newTile.y][(int) newTile.x].collList ) {
 		  if (!tmpMo.pos.copy().roundAllInst().isAllEqual(newTile)) continue;
 		  mosOnTile.add(tmpMo);
 		}
-		mosOnTile = AbstractMapObj.filterList(mosOnTile, checkForPlayer, checkForEnemy, checkForItem, false, true, checkForBreakable);
+		mosOnTile = GameMapObj.filterList(mosOnTile, checkForPlayer, checkForEnemy, checkForItem, false, true, checkForBreakable);
 		return mosOnTile==null ? true : mosOnTile.isEmpty();
 	}
 
 	//----------
 
 	public boolean isTileOnMap( Vector newTile ) {
-		if (newTile.isAllLOE(new Vector()) 
+		if (newTile.isAllLOE(new Vector())
 				&& newTile.isAllSOE(gridSize.copy().subInst(new Vector(1)))) {
 			return true;
 		} else {
@@ -380,7 +378,7 @@ public class GameMap {
 
 	//----------
 
-	public void updateOccTiles( AbstractMapObj mo ) {
+	public void updateOccTiles( GameMapObj mo ) {
 		//clear old area
 		if( mo.oldOccTiles!=null ) {
 			for( Vector currTile : mo.oldOccTiles ) {
@@ -404,11 +402,11 @@ public class GameMap {
 
 	//----------
 
-	public LinkedList<AbstractMapObj> getRectColls( Vector newRectPos, Vector newRectSize ) {
-		LinkedList<AbstractMapObj> result = new LinkedList<AbstractMapObj>();
+	public LinkedList<GameMapObj> getRectColls( Vector newRectPos, Vector newRectSize ) {
+		LinkedList<GameMapObj> result = new LinkedList<GameMapObj>();
 
-		for( Vector tmpTile : AbstractMapObj.getOccTilesByRect(newRectPos, newRectSize) ) {
-			for( AbstractMapObj tmpMo : grid[(int) tmpTile.y][(int) tmpTile.x].collList ) {
+		for( Vector tmpTile : GameMapObj.getOccTilesByRect(newRectPos, newRectSize) ) {
+			for( GameMapObj tmpMo : grid[(int) tmpTile.y][(int) tmpTile.x].collList ) {
 				if( tmpMo.isCollObj ) {
 					if( !result.contains(tmpMo) ) {
 						if( Util.rectsColliding( tmpMo.pos, tmpMo.collRect, newRectPos, newRectSize )!=null ) {
@@ -426,8 +424,8 @@ public class GameMap {
 	//----------
 
 	public boolean getIsRectCollidingWithMap( Vector newPos, Vector newSize ) {
-		LinkedList<AbstractMapObj> colls = getRectColls( newPos, newSize );
-		colls = AbstractMapObj.filterList( colls, false, false, false, false, true, false );
+		LinkedList<GameMapObj> colls = getRectColls( newPos, newSize );
+		colls = GameMapObj.filterList( colls, false, false, false, false, true, false );
 		if (colls==null) return false;
 		return true;
 	}

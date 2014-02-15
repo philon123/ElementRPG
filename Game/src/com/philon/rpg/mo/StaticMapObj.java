@@ -1,13 +1,16 @@
 package com.philon.rpg.mo;
 
-public abstract class StaticMapObj extends AbstractMapObj {
-  
+import com.philon.engine.FrameAnimation;
+import com.philon.rpg.ImageData;
+
+public abstract class StaticMapObj extends GameMapObj {
+
   public StaticMapObj() {
     super();
-    
-    setImage(getImage());
+
+    setAnimation(new FrameAnimation(ImageData.images[getImage()]));
   }
-  
+
   public abstract int getImage();
-  
+
 }

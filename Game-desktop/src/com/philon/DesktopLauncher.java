@@ -2,7 +2,7 @@ package com.philon;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import com.philon.gravity.GravityGame;
+import com.philon.rpg.RpgGame;
 
 public class DesktopLauncher {
 	public static void main(String[] args) {
@@ -11,7 +11,7 @@ public class DesktopLauncher {
 		cfg.useGL20 = false;
 		cfg.width = 480;
 		cfg.height = 320;
-		
-		new LwjglApplication(new GravityGame(), cfg);
+
+		new LwjglApplication(new RpgGame(), cfg);
 	}
 }

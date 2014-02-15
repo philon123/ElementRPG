@@ -2,6 +2,7 @@ package com.philon.rpg.mo;
 
 import java.util.LinkedList;
 
+import com.philon.engine.FrameAnimation;
 import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
@@ -47,59 +48,59 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	public EffectsObj baseEffects;
 	public EffectsObj addedEffects;
 	public EffectsObj effects;
-	
+
 	public StatsObj stats;
 	public LinkedList<AbstractSpell> activeSpells = new LinkedList<AbstractSpell>();
-	
+
   public float maxMeleeRange;
 
 	//----------
-	
+
 	public CombatMapObj() {
 	  super();
-	  
+
 		replaceState( StateMovingStraight.class, StateMovingCombat.class);
-		
+
 		baseEffects = getBaseEffects();
 		maxMeleeRange = getMaxMeleeRange();
-		
+
 		updateStats();
 	}
-	
+
 	public abstract int getImgCasting();
 	public abstract int getImgHit();
 	public abstract int getSouAttack();
   public abstract int getSouHit();
   public abstract int getSouFootstep();
-  
+
   public EffectsObj getBaseEffects() {
     EffectsObj result = new EffectsObj();
     return result;
   }
-  
+
   public float getMaxMeleeRange() {
     return 0.7f;
   }
-  
+
 	public void update() {
 		updateSpells();
 
 		super.update();
 	}
-	
+
 	public void updateStats() {
 	  addedEffects = getAdditionalEffects();
 	  effects = EffectsObj.add(baseEffects, addedEffects);
-	  
+
 	  int tmpHealth=-1;
 	  int tmpMana=-1;
 	  if (stats!=null) {
       tmpHealth = (Integer) stats.getStatValue(StatHealth.class);
       tmpMana= (Integer) stats.getStatValue(StatMana.class);
 	  }
-	  
+
     stats = effects.getStats();
-    
+
     if (tmpHealth==-1) {
       stats.addOrCreateStat(StatHealth.class, stats.getStatValue(StatMaxHealth.class));
     } else {
@@ -111,7 +112,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
       stats.addOrCreateStat(StatMana.class, tmpMana);
     }
   }
-  
+
   public EffectsObj getAdditionalEffects() {
     return new EffectsObj();
   }
@@ -166,7 +167,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  stats.addOrCreateStat( StatMana.class, -1*amount );
 	  return true;
 	}
-	
+
 	//----------
 
 	public boolean prepareSpell( int newSpellID, boolean isManual, Vector newTarPos, Selectable newTarget ) {
@@ -178,7 +179,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 		}
 
 		v = 0;
-		
+
 		if( newSpellID==SpellData.MELEE || newSpellID==SpellData.ARROW ) {
 			castCooldown = (int) (RpgGame.fps / (Float)stats.getStatValue(StatAttackRate.class));
 		} else {
@@ -220,7 +221,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	}
 
 	//----------
-	
+
 	public void castPreparedSpell() {
 		castPreparedSpell(null, null);
 	}
@@ -232,13 +233,13 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 		AbstractSpell s = SpellData.createSpell(this, preparedSpell, stats.spells[preparedSpell], newTarPos, newTarget);
 		if (s!=null) activeSpells.addLast(s);
-		
+
 		return true;
 	}
-	
+
 	public void attack( CombatMapObj mo, AbstractSpell spell ) {
     float lifeLoss = 0;
-    
+
     int norDmg = ((Vector)spell.stats.getStatValue(StatNormalDamage.class)).getRandomIntValue();
     if( (Boolean) spell.stats.getStatValue(StatIgnoreArmor.class) ) {
       lifeLoss = norDmg;
@@ -248,18 +249,18 @@ public abstract class CombatMapObj extends UpdateMapObj {
     spell.stats.addOrCreateStat( StatHealth.class, (int)(lifeLoss * (Float)spell.stats.getStatValue(StatLifeLeech.class) ));
     spell.stats.addOrCreateStat( StatMana.class,   (int)(lifeLoss * (Float)spell.stats.getStatValue(StatManaLeech.class) ));
 
-    lifeLoss += ((Vector)spell.stats.getStatValue(StatFireDamage.class)).getRandomIntValue()     * 
+    lifeLoss += ((Vector)spell.stats.getStatValue(StatFireDamage.class)).getRandomIntValue()     *
         (1-(Float)mo.stats.getStatValue(StatResistFire.class));
-    lifeLoss += ((Vector)spell.stats.getStatValue(StatLightningDamage.class)).getRandomIntValue() * 
+    lifeLoss += ((Vector)spell.stats.getStatValue(StatLightningDamage.class)).getRandomIntValue() *
         (1-(Float)mo.stats.getStatValue(StatResistLightning.class));
-    lifeLoss += ((Vector)spell.stats.getStatValue(StatIceDamage.class)).getRandomIntValue()    * 
+    lifeLoss += ((Vector)spell.stats.getStatValue(StatIceDamage.class)).getRandomIntValue()    *
         (1-(Float)mo.stats.getStatValue(StatResistIce.class));
-    
+
     lifeLoss -= (Integer)mo.stats.getStatValue(StatReduceDmgTaken.class);
     mo.stats.addOrCreateStat( StatHealth.class, Util.round(lifeLoss * -1) );
     mo.damageRecievedTrigger(this);
   }
-	
+
 	public void damageRecievedTrigger(CombatMapObj attackedBy) {
     if( (Integer)stats.getStatValue(StatHealth.class) <= 0 ) {
       killedBy = attackedBy;
@@ -272,7 +273,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
     }
 
   }
-	
+
 	@Override
 	public void setLuminance( float newLuminance ) {
     luminance = newLuminance;
@@ -280,10 +281,10 @@ public abstract class CombatMapObj extends UpdateMapObj {
       RpgGame.inst.gGraphics.insertDynamicLightSource(this);
     }
   }
-	
+
 	//----------
-	
-	public boolean getCanSeeGO( AbstractMapObj newTarget ) {
+
+	public boolean getCanSeeGO( GameMapObj newTarget ) {
 		Vector tile1=pos.copy().roundAllInst();
 		Vector tile2=newTarget.pos.copy().roundAllInst();
 		return RpgGame.inst.gMap.tilesInSight( tile1, tile2 );
@@ -302,7 +303,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 				if( RpgGame.inst.gMap.isTileOnMap(currTile) ) {
 					float currDist = Vector.getDistance(pos, currTile);
 					if( currDist <= newRange ) {
-						for( AbstractMapObj tmpMO : RpgGame.inst.gMap.grid[(int) currTile.y][(int) currTile.x].collList ) {
+						for( GameMapObj tmpMO : RpgGame.inst.gMap.grid[(int) currTile.y][(int) currTile.x].collList ) {
 							if( tmpMO instanceof CombatMapObj ) {
 								if( !result.contains(tmpMO) || tmpMO==this ) {
 									if( effectedClasses==null ) {
@@ -326,9 +327,9 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	}
 
 	//----------
-	
+
 	public class StateMovingCombat extends StateMovingStraight {
-	  
+
 	  public boolean execUpdate() {
 	    if( footstepCooldown==0 ) {
 	      RpgGame.playSoundFX( getSouFootstep() );
@@ -337,74 +338,71 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 	    return super.execUpdate();
 	  }
-	  
+
 	}
 
 	//----------
-	
+
 	public class StateCasting extends AbstractMapObjState {
-	  
+
 	  @Override
 	  public void execOnChange() {
 	    states.get(StateIdle.class).execOnChange();
-	    setImage( getImgCasting() );
-	    startAnim( RpgGame.fps/3 );
+	    setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(RpgGame.fps/3), false));
 	  }
-	  
+
 	  @Override
 	  public boolean execUpdate() {
 	    return true;
 	  }
-	  
+
 	}
-	
+
 	//----------
-	
+
 	public class StateHit extends AbstractMapObjState {
-	  
+
 	  @Override
 	  public void execOnChange() {
 	    v=0;
 	    int newHitFrames = (int)( ((Float)stats.getStatValue(StatHitRecovery.class)+1) * (RpgGame.fps/3) );
 	    hitCooldown = newHitFrames;
-	    setImage( getImgHit() );
-	    startAnim( newHitFrames );
+	    setAnimation(new FrameAnimation(ImageData.images[getImgHit()], newHitFrames, false));
 	  }
-	  
+
 	  @Override
 	  public boolean execUpdate() {
 	    return true;
 	  }
-	  
+
 	}
 
 	//----------
-	
+
 	public class StateAttacking extends AbstractMapObjState {
 	  private int currImg = 0;
-	  
+
 	  @Override
 	  public void execOnChange() {
 	    pathfindCooldown=0;
 
-	    setImage( getImgCasting() );
+	    setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(RpgGame.fps/3), false));
 	    currImg = getImgCasting();
-	    startAnim( RpgGame.fps/3 );
 	  }
-	  
+
 	  @Override
 	  public boolean execUpdate() {
 	    if( currSelectedSpell==SpellData.MELEE ) {
 	      if( currTargetDist<maxMeleeRange ) {
-	        if(currImg!=getImgCasting()) setImage( getImgCasting() );
+	        if(currImg!=getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(RpgGame.fps/3), false));
 	        prepareSpell( currSelectedSpell, false, currTargetPos, currTarget );
 	        return true;
 	      } else {
-	        if(currImg==getImgCasting()) setImage( getImgMoving() );
+	        if(currImg==getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(RpgGame.fps/3), false));
   	      return states.get(CombatMapObj.StateMovingTarget.class).execUpdate();
 	      }
 	    } else {
-	      if(currImg==getImgCasting()) setImage( getImgMoving() );
+	      if(currImg==getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(RpgGame.fps/3), false));
 	      if( !prepareSpell( currSelectedSpell, false, currTargetPos, currTarget ) ) {
 	        changeState(defaultState);
 	        return false;
@@ -413,30 +411,29 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	      }
 	    }
 	  }
-	  
+
 	}
-	
+
 	//----------
-	
+
 	public class StateInteracting extends AbstractMapObjState {
-	  
+
 	  @Override
 	  public void execOnChange() {
 	    pathfindCooldown=0;
-	    if(image!=ImageData.images[getImgMoving()]) setImage( getImgMoving() );
-	    startAnim(RpgGame.fps/3);
+	    if(animation.image!=ImageData.images[getImgMoving()]) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(RpgGame.fps/3), false));
 	    if(!(currTarget instanceof Selectable)) {
 	      changeState(StateIdle.class);
 	    }
 	  }
-	  
+
 	  @Override
 	  public boolean execUpdate() {
 	    if (currTarget==null) return false; //nothing to interact with;
-	    
+
 	    if( !states.get(CombatMapObj.StateMovingTarget.class).execUpdate() ) {
         if (currTargetDist < 1.5) { //moved to pos, ready to interact
-          if(image!=ImageData.images[getImgIdle()]) setImage( getImgIdle() );
+          if(animation.image!=ImageData.images[getImgIdle()]) setAnimation(new FrameAnimation(ImageData.images[getImgIdle()], (int)(RpgGame.fps/3), false));
           interact((Selectable)currTarget);
           return false; //finished
         } else {
@@ -446,9 +443,9 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
       return true;
 	  }
-	  
+
 	}
-	
+
 }
 
 
