@@ -1,11 +1,12 @@
 package com.philon.rpg.spell;
 import java.util.LinkedList;
 
+import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.mo.GameMapObj;
 import com.philon.rpg.mo.BreakableMapObj;
 import com.philon.rpg.mo.CombatMapObj;
+import com.philon.rpg.mo.RpgMapObj;
 import com.philon.rpg.mo.Selectable;
 import com.philon.rpg.mo.StaticMapObj;
 import com.philon.rpg.mos.door.AbstractDoor;
@@ -31,34 +32,34 @@ public abstract class AbstractSpell {
 	public LinkedList<TimerListObject> hitObjects = new LinkedList<TimerListObject>();
 
 	//----------
-	
+
 	public void init( CombatMapObj newOwnerMO, int newSType, int newSLvl, Vector newTarPos, Selectable newTarget ) {
 	  id            = newSType;
 	  sLvl          = newSLvl;
 	  target        = newTarget;
 	  lifeTime      = SpellData.lifeTime[id];
 	  passthrough   = SpellData.passthrough[id];
-	  
+
 	  ownerMO = newOwnerMO;
 	  if( newTarget!=null ) {
-	    tarPos = ((GameMapObj)newTarget).pos.copy();
+	    tarPos = ((RpgMapObj)newTarget).pos.copy();
 	  } else {
 	    tarPos = newTarPos;
 	  }
-	  
+
 	  float newCastRange = 0.5f;
 	  pos = newOwnerMO.pos.copy().addInst( Vector.sub( tarPos, newOwnerMO.pos ).normalizeInst().mulScalarInst(newCastRange) );
 
 	  stats = getBaseStats();
 	  RpgGame.playSoundFX( SpellData.souCast[id] );
 	}
-	
+
 	public StatsObj getBaseStats() {
 	  return SpellData.stats[id][sLvl];
 	}
 
 	//----------
-	
+
 	public void update() {
 	  LinkedList<TimerListObject> forDelete = new LinkedList<TimerListObject>();
 		for( TimerListObject tlo : hitObjects ) {
@@ -79,14 +80,14 @@ public abstract class AbstractSpell {
 
 	//----------
 
-	public void shotImpactTrigger( AbstractShot shotObj, GameMapObj mo ) {
+	public void shotImpactTrigger( AbstractShot shotObj, RpgMapObj mo ) {
 		for( TimerListObject tlo : hitObjects ) {
 			if( tlo.mo == mo ) {
 				return;
 			}
 		}
-		hitObjects.addLast( new TimerListObject(mo, (int)(RpgGame.fps/3)) );
-		
+		hitObjects.addLast( new TimerListObject(mo, (int)(PhilonGame.fps/3)) );
+
 		if (mo instanceof StaticMapObj || mo instanceof AbstractWall || mo instanceof AbstractDoor) {
 		  shotCollidedTrigger( shotObj, true );
 		} else if (mo instanceof BreakableMapObj) {
@@ -96,8 +97,8 @@ public abstract class AbstractSpell {
 		  ownerMO.attack((CombatMapObj)mo, this);
 		  shotCollidedTrigger( shotObj, false );
 		}
-		
-		
+
+
 	}
 
 	//----------
@@ -132,7 +133,7 @@ public abstract class AbstractSpell {
 		sh.setTarget( target, tarPos );
 		shots.addLast(sh);
 	}
-	
+
 	//----------
 
 }

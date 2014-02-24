@@ -1,38 +1,30 @@
 package com.philon.gravity;
 
-import com.philon.engine.Game;
+import com.badlogic.gdx.Screen;
+import com.philon.engine.PhilonGame;
 
-public class GravityGame extends Game {
-  public static Data data;
+public class GravityGame extends PhilonGame {
   public static GravityGraphics graphics;
-  public static Map currMap;
-  
+  public static RenderMap renderMap;
+
   @Override
   public void create() {
-    super.create();
-    
     graphics = new GravityGraphics();
-    data = new Data();
-    
-    changeLevel(0);
+    renderMap = new RenderMap();
+
+    super.create();
   }
-  
-  public void changeLevel(int newLevel) {
-    currMap = new Map();
-    currMap.build(data.levelData.get(newLevel));
-  }
-  
+
   @Override
-  public void render() {
-    super.render();
-    
-    graphics.batch.begin();
-    
-    currMap.updateMassObjects();
-    graphics.updateScaling();
-    graphics.drawAll();
-    
-    graphics.batch.end();
+  public void resize(int width, int height) {
+    super.resize(width, height);
+
+    graphics.resizedTrigger(screenPixSize);
   }
-  
+
+  @Override
+  public Screen getMainScreen() {
+    return new GravityScreen();
+  }
+
 }

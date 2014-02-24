@@ -1,5 +1,6 @@
 package com.philon.rpg.mos.player;
 
+import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.SkillData;
@@ -37,10 +38,10 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
 	public int xp;
 	public int currLevel=1;
 	public int freeStatPoints;
-	
+
 	public Inventory inv;
 	public int skills[];
-	
+
 	public InventoryForm invForm;
   public CharacterForm charForm;
   public SpellForm spellForm;
@@ -48,22 +49,22 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
   public StatusbarForm statbarForm;
 
   public int souNoMana;
-  
+
 	public AbstractChar() {
 	  super();
-	  
+
 	  setLuminance(0.5f);
 
     souNoMana = getSouNoMana();
     inv = new Inventory(this);
     skills = new int[getNumSkills()];
-    
+
     stats.addOrCreateStat( StatM2Stype.class, SpellData.FIRE_BOLT );
     stats.spells[SpellData.FIRE_WALL] += 1; //TODO spells
     stats.spells[SpellData.FIRE_BOLT] += 1;
     stats.spells[SpellData.KUGELBLITZ] += 1;
     stats.spells[SpellData.HEALING] += 1;
-    
+
     invForm = new InventoryForm();
     charForm = new CharacterForm();
     spellForm = new SpellForm();
@@ -71,16 +72,16 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
     statbarForm = new StatusbarForm();
     statbarForm.activate();
 	}
-	
+
 	public abstract int getSouNoMana();
 	public abstract int getNumSkills();
 	public abstract String getCharText();
-	
+
   @Override
   public float getTilesPerSecond() {
     return 4;
   }
-  
+
   @Override
   public int getSouFootstep() {
     return 0;
@@ -90,14 +91,14 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
   public Vector getCollRect() {
     return new Vector(0.3f);
   }
-  
+
   @Override
   public boolean useMana(int amount) {
     if( amount > (Integer)stats.getStatValue(StatMana.class) ) {
       if (souNoMana>0) RpgGame.playSoundFX( souNoMana );
       return false;
     }
-    
+
     return super.useMana(amount);
   }
 
@@ -123,7 +124,7 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
 	public void interact( Selectable newTarget ) {
 		if(currTarget instanceof AbstractItem) {
 //		  Game.playSoundFX( SoundData.SOU_PICKUP );
-			if( RpgGame.inst.gForms.isFormActive(InventoryForm.class)) {
+			if( PhilonGame.gForms.isFormActive(InventoryForm.class)) {
 				inv.pickupItem( (AbstractItem)currTarget );
 			} else {
 				inv.pickupAuto( (AbstractItem)currTarget );
@@ -133,14 +134,14 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
 	}
 
 	public void interactTrigger(UpdateMapObj objInteracting) {
-	  
+
 	}
 
 	@Override
 	public boolean castSpell( int newSpellID, Vector newTarPos, Selectable newTarget ) {
 		boolean superResult = super.castSpell( newSpellID, newTarPos, newTarget );
 		if (!superResult) return false;
-		
+
 		if( newSpellID==SpellData.MELEE || newSpellID==SpellData.ARROW ) {
 		  if (Math.random()<0.05) {
 		    AbstractItem tmpWeapon = inv.equip.getBySlot(Equip.INV_WEAPON);
@@ -153,18 +154,18 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
 		}
 		return true;
 	}
-	
+
 	@Override
   public void attack(CombatMapObj mo, AbstractSpell spell) {
     if (mo instanceof AbstractChar) return;
-    
+
     super.attack(mo, spell);
   }
 
 	@Override
 	public void updateStats() {
 	  super.updateStats();
-	  
+
 	  if (inv!=null){
 	    inv.updateReqMetFlags();
 	    stats.spells[SpellData.MELEE]=0;
@@ -173,12 +174,12 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
       if (newDefaultSpell!=SpellData.EMPTY) stats.spells[newDefaultSpell]=1;
 	  }
 	}
-	
+
 	@Override
 	public EffectsObj getAdditionalEffects() {
 	  return inv==null ? new EffectsObj() : inv.effects;
 	}
-	
+
 	public void setSkill( int newSkill, int newSkillLvl ) {
 		int prevGen = getSkillGeneration(skills[newSkill]);
 		int currGen = getSkillGeneration(newSkillLvl);
@@ -235,16 +236,16 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
 	}
 
 	//----------
-	
+
 	public void levelUp() {
 	  currLevel++;
 	  freeStatPoints += 5;
-	  
+
 	  RpgGame.playSoundFX(14);
 	}
-	
+
 	//----------
-	
+
 	public boolean consumeItem( ConsumableItem newItem ) {
 	  newItem.consumedTrigger(this);
 		inv.removeItem( newItem );

@@ -1,7 +1,6 @@
 package com.philon.engine;
 
 import com.philon.engine.util.AnimTextureRegion;
-import com.philon.rpg.RpgGame;
 
 public class FrameAnimation {
   public AnimTextureRegion image;
@@ -46,7 +45,7 @@ public class FrameAnimation {
 
   public void startAnim( int newAnimLen, boolean reverseAnim ) {
     durationInFrames = newAnimLen;
-    startFrame = RpgGame.currFrame;
+    startFrame = PhilonGame.currFrame;
     currAnimReversed = reverseAnim;
   }
 
@@ -57,7 +56,7 @@ public class FrameAnimation {
   public void updateAnimFrame() {
     if (startFrame<0) return; //no animation -> keep frame frozen
 
-    currAnimFrame = (int) (( ((Game.currFrame-startFrame) / (durationInFrames*1.0f)) * animLengthInFrames ) % animLengthInFrames);
+    currAnimFrame = (int) (( ((PhilonGame.currFrame-startFrame) / (durationInFrames*1.0f)) * animLengthInFrames ) % animLengthInFrames);
     if (currAnimReversed) currAnimFrame=(animLengthInFrames-1)-currAnimFrame;
   }
 

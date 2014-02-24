@@ -16,10 +16,10 @@ import com.philon.rpg.mos.shot.AbstractShot;
 import com.philon.rpg.mos.stairs.StairsDown;
 import com.philon.rpg.mos.stairs.StairsUp;
 import com.philon.rpg.mos.wall.AbstractWall;
-import com.philon.rpg.util.GameUtil;
+import com.philon.rpg.util.RpgUtil;
 import com.philon.rpg.util.RenderMapKey;
 
-public abstract class GameMapObj extends MapObject {
+public abstract class RpgMapObj extends MapObject {
 	public LinkedList<Vector> currOccTiles;
 	public LinkedList<Vector> oldOccTiles;
 	public RenderMapKey renderMapKey;
@@ -35,7 +35,7 @@ public abstract class GameMapObj extends MapObject {
 	public Vector baseImgPixPos;
 	public Vector baseImgPixSize;
 
-	public GameMapObj() {
+	public RpgMapObj() {
 	  collRect = getCollRect();
 	}
 
@@ -84,11 +84,11 @@ public abstract class GameMapObj extends MapObject {
 
 	@Override
 	public void turnToDirection( Vector targetDir ) {
-	  int oldDir = direction==null ? 0 : GameUtil.getDir( direction );
+	  int oldDir = direction==null ? 0 : RpgUtil.getDir( direction );
 
 	  super.turnToDirection(targetDir);
 
-		int newDir = GameUtil.getDir( direction );
+		int newDir = RpgUtil.getDir( direction );
 		int oldOrientation = getOrientation(oldDir);
 		int newOrientation = getOrientation(newDir);
 		if (oldOrientation!=newOrientation) { //turn collRect
@@ -103,7 +103,7 @@ public abstract class GameMapObj extends MapObject {
 	public void setAnimation(FrameAnimation newAnimation) {
 	  super.setAnimation(newAnimation);
 
-	  animation.setDir( direction==null ? 0 : GameUtil.getDir(direction) );
+	  animation.setDir( direction==null ? 0 : RpgUtil.getDir(direction) );
 	  imgTileSize = ImageData.imageSize.get(animation.image).copy();
 	}
 
@@ -163,18 +163,18 @@ public abstract class GameMapObj extends MapObject {
 		}
 	}
 
-	public static LinkedList<GameMapObj> filterList( LinkedList<GameMapObj> moList,
+	public static LinkedList<RpgMapObj> filterList( LinkedList<RpgMapObj> moList,
 			boolean keepPlayer,
 			boolean keepEnemy,
 			boolean keepItem,
 			boolean keepShot,
 			boolean keepChest,
 			boolean keepBrekable ) {
-		LinkedList<GameMapObj> result=new LinkedList<GameMapObj>();
+		LinkedList<RpgMapObj> result=new LinkedList<RpgMapObj>();
 
 		if (moList==null) return null;
 
-		for( GameMapObj tmpMo : moList ) {
+		for( RpgMapObj tmpMo : moList ) {
 		  if (tmpMo instanceof AbstractWall ||
 		      tmpMo instanceof AbstractDoor ||
 		      tmpMo instanceof StairsUp ||
@@ -194,7 +194,7 @@ public abstract class GameMapObj extends MapObject {
 		return result;
 	}
 
-	public static boolean compareLists( LinkedList<GameMapObj> moList1, LinkedList<GameMapObj> moList2 ) {
+	public static boolean compareLists( LinkedList<RpgMapObj> moList1, LinkedList<RpgMapObj> moList2 ) {
 		if (moList1==null && moList2==null) return true;
 		if (moList1==null || moList2==null) return false;
 		if (moList1.size() != moList2.size()) return false;

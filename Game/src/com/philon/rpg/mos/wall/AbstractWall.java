@@ -3,9 +3,9 @@ package com.philon.rpg.mos.wall;
 import com.philon.engine.FrameAnimation;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
-import com.philon.rpg.mo.GameMapObj;
+import com.philon.rpg.mo.RpgMapObj;
 
-public abstract class AbstractWall extends GameMapObj {
+public abstract class AbstractWall extends RpgMapObj {
   public boolean isBlock; //must be set before use of setWallType()
 
   @Override

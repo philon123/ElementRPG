@@ -5,13 +5,14 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
 import com.philon.engine.FrameAnimation;
+import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Path;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.mo.state.AbstractMapObjState;
 
-public abstract class UpdateMapObj extends GameMapObj {
+public abstract class UpdateMapObj extends RpgMapObj {
 	public Class<? extends AbstractMapObjState> currState = null;
 	public Class<? extends AbstractMapObjState> defaultState;
 	public LinkedHashMap<Class<? extends AbstractMapObjState>, AbstractMapObjState> states
@@ -59,7 +60,7 @@ public abstract class UpdateMapObj extends GameMapObj {
   }
 
   public int getDieCooldown() {
-    return (int) (RpgGame.fps/3);
+    return (int) (PhilonGame.fps/3);
   }
 
 	public void loadStates() {
@@ -68,7 +69,7 @@ public abstract class UpdateMapObj extends GameMapObj {
     do {
       hierarchy.addFirst(currClass);
       currClass = currClass.getSuperclass();
-    } while(currClass!=GameMapObj.class);
+    } while(currClass!=RpgMapObj.class);
 
     for (Class<?> currentClass : hierarchy) {
       for (Class<?> tmpClass : currentClass.getDeclaredClasses()) {
@@ -161,7 +162,7 @@ public abstract class UpdateMapObj extends GameMapObj {
 	public Vector getNewPositionOffset( Vector targetOffset ) {
 		Vector result = targetOffset.copy();
 
-		LinkedList<GameMapObj> potentialColls = getPotentialCollisions( result );
+		LinkedList<RpgMapObj> potentialColls = getPotentialCollisions( result );
 		if (potentialColls!=null) { //collision occured!
 			//determine main movement axis and attempt to move in that direction instead
 			Vector absDir = Vector.absolute(direction);
@@ -225,9 +226,9 @@ public abstract class UpdateMapObj extends GameMapObj {
 
 	//----------
 
-	public LinkedList<GameMapObj> getPotentialCollisions( Vector newOffset ) {
-		LinkedList<GameMapObj> result = RpgGame.inst.gMap.getRectColls(Vector.add(pos, newOffset), collRect);
-		result =  GameMapObj.filterList( result, true, true, false, false, true, true );
+	public LinkedList<RpgMapObj> getPotentialCollisions( Vector newOffset ) {
+		LinkedList<RpgMapObj> result = RpgGame.inst.gMap.getRectColls(Vector.add(pos, newOffset), collRect);
+		result =  RpgMapObj.filterList( result, true, true, false, false, true, true );
 		if (result==null) return null;
 		result.remove(this);
 		if (result.isEmpty()) return null;
@@ -241,7 +242,7 @@ public abstract class UpdateMapObj extends GameMapObj {
 		currTarget = newTarget;
 		currTargetPos = newTargetPos;
 		if( currTargetPos==null && currTarget!=null ) {
-			currTargetPos = ((GameMapObj)currTarget).pos.copy();
+			currTargetPos = ((RpgMapObj)currTarget).pos.copy();
 		}
 		turnToTarget( currTargetPos );
 		updateTarget();
@@ -259,7 +260,7 @@ public abstract class UpdateMapObj extends GameMapObj {
 
 	  @Override
 	  public void execOnChange() {
-	    setAnimation(new FrameAnimation(ImageData.images[getImgIdle()], (int)(RpgGame.fps/3), false));
+	    setAnimation(new FrameAnimation(ImageData.images[getImgIdle()], (int)(PhilonGame.fps/3), false));
 	    v=0;
 	  }
 
@@ -300,12 +301,12 @@ public abstract class UpdateMapObj extends GameMapObj {
 
 	  @Override
 	  public void execOnChange() {
-	    setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(RpgGame.fps/3), false));
+	    setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(PhilonGame.fps/3), false));
 	  }
 
 	  @Override
 	  public boolean execUpdate() {
-	    v = tilesPerSecond / RpgGame.fps;
+	    v = tilesPerSecond / PhilonGame.fps;
 	    Vector newOffset = Vector.mulScalar(direction, v);
 	    newOffset = getNewPositionOffset(newOffset);
 	    if (newOffset==null) return false;

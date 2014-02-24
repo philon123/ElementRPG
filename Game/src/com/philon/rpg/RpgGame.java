@@ -1,10 +1,11 @@
 package com.philon.rpg;
 import java.util.LinkedList;
 
-import com.philon.engine.Game;
+import com.badlogic.gdx.Screen;
+import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.map.GameMap;
-import com.philon.rpg.map.GameMapSaveData;
+import com.philon.rpg.map.RpgMap;
+import com.philon.rpg.map.RpgMapSaveData;
 import com.philon.rpg.map.generator.MapGenerator;
 import com.philon.rpg.mo.UpdateMapObj;
 import com.philon.rpg.mos.enemy.AbstractEnemy;
@@ -14,57 +15,82 @@ import com.philon.rpg.mos.player.CharData;
 import com.philon.rpg.mos.player.PlayerSaveData;
 import com.philon.rpg.mos.shot.AbstractShot;
 import com.philon.rpg.mos.wall.CellarMapStylye;
-import com.philon.rpg.util.GameUtil;
+import com.philon.rpg.util.RpgUtil;
 
-public class RpgGame extends Game {
+public class RpgGame extends PhilonGame {
 	public static RpgGame inst; //holds current instance
-	
-	public GameDatabase gMedia;
-	public GameMap gMap;
-	public GameGraphics gGraphics;
-	public GameInput gInput;
-	public GameUtil gUtil;
-	
-	public GameMapSaveData levelData[];
+
+	public RpgDatabase gMedia;
+	public RpgMap gMap;
+	public RpgGraphics gGraphics;
+	public RpgInput gInput;
+	public RpgUtil gUtil;
+
+	public RpgMapSaveData levelData[];
 	public PlayerSaveData playerData;
 	public int numLevels=10;
 	public int currLevel;
-	
+
 	public AbstractChar localPlayer;
 	public LinkedList<UpdateMapObj> dynamicMapObjs = new LinkedList<UpdateMapObj>();
 	public LinkedList<AbstractEnemy> enemies = new LinkedList<AbstractEnemy>();
-	
+
 	@Override
 	public void create() {
 	  super.create();
-	  
-	  GameDatabase.loadAll();
-	  
-		gGraphics = new GameGraphics();
-		gInput = new GameInput();
-		gUtil = new GameUtil();
-		levelData = new GameMapSaveData[numLevels];
-		
+
+	  RpgDatabase.loadAll();
+
+		gGraphics = new RpgGraphics();
+		gInput = new RpgInput();
+		gUtil = new RpgUtil();
+		levelData = new RpgMapSaveData[numLevels];
+
 //	  SoundData.souMusic.play(); //TODO music
 		inst = this;
 		changeLevel(0);
 	}
 
 	@Override
+	public Screen getMainScreen() {
+	  return new RpgScreen();
+	}
+
+  @Override
+  public void render() {
+    super.render();
+
+//    long t = System.currentTimeMillis();
+
+    gInput.handleUserInput();
+//    System.out.println("game: ui: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
+
+    gGraphics.updateMinMaxTilesOnScreen();
+    updateMapObjs();
+    PhilonGame.gForms.updateForms();
+//    System.out.println("game: mos: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
+
+    gGraphics.drawAll();
+//    System.out.println("game: drawmap: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
+  }
+
+  @Override
+  public void resize(int width, int height) {
+    super.resize(width, height);
+
+    gGraphics.resizedTrigger(screenPixSize);
+  }
+
+	@Override
   public void dispose() {
     gGraphics.dispose();
   }
-	
+
   public static void playSoundFX(int sound) {
     if (sound==0) return;
     SoundData.sounds[sound].play();
   }
-  
-  @Override
-  public void resize(int width, int height) {
-    gGraphics.resizedTrigger(screenPixSize);
-  }
-	
+
 	public void changeLevel( int newLevel ) {
 		int prevLevel = currLevel;
 		currLevel = newLevel;
@@ -78,7 +104,7 @@ public class RpgGame extends Game {
 		}
 
 		//load level or create new
-		gMap = new GameMap();
+		gMap = new RpgMap();
 		if( levelData[newLevel]==null ) {
 			gMap.init(new MapGenerator().generateMap(new Vector(100)), new CellarMapStylye());
 		} else {
@@ -103,24 +129,6 @@ public class RpgGame extends Game {
 			localPlayer.pos = newPos.copy();
 		}
 		gGraphics.centeredMo=localPlayer;
-	}
-
-	@Override
-	public void render() {
-	  super.render();
-	  
-//	  long t = System.currentTimeMillis();
-	  
-  	gInput.handleUserInput();
-//  	System.out.println("game: ui: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
-  
-  	gGraphics.updateMinMaxTilesOnScreen();
-  	updateMapObjs();
-  	gForms.updateForms();
-//  	System.out.println("game: mos: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
-  
-  	gGraphics.drawAll();
-//  	System.out.println("game: drawmap: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
 	}
 
 	public void updateMapObjs() {

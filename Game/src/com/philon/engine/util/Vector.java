@@ -3,25 +3,33 @@ package com.philon.engine.util;
 import java.lang.Math;
 import java.math.BigDecimal;
 
+import org.jbox2d.common.Vec2;
+
 public class Vector {
 	public float x;
 	public float y;
 
+	//Vec2 interface
+	public Vector(Vec2 vec2) {
+	  this(vec2.x, vec2.y);
+	}
+
+
 	//----------
-	
+
 	public Vector( float newXValue, float newYValue ) {
 		this.x = newXValue;
 		this.y = newYValue;
 	}
 
 	//----------
-	
+
 	public Vector() {
 		this(0, 0);
 	}
 
 	//----------
-	
+
 	public Vector(float sclar) {
 		this(sclar, sclar);
 	}
@@ -54,13 +62,13 @@ public class Vector {
 	//----------
 
 	public String toString() {
-	  BigDecimal a = new BigDecimal(this.x); 
-	  BigDecimal b = new BigDecimal(this.y); 
+	  BigDecimal a = new BigDecimal(this.x);
+	  BigDecimal b = new BigDecimal(this.y);
 	  a = a.divide(new BigDecimal("1"), 2, BigDecimal.ROUND_HALF_UP);
-    b = b.divide(new BigDecimal("1"), 2, BigDecimal.ROUND_HALF_UP); 
+    b = b.divide(new BigDecimal("1"), 2, BigDecimal.ROUND_HALF_UP);
 	 	return "(" + a.toPlainString() + ", " + b.toPlainString() + ") ";
 	}
-	
+
 	public String toStringIntRange() {
 	  String sx = String.valueOf((int)Math.floor(x));
 	  String sy = String.valueOf((int)Math.floor(y));
@@ -373,12 +381,12 @@ public class Vector {
 	}
 
 	//----------
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		Vector v = (Vector)obj;
 			if (v==null) return super.equals(obj);
-	
+
 			if( x==v.x && y==v.y ) {
 				return true; //vectors are equal
 			} else {
@@ -387,15 +395,15 @@ public class Vector {
 	}
 
 	//----------
-	
+
 	public float getRandomFloatValue() {
 	  return Util.random(x, y);
 	}
-	
+
 	public int getRandomIntValue() {
 	  return Util.round( Util.random(x, y) );
 	}
-	
+
 
 }
 

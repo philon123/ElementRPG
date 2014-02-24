@@ -1,6 +1,7 @@
 package com.philon.rpg.mo;
 
 import com.philon.engine.FrameAnimation;
+import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
@@ -16,7 +17,7 @@ public abstract class BreakableMapObj extends UpdateMapObj implements Selectable
   public abstract int getDropValue();
 
   public int getAnimDur() {
-    return (int) RpgGame.fps/2;
+    return (int) PhilonGame.fps/2;
   }
 
   @Override

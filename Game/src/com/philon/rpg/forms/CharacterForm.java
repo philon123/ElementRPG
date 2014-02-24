@@ -1,5 +1,6 @@
 package com.philon.rpg.forms;
 
+import com.philon.engine.PhilonGame;
 import com.philon.engine.forms.AbstractButton;
 import com.philon.engine.forms.AbstractForm;
 import com.philon.engine.forms.AbstractLabel;
@@ -17,26 +18,26 @@ import com.philon.rpg.stat.StatsObj.StatMana;
 import com.philon.rpg.stat.StatsObj.StatMaxHealth;
 import com.philon.rpg.stat.StatsObj.StatMaxMana;
 import com.philon.rpg.stat.StatsObj.StatReduceDmgTaken;
-import com.philon.rpg.stat.StatsObj.StatResistLightning;
 import com.philon.rpg.stat.StatsObj.StatResistFire;
 import com.philon.rpg.stat.StatsObj.StatResistIce;
+import com.philon.rpg.stat.StatsObj.StatResistLightning;
 import com.philon.rpg.stat.StatsObj.StatStrength;
 import com.philon.rpg.stat.StatsObj.StatVitality;
 
 public class CharacterForm extends AbstractForm {
-  
+
   @Override
   public Vector getPosByScreenSize(Vector newScreenSize) {
     return new Vector();
   }
-  
+
   @Override
   public Vector getSizeByScreenSize(Vector newScreenSize) {
     return new Vector(700, 700);
   }
-  
+
   public class AddStrButton extends AbstractButton {
-    
+
     public AddStrButton() {
       ID = 4;
       pos = new Vector(0.32f, 0.15f) ;
@@ -44,7 +45,7 @@ public class CharacterForm extends AbstractForm {
       img = 240;
       imgPressed = 241;
     }
-    
+
     @Override
     public void execAction() {
       if(RpgGame.inst.localPlayer.freeStatPoints>0) {
@@ -52,11 +53,11 @@ public class CharacterForm extends AbstractForm {
         RpgGame.inst.localPlayer.freeStatPoints--;
       }
     }
-    
+
   }
 
   public class AddDexButton extends AbstractButton {
-    
+
     public AddDexButton() {
       ID = 5;
       pos = new Vector(0.32f, 0.25f) ;
@@ -64,7 +65,7 @@ public class CharacterForm extends AbstractForm {
       img = 240;
       imgPressed = 241;
     }
-    
+
     @Override
     public void execAction() {
       if(RpgGame.inst.localPlayer.freeStatPoints>0) {
@@ -72,11 +73,11 @@ public class CharacterForm extends AbstractForm {
         RpgGame.inst.localPlayer.freeStatPoints--;
       }
     }
-    
+
   }
 
   public class AddVitButton extends AbstractButton {
-    
+
     public AddVitButton() {
       ID = 6;
       pos = new Vector(0.32f, 0.35f) ;
@@ -84,7 +85,7 @@ public class CharacterForm extends AbstractForm {
       img = 240;
       imgPressed = 241;
     }
-    
+
     @Override
     public void execAction() {
       if(RpgGame.inst.localPlayer.freeStatPoints>0) {
@@ -92,11 +93,11 @@ public class CharacterForm extends AbstractForm {
         RpgGame.inst.localPlayer.freeStatPoints--;
       }
     }
-    
+
   }
 
   public class AddMagButton extends AbstractButton {
-    
+
     public AddMagButton() {
       ID = 7;
       pos = new Vector(0.32f, 0.45f) ;
@@ -104,7 +105,7 @@ public class CharacterForm extends AbstractForm {
       img = 240;
       imgPressed = 241;
     }
-    
+
     @Override
     public void execAction() {
       if(RpgGame.inst.localPlayer.freeStatPoints>0) {
@@ -112,9 +113,9 @@ public class CharacterForm extends AbstractForm {
         RpgGame.inst.localPlayer.freeStatPoints--;
       }
     }
-    
+
   }
-  
+
   public class BackgroundLabel extends AbstractLabel {
 
     public BackgroundLabel() {
@@ -184,7 +185,7 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       return "" + (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatStrength.class);
@@ -201,12 +202,12 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       return "" + (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatDexterity.class);
     }
-    
+
   }
 
   public class VitalityLabel extends AbstractLabel {
@@ -218,12 +219,12 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       return "" + (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatVitality.class);
     }
-    
+
   }
 
   public class MagicLabel extends AbstractLabel {
@@ -235,12 +236,12 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       return "" + (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatMagic.class);
     }
-    
+
   }
 
   public class DescriptionLabel extends AbstractLabel {
@@ -252,12 +253,12 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       return "Philon, " + RpgGame.inst.localPlayer.getCharText() + " level " + RpgGame.inst.localPlayer.currLevel;
     }
-    
+
   }
 
   public class Damage1Label extends AbstractLabel {
@@ -269,16 +270,16 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       int tmpSpellID = (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatM1Stype.class);
       int tmpSpellLevel = RpgGame.inst.localPlayer.stats.spells[tmpSpellID];
       Vector dispDmg = SpellData.getTotalDmg( tmpSpellID, tmpSpellLevel );
-      
+
       return (int)dispDmg.x + " - " + (int)dispDmg.y;
     }
-    
+
   }
 
   public class Damage2Label extends AbstractLabel {
@@ -290,16 +291,16 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       int tmpSpellID = (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatM2Stype.class);
       int tmpSpellLevel = RpgGame.inst.localPlayer.stats.spells[tmpSpellID];
       Vector dispDmg = SpellData.getTotalDmg( tmpSpellID, tmpSpellLevel );
-      
+
       return (int)dispDmg.x + " - " + (int)dispDmg.y;
     }
-    
+
   }
 
   public class ArmorLabel extends AbstractLabel {
@@ -311,12 +312,12 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       return "" + (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatArmor.class);
     }
-    
+
   }
 
   public class Damage1TextLabel extends AbstractLabel {
@@ -328,7 +329,7 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "Damage 1:";
     }
-    
+
   }
 
   public class Damage2TextLabel extends AbstractLabel {
@@ -340,7 +341,7 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "Damage 2:";
     }
-    
+
   }
 
   public class ArmorTextLabel extends AbstractLabel {
@@ -376,12 +377,12 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       return "" + (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatReduceDmgTaken.class) * -1;
     }
-    
+
   }
 
   public class HealthTextLabel extends AbstractLabel {
@@ -405,15 +406,15 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
-      return "" + 
-          (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatHealth.class) + 
-          "/" + 
-          (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatMaxHealth.class); 
+      return "" +
+          (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatHealth.class) +
+          "/" +
+          (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatMaxHealth.class);
     }
-    
+
   }
 
   public class ResistFireTextLabel extends AbstractLabel {
@@ -461,12 +462,12 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       return "" + Util.getSignedPercentageString( (Float)RpgGame.inst.localPlayer.stats.getStatValue(StatResistFire.class) );
     }
-    
+
   }
 
   public class ResistLightningLabel extends AbstractLabel {
@@ -478,12 +479,12 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       return "" + Util.getSignedPercentageString( (Float)RpgGame.inst.localPlayer.stats.getStatValue(StatResistLightning.class) );
     }
-    
+
   }
 
   public class ResistMagicLabel extends AbstractLabel {
@@ -495,12 +496,12 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       return "" + Util.getSignedPercentageString( (Float)RpgGame.inst.localPlayer.stats.getStatValue(StatResistIce.class) );
     }
-    
+
   }
 
   public class ManaTextLabel extends AbstractLabel {
@@ -512,7 +513,7 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "Mana:";
     }
-    
+
   }
 
   public class ManaLabel extends AbstractLabel {
@@ -524,19 +525,19 @@ public class CharacterForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
-      return "" + 
-          (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatMana.class) + 
-          "/" + 
-          (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatMaxMana.class); 
+      return "" +
+          (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatMana.class) +
+          "/" +
+          (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatMaxMana.class);
     }
-    
+
   }
-  
+
   public class CloseButton extends AbstractButton {
-    
+
     public CloseButton() {
       ID = 3;
       pos = new Vector(0.94f, 0.01f) ;
@@ -544,12 +545,12 @@ public class CharacterForm extends AbstractForm {
       img = 242;
       imgPressed = 243;
     }
-    
+
     @Override
     public void execAction() {
-      RpgGame.inst.gForms.removeForm( CharacterForm.this );
+      PhilonGame.gForms.removeForm( CharacterForm.this );
     }
-    
+
   }
 
 }

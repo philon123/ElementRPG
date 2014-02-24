@@ -8,7 +8,7 @@ import com.philon.rpg.mos.wall.WallData;
 import com.philon.rpg.spell.SpellData;
 import com.philon.rpg.stat.presuf.PrefixSuffixData;
 
-public class GameDatabase { //TODO Database: should have all data classes as members to be accessed like: Game.inst.gdb.enemies.[...]
+public class RpgDatabase { //TODO Database: should have all data classes as members to be accessed like: Game.inst.gdb.enemies.[...]
 	public static Database db;
 
 	public static void loadAll() {

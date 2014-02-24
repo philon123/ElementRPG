@@ -1,6 +1,7 @@
 package com.philon.rpg.forms;
 
 import com.badlogic.gdx.graphics.Color;
+import com.philon.engine.PhilonGame;
 import com.philon.engine.forms.AbstractForm;
 import com.philon.engine.forms.AbstractLabel;
 import com.philon.engine.util.Vector;
@@ -13,19 +14,19 @@ import com.philon.rpg.stat.StatsObj.StatM1Stype;
 import com.philon.rpg.stat.StatsObj.StatM2Stype;
 
 public class SpellSelectForm extends AbstractForm {
-  
+
   @Override
   public Vector getPosByScreenSize(Vector newScreenSize) {
     return newScreenSize.copy().
         mulInst(new Vector(0.5f, 0.8f)).
         subInst(size.copy().mulScalarInst(0.5f));
   }
-  
+
   @Override
   public Vector getSizeByScreenSize(Vector newScreenSize) {
     return new Vector(640, 256);
   }
-  
+
   public class BackgroundLabel extends AbstractLabel {
 
     public BackgroundLabel() {
@@ -37,7 +38,7 @@ public class SpellSelectForm extends AbstractForm {
     }
 
   }
-  
+
   public class SpellSelectLabel extends AbstractLabel {
 
     public SpellSelectLabel() {
@@ -46,7 +47,7 @@ public class SpellSelectForm extends AbstractForm {
       img = 0;
       displayText = "";
     }
-    
+
     @Override
     public void handleClickLeft(Vector clickedPixel) {
       Vector clickedCell = clickedPixel.divInst(new Vector(64)).floorAllInst();
@@ -57,14 +58,14 @@ public class SpellSelectForm extends AbstractForm {
         } else {
           RpgGame.inst.localPlayer.stats.addOrCreateStat(StatM2Stype.class, clickedSpell);
         }
-        RpgGame.inst.gForms.removeForm(SpellSelectForm.this);
+        PhilonGame.gForms.removeForm(SpellSelectForm.this);
       }
     }
-    
+
     @Override
     public void draw(Vector containerPos, Vector containerSize) {
       super.draw(containerPos, containerSize);
-      
+
       Vector tmpSize = new Vector(64);
       Vector tmpTile;
       int currSpell;
@@ -81,7 +82,7 @@ public class SpellSelectForm extends AbstractForm {
         RpgGame.inst.gGraphics.drawTextureRect( ImageData.images[SpellData.iconImg[currSpell]].frames[0], tmpPos, tmpSize, tmpColor );
       }
     }
-    
+
     public int getSpellBySpellSelectTile( Vector newSpellSelectTile ) {
       int clickedTile = (int) ((newSpellSelectTile.y*10) + newSpellSelectTile.x);
       if (clickedTile>RpgGame.inst.localPlayer.skills.length-1) return 0;

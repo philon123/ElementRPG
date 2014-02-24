@@ -8,51 +8,51 @@ import java.util.TreeMap;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.philon.engine.Game;
 import com.philon.engine.Graphics;
+import com.philon.engine.PhilonGame;
 import com.philon.engine.forms.AbstractForm;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.mo.GameMapObj;
 import com.philon.rpg.mo.BreakableMapObj;
-import com.philon.rpg.mo.Selectable;
 import com.philon.rpg.mo.BreakableMapObj.IntactState;
+import com.philon.rpg.mo.RpgMapObj;
+import com.philon.rpg.mo.Selectable;
 import com.philon.rpg.mos.door.AbstractDoor;
 import com.philon.rpg.mos.wall.AbstractWall;
-import com.philon.rpg.util.GameUtil;
+import com.philon.rpg.util.RpgUtil;
 import com.philon.rpg.util.RenderMapKey;
 
-public class GameGraphics extends Graphics {
+public class RpgGraphics extends Graphics {
   public Vector squashFactor;
   public Vector tilePixSize;
 
   public Vector baseOffset;
   public Vector currOffset;
-  public GameMapObj centeredMo;
+  public RpgMapObj centeredMo;
 
-  public HashSet<GameMapObj> seeThroughObjects=new HashSet<GameMapObj>();
-  public HashSet<GameMapObj> staticSeeThroughObjects=new HashSet<GameMapObj>();
+  public HashSet<RpgMapObj> seeThroughObjects=new HashSet<RpgMapObj>();
+  public HashSet<RpgMapObj> staticSeeThroughObjects=new HashSet<RpgMapObj>();
 
   public Vector minTileOnScreen=new Vector();
   public Vector maxTileOnScreen=new Vector();
 
-  public LinkedList<GameMapObj> staticLightSources;
-  public LinkedList<GameMapObj> dynamicLightSources;
+  public LinkedList<RpgMapObj> staticLightSources;
+  public LinkedList<RpgMapObj> dynamicLightSources;
 
-  public TreeMap<RenderMapKey, GameMapObj> renderMap;
+  public TreeMap<RenderMapKey, RpgMapObj> renderMap;
 
   public BitmapFont font;
 
-  public GameGraphics() {
+  public RpgGraphics() {
     super();
 
     font = new BitmapFont(Gdx.files.internal("assets/" + "data/Media/font/centaur25.fnt"), false);
     font.setColor(new Color(1, 1, 1, 1));
 //    font.setScale(0.8f);
 
-    renderMap = new TreeMap<RenderMapKey, GameMapObj>();
+    renderMap = new TreeMap<RenderMapKey, RpgMapObj>();
 
-    dynamicLightSources = new LinkedList<GameMapObj>();
-    staticLightSources  = new LinkedList<GameMapObj>();
+    dynamicLightSources = new LinkedList<RpgMapObj>();
+    staticLightSources  = new LinkedList<RpgMapObj>();
 
     squashFactor = new Vector(1, 0.57f);
     tilePixSize = new Vector(64f);
@@ -68,14 +68,11 @@ public class GameGraphics extends Graphics {
     }
   }
 
+  @Override
   public void resizedTrigger(Vector newScreenSize) {
     super.resizedTrigger(newScreenSize);
 
     baseOffset = newScreenSize.copy().mulInst(new Vector(0.5f));
-  }
-
-  public Vector getTilePosByScreenPos( Vector newScreenPos ) {
-    return newScreenPos.copy().subInst(currOffset).divInst(tilePixSize).divInst(squashFactor);
   }
 
   public Vector getBasePixPosByTilePos( Vector newTilePos ) { //does not include global offset, allows baking static positions
@@ -102,19 +99,19 @@ public class GameGraphics extends Graphics {
 
   //----------
 
-  public void insertStaticLightSource( GameMapObj mo ) {
+  public void insertStaticLightSource( RpgMapObj mo ) {
     staticLightSources.addLast(mo);
   }
 
   //----------
 
-  public void insertDynamicLightSource( GameMapObj mo ) {
+  public void insertDynamicLightSource( RpgMapObj mo ) {
     dynamicLightSources.addLast(mo);
   }
 
   //----------
 
-  public void removeDynamicLightSource( GameMapObj mo ) {
+  public void removeDynamicLightSource( RpgMapObj mo ) {
     dynamicLightSources.remove(mo);
   }
 
@@ -131,7 +128,7 @@ public class GameGraphics extends Graphics {
     }
 
     //fill light grid
-    for( GameMapObj mo : staticLightSources ) {
+    for( RpgMapObj mo : staticLightSources ) {
       int tmpRadius = 5;
       Vector moTile = mo.pos.copy().roundAllInst();
       for( int y = (int) moTile.y-tmpRadius; y <= moTile.y+tmpRadius; y++ ) {
@@ -159,8 +156,8 @@ public class GameGraphics extends Graphics {
   //----------
 
   public void updateLightGrid() {
-    LinkedList<GameMapObj> tmpLightSources = new LinkedList<GameMapObj>();
-    for( GameMapObj mo : dynamicLightSources ) {
+    LinkedList<RpgMapObj> tmpLightSources = new LinkedList<RpgMapObj>();
+    for( RpgMapObj mo : dynamicLightSources ) {
       if (isTileOnScreen(mo.pos)) {
         tmpLightSources.add(mo);
       }
@@ -173,7 +170,7 @@ public class GameGraphics extends Graphics {
     }
 
     //fill light grid
-    for( GameMapObj mo : tmpLightSources ) {
+    for( RpgMapObj mo : tmpLightSources ) {
       int tmpRadius = 5;
       Vector moTile = mo.pos.copy().roundAllInst();
       for( int y = (int) moTile.y-tmpRadius; y <= moTile.y+tmpRadius; y++ ) {
@@ -206,11 +203,11 @@ public class GameGraphics extends Graphics {
   public void updateMinMaxTilesOnScreen() {
     Vector tmp00Tile = getTilePosByPixPos( new Vector() );
     if (tmp00Tile==null) tmp00Tile=new Vector(0, 0);
-    Vector tmp10Tile = getTilePosByPixPos( new Vector(Game.screenPixSize.x, 0) );
+    Vector tmp10Tile = getTilePosByPixPos( new Vector(PhilonGame.screenPixSize.x, 0) );
     if (tmp10Tile==null) tmp10Tile=new Vector(0, 0);
-    Vector tmp01Tile = getTilePosByPixPos( new Vector(0, Game.screenPixSize.y+200) );
+    Vector tmp01Tile = getTilePosByPixPos( new Vector(0, PhilonGame.screenPixSize.y+200) );
     if (tmp01Tile==null) tmp01Tile=new Vector(0, RpgGame.inst.gMap.gridSize.y-1);
-    Vector tmp11Tile = getTilePosByPixPos( Game.screenPixSize.copy().addInst(new Vector(200)) );
+    Vector tmp11Tile = getTilePosByPixPos( PhilonGame.screenPixSize.copy().addInst(new Vector(200)) );
     if (tmp11Tile==null) tmp11Tile=new Vector(RpgGame.inst.gMap.gridSize.x-1, 0);
     minTileOnScreen = new Vector( tmp00Tile.x, tmp10Tile.y ).roundAllInst();
     maxTileOnScreen = new Vector( tmp11Tile.x, tmp01Tile.y ).roundAllInst();
@@ -229,7 +226,7 @@ public class GameGraphics extends Graphics {
   //----------
 
   public void updateStaticSeeThroughObjects() {
-    HashSet<GameMapObj> result = new HashSet<GameMapObj>();
+    HashSet<RpgMapObj> result = new HashSet<RpgMapObj>();
 
 //    Local TVector tmpTile, MapObj mo, MapObj tmpMo, x%, y%, TVector moTile
 //    For mo=EachIn staticMos
@@ -262,7 +259,7 @@ public class GameGraphics extends Graphics {
 
   public void updateSeeThroughObjects() {
     seeThroughObjects.clear();
-    for(GameMapObj mo : staticSeeThroughObjects) {
+    for(RpgMapObj mo : staticSeeThroughObjects) {
       seeThroughObjects.add(mo);
     }
 
@@ -277,7 +274,7 @@ public class GameGraphics extends Graphics {
     tilesToTest.addLast( new Vector(3, 2) );
     tilesToTest.addLast( new Vector(3, 3) );
 
-    for( GameMapObj mo : RpgGame.inst.dynamicMapObjs ) {
+    for( RpgMapObj mo : RpgGame.inst.dynamicMapObjs ) {
       if (!(mo instanceof Selectable)) continue;
 
       Vector moTile = mo.pos.copy().roundAllInst();
@@ -285,7 +282,7 @@ public class GameGraphics extends Graphics {
         for( Vector currTile : tilesToTest ) {
           Vector tmpTile = Vector.add( currTile, moTile );
           if( tmpTile.isAllSmaller(RpgGame.inst.gMap.gridSize) ) {
-            for( GameMapObj tmpMo : RpgGame.inst.gMap.grid[(int) tmpTile.y][(int) tmpTile.x].collList ) {
+            for( RpgMapObj tmpMo : RpgGame.inst.gMap.grid[(int) tmpTile.y][(int) tmpTile.x].collList ) {
               if( (tmpMo instanceof AbstractWall || tmpMo instanceof AbstractDoor) && tmpMo.pos.copy().isAllEqual(tmpTile) ) {
                 seeThroughObjects.add(tmpMo);
               }
@@ -298,11 +295,11 @@ public class GameGraphics extends Graphics {
 
   //----------
 
-  public LinkedList<GameMapObj> getMOsAtPixel( Vector newPixel ) {
+  public LinkedList<RpgMapObj> getMOsAtPixel( Vector newPixel ) {
     Vector clickedTile = getTilePosByPixPos(newPixel);
     if (clickedTile==null) return null;
     clickedTile.roundAllInst();
-    LinkedList<GameMapObj> result=new LinkedList<GameMapObj>();
+    LinkedList<RpgMapObj> result=new LinkedList<RpgMapObj>();
 
     LinkedList<Vector> tilesToTest = new LinkedList<Vector>();
     tilesToTest.addLast( new Vector(0, 0) );
@@ -316,11 +313,11 @@ public class GameGraphics extends Graphics {
     for( Vector currTile : tilesToTest ) {
       currTile.addInst(clickedTile);
       if( currTile.isAllSmaller(RpgGame.inst.gMap.gridSize) ) {
-        for( GameMapObj tmpMo : RpgGame.inst.gMap.grid[(int) currTile.y][(int) currTile.x].collList ) {
+        for( RpgMapObj tmpMo : RpgGame.inst.gMap.grid[(int) currTile.y][(int) currTile.x].collList ) {
           if( !(tmpMo.animation==null || tmpMo instanceof AbstractWall) ) {
             if(!(tmpMo instanceof BreakableMapObj && ((BreakableMapObj) tmpMo).currState!=IntactState.class)) {
               if( !result.contains(tmpMo) ) {
-                if( GameUtil.isPixelInMapObj(tmpMo, newPixel) ) {
+                if( RpgUtil.isPixelInMapObj(tmpMo, newPixel) ) {
                   if (tmpMo.pos.copy().roundAllInst().equals(currTile)) { //TODO only while pixel-perfect testing doesn't work
                     result.addLast(tmpMo);
                   }
@@ -372,11 +369,11 @@ public class GameGraphics extends Graphics {
     //draw objects
     RenderMapKey minKeyY = new RenderMapKey(minTileOnScreen, 0);
     RenderMapKey maxKeyY = new RenderMapKey(maxTileOnScreen, 0);
-    NavigableMap<RenderMapKey, GameMapObj> subMap = renderMap.subMap(minKeyY, true, maxKeyY, true);
+    NavigableMap<RenderMapKey, RpgMapObj> subMap = renderMap.subMap(minKeyY, true, maxKeyY, true);
 
     Vector newPixPos;
 //    int i=0; int j=0;
-    for( GameMapObj mo : subMap.values() ) {
+    for( RpgMapObj mo : subMap.values() ) {
 //      i += 1;
 //      time= System.currentTimeMillis();
       Vector moTile = mo.pos.copy().roundAllInst();
@@ -440,7 +437,7 @@ public class GameGraphics extends Graphics {
 
   public void drawForms() {
 //    long time = System.currentTimeMillis();
-    for (AbstractForm currForm : RpgGame.inst.gForms.activeForms) {
+    for (AbstractForm currForm : PhilonGame.gForms.activeForms) {
       currForm.draw();
     }
 //    System.out.println(System.currentTimeMillis()-time);

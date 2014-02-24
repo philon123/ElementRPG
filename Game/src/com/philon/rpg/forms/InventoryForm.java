@@ -3,7 +3,7 @@ package com.philon.rpg.forms;
 import java.util.List;
 
 import com.badlogic.gdx.graphics.Color;
-import com.philon.engine.Game;
+import com.philon.engine.PhilonGame;
 import com.philon.engine.forms.AbstractButton;
 import com.philon.engine.forms.AbstractForm;
 import com.philon.engine.forms.AbstractLabel;
@@ -14,43 +14,43 @@ import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.player.inventory.Inventory.Equip;
 
 public class InventoryForm extends AbstractForm {
- 
+
   @Override
   public Vector getPosByScreenSize(Vector newScreenSize) {
     return new Vector(newScreenSize.x-size.x, 0);
   }
-  
+
   @Override
   public Vector getSizeByScreenSize(Vector newScreenSize) {
     return new Vector(700, 700);
   }
-  
+
   @Override
   public void draw() {
     super.draw();
-    
+
     //draw popup
     if( !(RpgGame.inst.localPlayer.inv.hoveredOverItem==null) ) {
       drawInvItemPopup( RpgGame.inst.localPlayer.inv.hoveredOverItem, RpgGame.inst.gInput.realMousePos.copy() );
     }
   }
-  
+
   public static void drawInvItemPopup( AbstractItem it, Vector newPixel ) {
 //    Vector itemSize = Vector.mul( ItemData.invSize[it.id], FormData.invCellSize );
     Vector pixSize = new Vector( 300, 300 );
     String text = it.getDisplayTextBody();
 
-    if (newPixel.x+pixSize.x > Game.screenPixSize.x) newPixel.x = Game.screenPixSize.x-pixSize.x;
-    if (newPixel.y+pixSize.y >  Game.screenPixSize.y) newPixel.y =  Game.screenPixSize.y-pixSize.y;
+    if (newPixel.x+pixSize.x > PhilonGame.screenPixSize.x) newPixel.x = PhilonGame.screenPixSize.x-pixSize.x;
+    if (newPixel.y+pixSize.y >  PhilonGame.screenPixSize.y) newPixel.y =  PhilonGame.screenPixSize.y-pixSize.y;
 
     RpgGame.inst.gGraphics.drawTextureRect( ImageData.images[ImageData.IMG_FORM_BACK_POPUP].frames[0], newPixel, pixSize, Color.WHITE );
     RpgGame.inst.gGraphics.drawTextMultiline( RpgGame.inst.gGraphics.font, text, newPixel.addInst(new Vector(10)) );
   }
-  
+
   public WeaponLabel getWeaponLabel() {
     return (WeaponLabel) getElementByClass(WeaponLabel.class);
   }
-  
+
   public ShieldLabel getShieldLabel() {
     return (ShieldLabel) getElementByClass(ShieldLabel.class);
   }
@@ -66,7 +66,7 @@ public class InventoryForm extends AbstractForm {
     }
 
   }
-  
+
   public class HelmLabel extends AbstractEquipLabel {
 
     public HelmLabel() {
@@ -75,7 +75,7 @@ public class InventoryForm extends AbstractForm {
       size = new Vector(125.00f, 125.00f) ;
       img = 290;
       displayText = "";
-      
+
       equipSlotNr = Equip.INV_HELM;
     }
 
@@ -89,10 +89,10 @@ public class InventoryForm extends AbstractForm {
       size = new Vector(125.00f, 188.00f) ;
       img = 294;
       displayText = "";
-      
+
       equipSlotNr = Equip.INV_WEAPON;
     }
-    
+
     @Override
     public void handleClickLeft(Vector clickedPixel) {
       super.handleClickLeft(clickedPixel);
@@ -108,7 +108,7 @@ public class InventoryForm extends AbstractForm {
       size = new Vector(125.00f, 188.00f) ;
       img = 295;
       displayText = "";
-      
+
       equipSlotNr = Equip.INV_ARMOR;
     }
 
@@ -122,12 +122,12 @@ public class InventoryForm extends AbstractForm {
       size = new Vector(125.00f, 188.00f) ;
       img = 293;
       displayText = "";
-      
+
       equipSlotNr = Equip.INV_SHIELD;
     }
 
   }
-  
+
   public class AmuletLabel extends AbstractEquipLabel {
 
     public AmuletLabel() {
@@ -136,7 +136,7 @@ public class InventoryForm extends AbstractForm {
       size = new Vector(63.00f, 63.00f) ;
       img = 289;
       displayText = "";
-      
+
       equipSlotNr = Equip.INV_AMULETT;
     }
 
@@ -150,7 +150,7 @@ public class InventoryForm extends AbstractForm {
       size = new Vector(63.00f, 63.00f) ;
       img = 291;
       displayText = "";
-      
+
       equipSlotNr = Equip.INV_RING1;
     }
 
@@ -164,12 +164,12 @@ public class InventoryForm extends AbstractForm {
       size = new Vector(63.00f, 63.00f) ;
       img = 292;
       displayText = "";
-      
+
       equipSlotNr = Equip.INV_RING2;
     }
 
   }
-  
+
   public class GoldLabel extends AbstractLabel {
 
     public GoldLabel() {
@@ -191,7 +191,7 @@ public class InventoryForm extends AbstractForm {
       img = 244;
       displayText = "";
     }
-    
+
     @Override
     public String getDisplayText() {
       return "" + RpgGame.inst.localPlayer.inv.currGold;
@@ -200,18 +200,18 @@ public class InventoryForm extends AbstractForm {
   }
 
   public class InvSpaceLabel extends AbstractItemGridLabel {
-    
+
     public InvSpaceLabel() {
       ID = 38;
       pos = new Vector(0.05f, 0.60f) ;
       size = new Vector(630.00f, 245.00f) ;
       img = 296;
       displayText = "";
-      
+
       gridSize = new Vector( 10, 4 );
       cellSize = Vector.div(size, gridSize);
     }
-    
+
     @Override
     public AbstractItem getItemByCell(Vector newCell) {
       return RpgGame.inst.localPlayer.inv.invGrid.getItemByCell(newCell);
@@ -221,16 +221,16 @@ public class InventoryForm extends AbstractForm {
     public List<AbstractItem> getItemsForDraw() {
       return RpgGame.inst.localPlayer.inv.invGrid.itemList;
     }
-    
+
     @Override
     public boolean dropPickupToCell(Vector newCell) {
       return RpgGame.inst.localPlayer.inv.invGrid.addPickup(newCell, true);
     }
-    
+
   }
-  
+
   public class CloseButton extends AbstractButton {
-    
+
     public CloseButton() {
       ID = 1;
       pos = new Vector(0.01f, 0.01f) ;
@@ -238,12 +238,12 @@ public class InventoryForm extends AbstractForm {
       img = 242;
       imgPressed = 243;
     }
-    
+
     @Override
     public void execAction() {
-      RpgGame.inst.gForms.removeForm( InventoryForm.this );
+      PhilonGame.gForms.removeForm( InventoryForm.this );
     }
-    
+
   }
 
 }

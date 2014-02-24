@@ -1,11 +1,11 @@
 package com.philon.engine;
 
-import com.philon.rpg.GameDatabase;
+import com.philon.rpg.RpgDatabase;
 
 public abstract class AbstractGameData {
   
   public void loadMedia() {
-    Object[][] result = GameDatabase.db.execQuery("SELECT * FROM " + getTableName());
+    Object[][] result = RpgDatabase.db.execQuery("SELECT * FROM " + getTableName());
     execInitArrays(result.length);
     
     for (int i=0; i<result.length; i++) {

@@ -1,15 +1,15 @@
 package com.philon.rpg.util;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.mo.GameMapObj;
+import com.philon.rpg.mo.RpgMapObj;
 
-public class GameUtil {
+public class RpgUtil {
 	public float sqrMap[];
 	public float sinMap[];
 	public float cosMap[];
 
 	//----------
 
-	public GameUtil() {
+	public RpgUtil() {
 		//init sqrMap
 		sqrMap=new float[100000];
 		for( int i = 0; i < sqrMap.length; i++ ) {
@@ -36,7 +36,7 @@ public class GameUtil {
 
 	//----------
 
-	public static boolean isPixelInMapObj( GameMapObj newMo, Vector newPixel ) {
+	public static boolean isPixelInMapObj( RpgMapObj newMo, Vector newPixel ) {
 	  return true; //TODO isPixelInMapObj
 //		if (newMo.baseImgPixPos==null || newMo.image==0 || newMo.baseImgPixSize==null) return false;
 //

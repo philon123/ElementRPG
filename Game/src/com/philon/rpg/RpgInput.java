@@ -6,7 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.philon.engine.Input;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.mo.GameMapObj;
+import com.philon.rpg.mo.RpgMapObj;
 import com.philon.rpg.mo.BreakableMapObj;
 import com.philon.rpg.mo.CombatMapObj;
 import com.philon.rpg.mo.Selectable;
@@ -17,14 +17,14 @@ import com.philon.rpg.mos.player.AbstractChar;
 import com.philon.rpg.stat.StatsObj.StatM1Stype;
 import com.philon.rpg.stat.StatsObj.StatM2Stype;
 
-public class GameInput extends Input {
+public class RpgInput extends Input {
   public static final int invHotkey = Keys.I;
   public static final int speHotkey = Keys.L; //TODO change back
   public static final int chaHotkey = Keys.C;
   
   public Selectable selectedMO;
   
-  public GameInput() {
+  public RpgInput() {
     keysWatched.addLast(invHotkey);
     keysWatched.addLast(chaHotkey);
     keysWatched.addLast(speHotkey);
@@ -128,14 +128,14 @@ public class GameInput extends Input {
     Vector mouseTile = Vector.floorAll( newTilePos );
     if( !RpgGame.inst.gMap.isTileOnMap(mouseTile) ) return null;
 
-    LinkedList<GameMapObj> selectedList = RpgGame.inst.gGraphics.getMOsAtPixel( realMousePos );
+    LinkedList<RpgMapObj> selectedList = RpgGame.inst.gGraphics.getMOsAtPixel( realMousePos );
     if( selectedList==null ) return null;
     
     //remove irrelevant mos
     selectedList.remove(RpgGame.inst.localPlayer);
-    LinkedList<GameMapObj> removeList = new LinkedList<GameMapObj>();
+    LinkedList<RpgMapObj> removeList = new LinkedList<RpgMapObj>();
     
-    for (GameMapObj tmpMO :selectedList) {
+    for (RpgMapObj tmpMO :selectedList) {
       if(!(tmpMO instanceof Selectable)) {
         removeList.addLast(tmpMO);
       }
@@ -144,7 +144,7 @@ public class GameInput extends Input {
     if (selectedList.isEmpty()) return null;
     
     //prioritize enemies to be selected
-    for( GameMapObj tmpMO : selectedList ) {
+    for( RpgMapObj tmpMO : selectedList ) {
       if(tmpMO instanceof AbstractEnemy) {
         return (Selectable)tmpMO;
       }

@@ -2,7 +2,7 @@ package com.me.mygdxgame;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-import com.philon.engine.Game;
+import com.philon.engine.GameScreen;
 
 public class MainActivity extends AndroidApplication {
     @Override
@@ -12,6 +12,6 @@ public class MainActivity extends AndroidApplication {
         AndroidApplicationConfiguration cfg = new AndroidApplicationConfiguration();
         cfg.useGL20 = false;
         
-        initialize(new Game(), cfg);
+        initialize(new GameScreen(), cfg);
     }
 }

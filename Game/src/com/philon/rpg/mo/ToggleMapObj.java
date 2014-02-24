@@ -1,6 +1,7 @@
 package com.philon.rpg.mo;
 
 import com.philon.engine.FrameAnimation;
+import com.philon.engine.PhilonGame;
 import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.mo.state.AbstractMapObjState;
@@ -21,7 +22,7 @@ public abstract class ToggleMapObj extends UpdateMapObj implements Selectable {
   }
 
   public int getToggleTime() {
-    return (int)RpgGame.fps/3;
+    return (int)PhilonGame.fps/3;
   }
 
   @Override

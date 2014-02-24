@@ -3,6 +3,7 @@ package com.philon.rpg.mo;
 import java.util.LinkedList;
 
 import com.philon.engine.FrameAnimation;
+import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
@@ -28,9 +29,9 @@ import com.philon.rpg.stat.StatsObj.StatMaxMana;
 import com.philon.rpg.stat.StatsObj.StatMulNorDmgReduce;
 import com.philon.rpg.stat.StatsObj.StatNormalDamage;
 import com.philon.rpg.stat.StatsObj.StatReduceDmgTaken;
-import com.philon.rpg.stat.StatsObj.StatResistLightning;
 import com.philon.rpg.stat.StatsObj.StatResistFire;
 import com.philon.rpg.stat.StatsObj.StatResistIce;
+import com.philon.rpg.stat.StatsObj.StatResistLightning;
 import com.philon.rpg.stat.effect.EffectsObj;
 
 public abstract class CombatMapObj extends UpdateMapObj {
@@ -181,9 +182,9 @@ public abstract class CombatMapObj extends UpdateMapObj {
 		v = 0;
 
 		if( newSpellID==SpellData.MELEE || newSpellID==SpellData.ARROW ) {
-			castCooldown = (int) (RpgGame.fps / (Float)stats.getStatValue(StatAttackRate.class));
+			castCooldown = (int) (PhilonGame.fps / (Float)stats.getStatValue(StatAttackRate.class));
 		} else {
-			castCooldown = (int) (RpgGame.fps / (Float)stats.getStatValue(StatCastRate.class));
+			castCooldown = (int) (PhilonGame.fps / (Float)stats.getStatValue(StatCastRate.class));
 		}
 
 		if( newTarget!=null ) {
@@ -284,7 +285,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 	//----------
 
-	public boolean getCanSeeGO( GameMapObj newTarget ) {
+	public boolean getCanSeeGO( RpgMapObj newTarget ) {
 		Vector tile1=pos.copy().roundAllInst();
 		Vector tile2=newTarget.pos.copy().roundAllInst();
 		return RpgGame.inst.gMap.tilesInSight( tile1, tile2 );
@@ -303,7 +304,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 				if( RpgGame.inst.gMap.isTileOnMap(currTile) ) {
 					float currDist = Vector.getDistance(pos, currTile);
 					if( currDist <= newRange ) {
-						for( GameMapObj tmpMO : RpgGame.inst.gMap.grid[(int) currTile.y][(int) currTile.x].collList ) {
+						for( RpgMapObj tmpMO : RpgGame.inst.gMap.grid[(int) currTile.y][(int) currTile.x].collList ) {
 							if( tmpMO instanceof CombatMapObj ) {
 								if( !result.contains(tmpMO) || tmpMO==this ) {
 									if( effectedClasses==null ) {
@@ -333,7 +334,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  public boolean execUpdate() {
 	    if( footstepCooldown==0 ) {
 	      RpgGame.playSoundFX( getSouFootstep() );
-	      footstepCooldown = (int) (RpgGame.fps / 3);
+	      footstepCooldown = (int) (PhilonGame.fps / 3);
 	    }
 
 	    return super.execUpdate();
@@ -348,7 +349,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  @Override
 	  public void execOnChange() {
 	    states.get(StateIdle.class).execOnChange();
-	    setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(RpgGame.fps/3), false));
+	    setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(PhilonGame.fps/3), false));
 	  }
 
 	  @Override
@@ -365,7 +366,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  @Override
 	  public void execOnChange() {
 	    v=0;
-	    int newHitFrames = (int)( ((Float)stats.getStatValue(StatHitRecovery.class)+1) * (RpgGame.fps/3) );
+	    int newHitFrames = (int)( ((Float)stats.getStatValue(StatHitRecovery.class)+1) * (PhilonGame.fps/3) );
 	    hitCooldown = newHitFrames;
 	    setAnimation(new FrameAnimation(ImageData.images[getImgHit()], newHitFrames, false));
 	  }
@@ -386,7 +387,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  public void execOnChange() {
 	    pathfindCooldown=0;
 
-	    setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(RpgGame.fps/3), false));
+	    setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(PhilonGame.fps/3), false));
 	    currImg = getImgCasting();
 	  }
 
@@ -394,15 +395,15 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  public boolean execUpdate() {
 	    if( currSelectedSpell==SpellData.MELEE ) {
 	      if( currTargetDist<maxMeleeRange ) {
-	        if(currImg!=getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(RpgGame.fps/3), false));
+	        if(currImg!=getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(PhilonGame.fps/3), false));
 	        prepareSpell( currSelectedSpell, false, currTargetPos, currTarget );
 	        return true;
 	      } else {
-	        if(currImg==getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(RpgGame.fps/3), false));
+	        if(currImg==getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(PhilonGame.fps/3), false));
   	      return states.get(CombatMapObj.StateMovingTarget.class).execUpdate();
 	      }
 	    } else {
-	      if(currImg==getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(RpgGame.fps/3), false));
+	      if(currImg==getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(PhilonGame.fps/3), false));
 	      if( !prepareSpell( currSelectedSpell, false, currTargetPos, currTarget ) ) {
 	        changeState(defaultState);
 	        return false;
@@ -421,7 +422,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  @Override
 	  public void execOnChange() {
 	    pathfindCooldown=0;
-	    if(animation.image!=ImageData.images[getImgMoving()]) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(RpgGame.fps/3), false));
+	    if(animation.image!=ImageData.images[getImgMoving()]) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(PhilonGame.fps/3), false));
 	    if(!(currTarget instanceof Selectable)) {
 	      changeState(StateIdle.class);
 	    }
@@ -433,7 +434,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 	    if( !states.get(CombatMapObj.StateMovingTarget.class).execUpdate() ) {
         if (currTargetDist < 1.5) { //moved to pos, ready to interact
-          if(animation.image!=ImageData.images[getImgIdle()]) setAnimation(new FrameAnimation(ImageData.images[getImgIdle()], (int)(RpgGame.fps/3), false));
+          if(animation.image!=ImageData.images[getImgIdle()]) setAnimation(new FrameAnimation(ImageData.images[getImgIdle()], (int)(PhilonGame.fps/3), false));
           interact((Selectable)currTarget);
           return false; //finished
         } else {

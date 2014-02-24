@@ -1,14 +1,14 @@
 package com.philon.rpg.util;
 
-import com.philon.rpg.mo.GameMapObj;
+import com.philon.rpg.mo.RpgMapObj;
 
 public class TimerListObject {
 	public int timerValue;
-	public GameMapObj mo;
+	public RpgMapObj mo;
 
 	//----------
 	
-	public TimerListObject( GameMapObj newMo, int newTimerValue ) {
+	public TimerListObject( RpgMapObj newMo, int newTimerValue ) {
 		mo = newMo;
 		timerValue = newTimerValue;
 	}

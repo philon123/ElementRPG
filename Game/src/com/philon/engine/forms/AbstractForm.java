@@ -4,52 +4,52 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import com.philon.engine.Game;
+import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 
 public abstract class AbstractForm {
   public int ID;
-  
+
   public Vector pos;
   public Vector size;
-  
+
   public AbstractGUIElement backgroundLabel;
   public LinkedHashMap<Class<?>, AbstractGUIElement> elements;
-  
+
   public boolean isActive=false;
-  
+
   /**
    * updates <b>size</b> first, then <b>pos</b>
    * @param newScreenSize
    */
   public AbstractForm() {
     loadGUIElements();
-    screenSizeChangedTrigger(Game.screenPixSize);
+    screenSizeChangedTrigger(PhilonGame.screenPixSize);
   }
-  
+
   public abstract Vector getPosByScreenSize(Vector newScreenSize);
-  
+
   public abstract Vector getSizeByScreenSize(Vector newScreenSize);
-  
+
   public void screenSizeChangedTrigger(Vector newScreenSize) {
     size = getSizeByScreenSize(newScreenSize);
     pos = getPosByScreenSize(newScreenSize);
   }
-  
+
   public void activate() {
     if (isActive) return;
-    RpgGame.inst.gForms.addForm(this);
+    PhilonGame.gForms.addForm(this);
     isActive = true;
-    
+
   }
-  
+
   public void deactivate() {
     if (!isActive) return;
-    RpgGame.inst.gForms.removeForm(this);
+    PhilonGame.gForms.removeForm(this);
     isActive = false;
   }
-  
+
   public void toggle() {
     if (isActive) {
       deactivate();
@@ -57,7 +57,7 @@ public abstract class AbstractForm {
       activate();
     }
   }
-  
+
   public void loadGUIElements() {
     try {
       elements = new LinkedHashMap<Class<?>, AbstractGUIElement>();
@@ -75,7 +75,7 @@ public abstract class AbstractForm {
         }
         currClass = currClass.getSuperclass();
       } while(currClass!=AbstractForm.class);
-      
+
     } catch (InstantiationException e) {
       e.printStackTrace();
     } catch (IllegalAccessException e) {
@@ -90,14 +90,14 @@ public abstract class AbstractForm {
       e.printStackTrace();
     }
   }
-  
+
   public void draw() {
     backgroundLabel.draw(pos, size);
     for (AbstractGUIElement currElement : elements.values()) {
       currElement.draw(pos, size);
     }
   }
-  
+
   public Vector handleMouse( Vector newMousePos, boolean isM1action, boolean isM2action ) {
     AbstractGUIElement currElement = getElementByPixel(newMousePos);
     RpgGame.inst.localPlayer.inv.hoveredOverItem = null;
@@ -126,7 +126,7 @@ public abstract class AbstractForm {
 
     return result;
   }
-  
+
   public AbstractGUIElement getElementByPixel( Vector newPixel ) {
     Vector minPixel;
     Vector maxPixel;
@@ -134,15 +134,15 @@ public abstract class AbstractForm {
     for (AbstractGUIElement currElement : elements.values()) {
       minPixel = getElementPixPos(currElement);
       maxPixel = Vector.add( minPixel, currElement.size );
-      
+
       if( newPixel.isAllLarger( minPixel ) && newPixel.isAllSmaller( maxPixel ) ) {
         return currElement;
       }
     }
-    
+
     return null;
   }
-  
+
   public Vector getElementPixPos(AbstractGUIElement newElement) {
     return Vector.mul(newElement.pos, size);
   }
@@ -152,7 +152,7 @@ public abstract class AbstractForm {
       currElement.update();
     }
   }
-  
+
   @SuppressWarnings("unchecked")
   public <T> ArrayList<T> getElementsOfType(Class<T> forClass) {
     ArrayList<T> result = new ArrayList<T>();
@@ -163,9 +163,9 @@ public abstract class AbstractForm {
     }
     return result;
   }
-  
+
   public AbstractGUIElement getElementByClass(Class<? extends AbstractGUIElement> forClass) {
     return elements.get(forClass);
   }
-  
+
 }

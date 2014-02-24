@@ -3,14 +3,14 @@ package com.philon.rpg.map;
 import com.philon.rpg.mos.wall.AbstractMapStyle;
 
 
-public class GameMapSaveData {
+public class RpgMapSaveData {
 	public AbstractMapStyle mapStyle;
 	public int mapData[][];
 //	Field TList toggledObjects
 
 	//----------
 
-	public GameMapSaveData( GameMap gm ) {
+	public RpgMapSaveData( RpgMap gm ) {
 	mapStyle = gm.mapStyle;
 	mapData = new int[(int) gm.gridSize.y][];
 	
