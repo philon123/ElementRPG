@@ -1,4 +1,4 @@
-package com.philon.rpg.mo;
+package com.philon.rpg.map.mo;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
@@ -10,7 +10,8 @@ import com.philon.engine.util.Path;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.mo.state.AbstractMapObjState;
+import com.philon.rpg.map.mo.state.AbstractMapObjState;
+import com.philon.rpg.util.RpgUtil;
 
 public abstract class UpdateMapObj extends RpgMapObj {
 	public Class<? extends AbstractMapObjState> currState = null;
@@ -20,8 +21,9 @@ public abstract class UpdateMapObj extends RpgMapObj {
 
 	public float v=0;
 	public float tilesPerSecond=0;
+	public Vector lastOffset=new Vector();
 
-	public Selectable currTarget;
+	public RpgMapObj currTarget;
 	public Vector currTargetPos;
 	public Vector currTargetDelta;
 	public float currTargetDist;
@@ -41,8 +43,6 @@ public abstract class UpdateMapObj extends RpgMapObj {
 		tilesPerSecond = getTilesPerSecond();
 		defaultState = getDefaultState();
 		changeState(defaultState);
-
-		if (getIsAutoInsert()) RpgGame.inst.dynamicMapObjs.addLast(this);
 	}
 
 	public abstract float getTilesPerSecond();
@@ -53,10 +53,6 @@ public abstract class UpdateMapObj extends RpgMapObj {
 
   public Class<? extends AbstractMapObjState> getDefaultState() {
     return StateIdle.class;
-  }
-
-  public boolean getIsAutoInsert() {
-    return true;
   }
 
   public int getDieCooldown() {
@@ -111,12 +107,6 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	  currState = newState;
 	}
 
-	public void deleteObject() {
-		RpgGame.inst.dynamicMapObjs.remove(this);
-
-		super.deleteObject();
-	}
-
 	public void deathTrigger(CombatMapObj killedBy) {
 		RpgGame.playSoundFX( getSouDie() );
 	}
@@ -155,8 +145,22 @@ public abstract class UpdateMapObj extends RpgMapObj {
 		}
 	}
 
-	public void interact( Selectable newTargetGO ) {
+	public void interact( RpgMapObj newTargetGO ) {
     newTargetGO.interactTrigger(this);
+  }
+
+  public boolean changePosition( Vector newOffset ) {
+    if(        newOffset.x==0 && lastOffset.x==0 && Math.signum(newOffset.y) == -Math.signum(lastOffset.y) ) {
+      return false; //180 degree turns forbidden
+    } else if( newOffset.y==0 && lastOffset.y==0 && Math.signum(newOffset.x) == -Math.signum(lastOffset.x) ) {
+      return false; //180 degree turns forbidden
+    }
+
+    lastOffset=newOffset.copy();
+    turnToDirection(newOffset);
+    setPosition(Vector.add(pos, newOffset));
+
+    return true;
   }
 
 	public Vector getNewPositionOffset( Vector targetOffset ) {
@@ -208,27 +212,9 @@ public abstract class UpdateMapObj extends RpgMapObj {
 		return result;
 	}
 
-	//----------
-
-	public boolean changePosition( Vector newOffset ) {
-		if(        newOffset.x==0 && lastOffset.x==0 && Math.signum(newOffset.y) == -Math.signum(lastOffset.y) ) {
-			return false; //180 degree turns forbidden
-		} else if( newOffset.y==0 && lastOffset.y==0 && Math.signum(newOffset.x) == -Math.signum(lastOffset.x) ) {
-			return false; //180 degree turns forbidden
-		}
-
-	  lastOffset=newOffset.copy();
-	  turnToDirection(newOffset);
-		setPosition(Vector.add(pos, newOffset));
-
-		return true;
-	}
-
-	//----------
-
 	public LinkedList<RpgMapObj> getPotentialCollisions( Vector newOffset ) {
 		LinkedList<RpgMapObj> result = RpgGame.inst.gMap.getRectColls(Vector.add(pos, newOffset), collRect);
-		result =  RpgMapObj.filterList( result, true, true, false, false, true, true );
+		result =  RpgUtil.filterList( result, true, true, false, false, true, true );
 		if (result==null) return null;
 		result.remove(this);
 		if (result.isEmpty()) return null;
@@ -238,7 +224,7 @@ public abstract class UpdateMapObj extends RpgMapObj {
 
 	//----------
 
-	public void setTarget( Selectable newTarget, Vector newTargetPos ) {
+	public void setTarget( RpgMapObj newTarget, Vector newTargetPos ) {
 		currTarget = newTarget;
 		currTargetPos = newTargetPos;
 		if( currTargetPos==null && currTarget!=null ) {
@@ -250,7 +236,7 @@ public abstract class UpdateMapObj extends RpgMapObj {
 
 	//----------
 
-	public void setTarget( Selectable newTarget) {
+	public void setTarget( RpgMapObj newTarget) {
 		setTarget(newTarget, null);
 	}
 

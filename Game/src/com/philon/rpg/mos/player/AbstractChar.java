@@ -4,18 +4,19 @@ import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.SkillData;
+import com.philon.rpg.SoundData;
 import com.philon.rpg.forms.CharacterForm;
 import com.philon.rpg.forms.InventoryForm;
 import com.philon.rpg.forms.SpellForm;
 import com.philon.rpg.forms.SpellSelectForm;
 import com.philon.rpg.forms.StatusbarForm;
-import com.philon.rpg.mo.CombatMapObj;
-import com.philon.rpg.mo.Selectable;
-import com.philon.rpg.mo.UpdateMapObj;
+import com.philon.rpg.map.mo.CombatMapObj;
+import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.item.category.ConsumableItem;
 import com.philon.rpg.mos.player.inventory.Inventory;
 import com.philon.rpg.mos.player.inventory.Inventory.Equip;
+import com.philon.rpg.mos.player.inventory.InventorySaveData;
 import com.philon.rpg.spell.AbstractSpell;
 import com.philon.rpg.spell.SpellData;
 import com.philon.rpg.stat.StatsObj.StatDefaultSpell;
@@ -31,7 +32,7 @@ import com.philon.rpg.stat.effect.EffectsObj.EffectAddMagic;
 import com.philon.rpg.stat.effect.EffectsObj.EffectAddStrength;
 import com.philon.rpg.stat.effect.EffectsObj.EffectAddVitality;
 
-public abstract class AbstractChar extends CombatMapObj implements Selectable {
+public abstract class AbstractChar extends CombatMapObj {
 	public Vector newDir=new Vector();
 	public boolean isKeyMovement=false;
 
@@ -102,18 +103,14 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
     return super.useMana(amount);
   }
 
-	public PlayerSaveData save() {
-		return new PlayerSaveData(this);
-	}
-
   @Override
 	public void update() {
-		if(isKeyMovement && !(currState==StateHit.class || currState==StateDying.class)) {
+		if(isKeyMovement && !(currState==StateHit.class || currState==StateDying.class || currState==StateCasting.class)) {
 			direction = newDir.copy();
-			currPath=null;
-			pathfindCooldown=0;
-			currTarget=null;
-			currTargetPos=null;
+			currPath = null;
+			pathfindCooldown = 0;
+			currTarget = null;
+			currTargetPos = null;
 			changeState(StateMovingStraight.class);
 		}
 
@@ -121,9 +118,9 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
 	}
 
   @Override
-	public void interact( Selectable newTarget ) {
+	public void interact( RpgMapObj newTarget ) {
 		if(currTarget instanceof AbstractItem) {
-//		  Game.playSoundFX( SoundData.SOU_PICKUP );
+		  RpgGame.playSoundFX( SoundData.SOU_PICKUP );
 			if( PhilonGame.gForms.isFormActive(InventoryForm.class)) {
 				inv.pickupItem( (AbstractItem)currTarget );
 			} else {
@@ -133,12 +130,8 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
 		super.interact(newTarget);
 	}
 
-	public void interactTrigger(UpdateMapObj objInteracting) {
-
-	}
-
 	@Override
-	public boolean castSpell( int newSpellID, Vector newTarPos, Selectable newTarget ) {
+	public boolean castSpell( int newSpellID, Vector newTarPos, RpgMapObj newTarget ) {
 		boolean superResult = super.castSpell( newSpellID, newTarPos, newTarget );
 		if (!superResult) return false;
 
@@ -261,5 +254,43 @@ public abstract class AbstractChar extends CombatMapObj implements Selectable {
 	}
 
 	//----------
+
+  public CharacterSaveData save() {
+    return new CharacterSaveData(this);
+  }
+
+  public static class CharacterSaveData extends RpgMapObjSaveData {
+    public int xp;
+    public InventorySaveData inv;
+    public int[] skills = new int[SkillData.numSkills];
+
+    public CharacterSaveData(Class<? extends RpgMapObj> newObjClass, Vector newPos, Vector newDirection, int newXp, InventorySaveData newInventorySD) {
+      super(newObjClass, newPos, newDirection);
+
+      xp = newXp;
+      inv = newInventorySD;
+    }
+
+    public CharacterSaveData(AbstractChar obj) {
+      this(obj.getClass(), obj.pos, obj.direction, obj.xp, obj.inv.save() );
+
+      skills = obj.skills;
+    }
+
+    @Override
+    public AbstractChar load() {
+      AbstractChar result = (AbstractChar)super.load();
+
+      result.xp = xp;
+      result.inv = new Inventory(result, inv);
+      for( int i = 0; i < skills.length-1; i++ ) {
+        result.setSkill( i, skills[i] );
+      }
+
+      result.updateStats();
+
+      return result;
+    }
+  }
 
 }

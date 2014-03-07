@@ -1,6 +1,6 @@
 package com.philon.rpg.mos.shot;
 
-import com.philon.rpg.mo.state.AbstractMapObjState;
+import com.philon.rpg.map.mo.state.AbstractMapObjState;
 
 public class ShotMelee extends AbstractShot {
 

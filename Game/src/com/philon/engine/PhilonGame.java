@@ -10,7 +10,7 @@ import com.philon.engine.forms.AbstractForm;
 import com.philon.engine.util.Vector;
 
 public class PhilonGame extends Game {
-  public static Vector screenPixSize = new Vector(1024, 768);
+  public static Vector screenPixSize = new Vector(1280, 800);
   public static float ratioXY;
   public static float fps = 60;
   public static int currFrame;

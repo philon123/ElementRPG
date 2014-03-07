@@ -1,17 +1,18 @@
 package com.philon.rpg.stat.effect;
-import java.util.LinkedList;
+import java.util.TreeMap;
 
 import com.philon.rpg.stat.effect.EffectsObj.AbstractEffect;
 
 public class EffectsObjSaveData {
-	public LinkedList<AbstractEffect> effects;
+	public TreeMap<Class<? extends AbstractEffect>, AbstractEffect> effects;
 
 	//----------
 
-	public static EffectsObjSaveData create( EffectsObj eo ) {
+	@SuppressWarnings("unchecked")
+  public static EffectsObjSaveData create( EffectsObj eo ) {
 		EffectsObjSaveData esd = new EffectsObjSaveData();
 
-		esd.effects = (LinkedList<AbstractEffect>) eo.effects.clone();
+		esd.effects = (TreeMap<Class<? extends AbstractEffect>, AbstractEffect>) eo.effects.clone();
 
 		return esd;
 	}

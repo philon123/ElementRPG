@@ -1,6 +1,19 @@
 package com.philon.rpg.util;
+import java.util.LinkedList;
+
 import com.philon.engine.util.Vector;
-import com.philon.rpg.mo.RpgMapObj;
+import com.philon.rpg.map.mo.BreakableMapObj;
+import com.philon.rpg.map.mo.RpgMapObj;
+import com.philon.rpg.mos.chest.AbstractChest;
+import com.philon.rpg.mos.door.AbstractDoor;
+import com.philon.rpg.mos.enemy.AbstractEnemy;
+import com.philon.rpg.mos.item.AbstractItem;
+import com.philon.rpg.mos.light.Firestand;
+import com.philon.rpg.mos.player.AbstractChar;
+import com.philon.rpg.mos.shot.AbstractShot;
+import com.philon.rpg.mos.stairs.StairsDown;
+import com.philon.rpg.mos.stairs.StairsUp;
+import com.philon.rpg.mos.wall.AbstractWall;
 
 public class RpgUtil {
 	public float sqrMap[];
@@ -34,6 +47,18 @@ public class RpgUtil {
 		return(( (int)( rot/45.0 + 0.5 ) - 2 + 8 ) % 8);
 	}
 
+	public static int getOrientation(int newDir) { //returns 0 for facing up/down, 1 for facing left/right. favores 0
+    if (newDir==0) return 0;
+    if (newDir==1) return 0;
+    if (newDir==2) return 0;
+    if (newDir==3) return 1;
+    if (newDir==4) return 1;
+    if (newDir==5) return 0;
+    if (newDir==6) return 0;
+    if (newDir==7) return 0;
+    return 0;
+  }
+
 	//----------
 
 	public static boolean isPixelInMapObj( RpgMapObj newMo, Vector newPixel ) {
@@ -55,4 +80,49 @@ public class RpgUtil {
 	  int sqrDist = (int) (Math.pow(tile2.x-tile1.x, 2) + Math.pow(tile2.y-tile1.y, 2));
     return sqrMap[sqrDist];
 	}
+
+  public static LinkedList<RpgMapObj> filterList( LinkedList<RpgMapObj> moList,
+  		boolean keepPlayer,
+  		boolean keepEnemy,
+  		boolean keepItem,
+  		boolean keepShot,
+  		boolean keepChest,
+  		boolean keepBreakable) {
+  	LinkedList<RpgMapObj> result=new LinkedList<RpgMapObj>();
+
+  	if (moList==null) return null;
+
+  	for( RpgMapObj tmpMo : moList ) {
+  	  if (tmpMo instanceof AbstractWall ||
+  	      tmpMo instanceof AbstractDoor ||
+  	      tmpMo instanceof StairsUp ||
+  	      tmpMo instanceof StairsDown ||
+  	      tmpMo instanceof Firestand ||
+  	      (tmpMo instanceof AbstractChar && keepPlayer) ||
+          (tmpMo instanceof AbstractEnemy && keepEnemy) ||
+          (tmpMo instanceof AbstractItem && keepItem) ||
+          (tmpMo instanceof AbstractShot && keepShot) ||
+          (tmpMo instanceof AbstractChest && keepChest) ||
+          (tmpMo instanceof BreakableMapObj && keepBreakable) ) {
+  	    result.addLast(tmpMo);
+  	  }
+  	}
+
+  	if (result==null || result.size()==0) return null;
+  	return result;
+  }
+
+  /**
+   * tries to instantiate a class without constructor parameters
+   */
+  public static <T> T instantiateClass(Class<T> clazz) {
+    try {
+      return clazz.newInstance();
+    } catch (InstantiationException e) {
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
 }

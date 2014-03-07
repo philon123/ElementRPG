@@ -1,16 +1,15 @@
 package com.philon.rpg.mos.light;
 
 import com.philon.engine.util.Vector;
-import com.philon.rpg.mo.UpdateMapObj;
+import com.philon.rpg.map.mo.UpdateMapObj;
 
 public class Firestand extends UpdateMapObj {
 
-	//----------
-
 	public Firestand() {
 	  super();
-	  
+
 		setLuminance(0.5f);
+		isSelectable = false;
 	}
 
   @Override
@@ -22,8 +21,6 @@ public class Firestand extends UpdateMapObj {
   public int getImgIdle() {
     return 340;
   }
-  
-  
 
   @Override
   public float getTilesPerSecond() {

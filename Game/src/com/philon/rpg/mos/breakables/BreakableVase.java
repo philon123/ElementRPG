@@ -1,7 +1,7 @@
 package com.philon.rpg.mos.breakables;
 
 import com.philon.engine.util.Vector;
-import com.philon.rpg.mo.BreakableMapObj;
+import com.philon.rpg.map.mo.BreakableMapObj;
 
 public class BreakableVase extends BreakableMapObj {
   

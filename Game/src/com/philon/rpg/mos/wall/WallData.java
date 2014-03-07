@@ -120,7 +120,7 @@ public abstract class WallData {
       tmpDir = new Vector(0, 1);
     }
 	  
-    result.setWallType(tmpWallType);
+    result.setImageByWallType(tmpWallType);
 	  result.setPosition(newPos);
 	  result.turnToDirection(tmpDir);
     return result;

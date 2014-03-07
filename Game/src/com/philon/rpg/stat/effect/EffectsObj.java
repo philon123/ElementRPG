@@ -3,6 +3,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Comparator;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import javax.management.RuntimeErrorException;
@@ -38,9 +39,9 @@ import com.philon.rpg.stat.StatsObj.StatMulMagicFind;
 import com.philon.rpg.stat.StatsObj.StatMulNorDmgReduce;
 import com.philon.rpg.stat.StatsObj.StatNormalDamage;
 import com.philon.rpg.stat.StatsObj.StatReduceDmgTaken;
-import com.philon.rpg.stat.StatsObj.StatResistLightning;
 import com.philon.rpg.stat.StatsObj.StatResistFire;
 import com.philon.rpg.stat.StatsObj.StatResistIce;
+import com.philon.rpg.stat.StatsObj.StatResistLightning;
 import com.philon.rpg.stat.StatsObj.StatSpelllevels;
 import com.philon.rpg.stat.StatsObj.StatStrength;
 import com.philon.rpg.stat.StatsObj.StatVitality;
@@ -62,22 +63,22 @@ public class EffectsObj {
         int order2 = getOrderForClass((Class<? extends AbstractEffect>)o2);
         return ((Integer)order1).compareTo(order2);
 	    }
-	    
+
 	    public int getOrderForClass(Class<? extends AbstractEffect> clazz) {
 	      return clazz.getAnnotation(Order.class).value();
 	    }
 		});
 	}
-	
-	
+
+
 	//----------
-	
+
 	public EffectsObj( EffectsObjSaveData eod ) {
-//		this();
-//		
-//		for( AbstractEffect i : eod.effects ) {
-//			addEffect( EffectData.createEffect(i.getClass(), i.value) );
-//		}
+		this();
+
+		for( Entry<Class<? extends AbstractEffect>, AbstractEffect> currEntry : eod.effects.entrySet() ) {
+		  addOrCreateEffect( currEntry.getKey(), currEntry.getValue().getValue() );
+		}
 	}
 
 	//----------
@@ -122,12 +123,12 @@ public class EffectsObj {
       }
     }
 	}
-	
+
 	@SuppressWarnings("unchecked")
   public <T> T getEffect(Class<T> clazz) {
     return (T) effects.get(clazz);
   }
-	
+
 	public void addToSelf( EffectsObj otherEO ) {
 		if (otherEO.effects == null) return;
 
@@ -137,7 +138,7 @@ public class EffectsObj {
 	}
 
 	public StatsObj getStats() {
-	  
+
 	  StatsObj targetStats  = new StatsObj();
 		for( AbstractEffect i : effects.values() ) {
 			i.effect(targetStats);
@@ -156,35 +157,35 @@ public class EffectsObj {
 
 	public abstract class AbstractEffect {
 	  public Object value;
-	  
+
 	  public Object getValue() {
       return value;
     }
-    
+
     public void setValue(Object newValue) {
       value = newValue;
     }
-    
+
     public abstract void addValue(Object newValue);
-	  
+
 	  public void effect(StatsObj targetStats) { //override to effect multiple stats
 	    targetStats.addOrCreateStat(getStatClass(), getValue());
 	  }
-	  
+
 	  public Class<? extends AbstractStat<?>> getStatClass() { //override to perform simple add to given Stat
 	    new RuntimeErrorException( null, "Must implement eather getStateClass() or effect(StatsObj stats)" );
 	    return null;
 	  }
-	  
+
 	  public String getDisplayText() {
 	    return getTextWithWildcard().replaceAll( "##", getValueText() );
 	  }
-	  
+
 	  public abstract String getTextWithWildcard();
 	  public abstract String getValueText();
-	  
+
 	}
-	
+
   public abstract class IntegerEffect extends AbstractEffect {
     @Override
     public String getValueText() {
@@ -196,121 +197,121 @@ public class EffectsObj {
       if (!(newValue instanceof Integer)) new RuntimeErrorException(null, "Wrong datatype");
       setIntValue((Integer)newValue);
     }
-    
+
     @Override
     public void addValue(Object newValue) {
       if (!(newValue instanceof Integer)) new RuntimeErrorException(null, "Wrong datatype");
       addIntValue((Integer)newValue);
     }
-    
+
     public int getIntValue() {
       return (Integer)getValue();
     }
-    
+
     public void setIntValue(int newValue) {
       value = newValue;
     }
-    
+
     public void addIntValue(int newValue) {
       setIntValue(getIntValue() + newValue);
     }
   }
-  
+
   public abstract class FloatEffect extends AbstractEffect {
     @Override
     public String getValueText() {
       return Util.getSignedPercentageString(getFloatValue());
     }
-    
+
     @Override
     public void setValue(Object newValue) {
       if (!(newValue instanceof Float)) new RuntimeErrorException(null, "Wrong datatype");
       setFloatValue((Float)newValue);
     }
-    
+
     @Override
     public void addValue(Object newValue) {
       if (!(newValue instanceof Float)) new RuntimeErrorException(null, "Wrong datatype");
       addFloatValue((Float)newValue);
     }
-    
+
     public float getFloatValue() {
       return (Float)getValue();
     }
-    
+
     public void setFloatValue(float newValue) {
       value = newValue;
     }
-    
+
     public void addFloatValue(float newValue) {
       setFloatValue(getFloatValue() + newValue);
     }
   }
-  
+
   public abstract class BooleanEffect extends AbstractEffect {
     @Override
     public String getValueText() {
       return getBooleanValue()==true ? "True" : "False";
     }
-    
+
     @Override
     public void setValue(Object newValue) {
       if (!(newValue instanceof Boolean)) new RuntimeErrorException(null, "Wrong datatype");
       setBooleanValue((Boolean)newValue);
     }
-    
+
     @Override
     public void addValue(Object newValue) {
       if (!(newValue instanceof Boolean)) new RuntimeErrorException(null, "Wrong datatype");
       addBooleanValue((Boolean)newValue);
     }
-    
+
     public boolean getBooleanValue() {
       return (Boolean)getValue();
     }
-    
+
     public void setBooleanValue(boolean newValue) {
       value = newValue;
     }
-    
+
     public void addBooleanValue(boolean newValue) {
       if (newValue) setBooleanValue(true);
     }
   }
-  
+
   public abstract class VectorEffect extends AbstractEffect {
     @Override
     public String getValueText() {
       return getVectorValue().toStringIntRange();
     }
-    
+
     @Override
     public void setValue(Object newValue) {
       if (!(newValue instanceof Vector)) new RuntimeErrorException(null, "Wrong datatype");
       setVectorValue((Vector)newValue);
     }
-    
+
     @Override
     public void addValue(Object newValue) {
       if (!(newValue instanceof Vector)) new RuntimeErrorException(null, "Wrong datatype");
       addVectorValue((Vector)newValue);
     }
-    
+
     public Vector getVectorValue() {
       return (Vector)getValue();
     }
-    
+
     public void setVectorValue(Vector newValue) {
       value = newValue;
     }
-    
+
     public void addVectorValue(Vector newValue) {
       setVectorValue( Vector.add(getVectorValue(), (Vector)newValue) );
     }
   }
-  
+
   //########################################################################################################
-  
+
   @Order(10)
   public class EffectAddLifePerVit extends FloatEffect {
     @Override
@@ -326,7 +327,7 @@ public class EffectsObj {
       return "Life per Vitality: ##";
     }
   }
-  
+
   @Order(20)
   public class EffectAddManaPerMag extends FloatEffect {
     @Override
@@ -342,7 +343,7 @@ public class EffectsObj {
       return "Mana per Magic: ##";
     }
   }
-  
+
   @Order(30)
   public class EffectAddArmor extends IntegerEffect {
     @Override
@@ -434,7 +435,7 @@ public class EffectsObj {
       return "## Lightning Resist";
     }
   }
-  
+
   @Order(100)
   public class EffectAddResistIce extends FloatEffect {
     @Override
@@ -512,7 +513,7 @@ public class EffectsObj {
       return "Adds Lightning Damage: ##";
     }
   }
-  
+
   @Order(160)
   public class EffectAddIceDamage extends VectorEffect {
     @Override
@@ -564,7 +565,7 @@ public class EffectsObj {
       return "## Attack Rate";
     }
   }
-  
+
   @Order(200)
   public class EffectAddCastRate extends FloatEffect {
     @Override
@@ -576,7 +577,7 @@ public class EffectsObj {
       return "Attack Rate: ##";
     }
   }
-  
+
   @Order(210)
   public class EffectMulCastRate extends FloatEffect {
     @Override
@@ -698,7 +699,7 @@ public class EffectsObj {
       return "## to Strength";
     }
   }
-  
+
   @Order(310)
   public class EffectAddDexterity extends IntegerEffect {
     @Override
@@ -715,7 +716,7 @@ public class EffectsObj {
       return "## to Dexterity";
     }
   }
-  
+
   @Order(320)
   public class EffectAddVitality extends IntegerEffect {
     @Override
@@ -725,7 +726,7 @@ public class EffectsObj {
     @Override
     public void effect(StatsObj targetStats) {
       super.effect(targetStats);
-      targetStats.addOrCreateStat( StatMaxHealth.class, 
+      targetStats.addOrCreateStat( StatMaxHealth.class,
           Util.round(getIntValue() * (Float)targetStats.getStatValue(StatLifePerVit.class)) );
     }
     @Override
@@ -733,7 +734,7 @@ public class EffectsObj {
       return "## to Vitality";
     }
   }
-  
+
   @Order(330)
   public class EffectAddMagic extends IntegerEffect {
     @Override
@@ -743,7 +744,7 @@ public class EffectsObj {
     @Override
     public void effect(StatsObj targetStats) {
       super.effect(targetStats);
-      targetStats.addOrCreateStat( StatMaxMana.class, 
+      targetStats.addOrCreateStat( StatMaxMana.class,
           Util.round(getIntValue() * (Float)targetStats.getStatValue(StatManaPerMag.class)) );
     }
     @Override
@@ -766,7 +767,7 @@ public class EffectsObj {
       return "## to all Attributes";
     }
   }
-  
+
   @Order(350)
   public class EffectSetLooseAllMana extends BooleanEffect {
     @Override
@@ -824,7 +825,7 @@ public class EffectsObj {
       return "Indestructable";
     }
   }
-  
+
   @Order(390)
   public class EffectSetDefaultSpell extends IntegerEffect {
     @Override
@@ -845,5 +846,5 @@ public class EffectsObj {
       return getIntValue()==SpellData.MELEE ? "Melee" : getIntValue()==SpellData.ARROW ? "Ranged" : "Spell";
     }
   }
-  
+
 }

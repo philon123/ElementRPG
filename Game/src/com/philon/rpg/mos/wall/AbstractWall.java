@@ -3,21 +3,27 @@ package com.philon.rpg.mos.wall;
 import com.philon.engine.FrameAnimation;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
-import com.philon.rpg.mo.RpgMapObj;
+import com.philon.rpg.map.mo.RpgMapObj;
+import com.philon.rpg.util.RpgUtil;
 
 public abstract class AbstractWall extends RpgMapObj {
   public boolean isBlock; //must be set before use of setWallType()
+  public int wallType;
+
+  public AbstractWall() {
+    super();
+
+    isSelectable = false;
+  }
 
   @Override
   public Vector getCollRect() {
     return new Vector( 1, 1 );
   }
 
-  private void setImageHelper(int newImage) {
-    setAnimation(new FrameAnimation(ImageData.images[newImage]));
-  }
+  public void setImageByWallType(int newWallType) {
+    wallType = newWallType;
 
-  public void setWallType(int newWallType) {
     switch (newWallType) {
       case WallData.WALLTYPE_PILLAR :
         setImageHelper( getImgBlock() );
@@ -60,6 +66,10 @@ public abstract class AbstractWall extends RpgMapObj {
     }
   }
 
+  private void setImageHelper(int newImage) {
+    setAnimation(new FrameAnimation(ImageData.images[newImage]));
+  }
+
   public abstract int getImgBlock();
   public abstract int getImgBlockSingleSide();
   public abstract int getImgBlockCorner();
@@ -69,4 +79,38 @@ public abstract class AbstractWall extends RpgMapObj {
   public abstract int getImgWallCorner();
   public abstract int getImgWallTripod();
   public abstract int getImgWallCross();
+
+  public WallSaveData save() {
+    return new WallSaveData(this);
+  }
+
+  public static class WallSaveData extends RpgMapObjSaveData {
+    public boolean isBlock;
+    public int wallType;
+
+    public WallSaveData(Class<? extends AbstractWall> newObjClass, Vector newPos, Vector newDirection, boolean newIsBlock, int newWallType) {
+      super(newObjClass, newPos, newDirection);
+
+      isBlock = newIsBlock;
+      wallType = newWallType;
+    }
+
+    public WallSaveData(AbstractWall obj) {
+      super(obj);
+      isBlock = obj.isBlock;
+      wallType = obj.wallType;
+    }
+
+    @Override
+    public RpgMapObj load() { //custom load because image is not set in constructor (image has to be set first)
+      AbstractWall result = (AbstractWall)RpgUtil.instantiateClass(objClass);
+
+      result.isBlock = isBlock;
+      result.setImageByWallType(wallType);
+      result.setPosition(pos);
+      result.turnToDirection(direction);
+
+      return result;
+    }
+  }
 }

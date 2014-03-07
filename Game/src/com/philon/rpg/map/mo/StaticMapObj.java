@@ -1,4 +1,4 @@
-package com.philon.rpg.mo;
+package com.philon.rpg.map.mo;
 
 import com.philon.engine.FrameAnimation;
 import com.philon.rpg.ImageData;

@@ -1,7 +1,7 @@
 package com.philon.rpg.mos.item.items;
 
 import com.philon.engine.util.Util;
-import com.philon.rpg.mo.CombatMapObj;
+import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.mos.item.category.PotionItem;
 import com.philon.rpg.mos.player.CharAmazon;
 import com.philon.rpg.mos.player.CharBarbarian;

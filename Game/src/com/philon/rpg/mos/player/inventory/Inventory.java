@@ -7,7 +7,7 @@ import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.SoundData;
 import com.philon.rpg.mos.item.AbstractItem;
-import com.philon.rpg.mos.item.ItemSaveData;
+import com.philon.rpg.mos.item.AbstractItem.ItemSaveData;
 import com.philon.rpg.mos.item.category.AmuletItem;
 import com.philon.rpg.mos.item.category.ArmorItem;
 import com.philon.rpg.mos.item.category.ConsumableItem;
@@ -30,37 +30,33 @@ public class Inventory {
 
 	public AbstractItem pickedUpItem;
 	public AbstractItem hoveredOverItem;
-	public boolean twoHandedWeaponEquiped;
-	
+
 	//----------
 
 	public Inventory( AbstractChar newOwnerPlayer ) {
-		ownerPlayer = newOwnerPlayer;
-
-		init();
+		init(newOwnerPlayer);
 		currGold = 100;
 	}
 
 	//----------
-	
-	public Inventory( InventorySaveData isd ) {
-	  init();
-		currGold = isd.currGold;
+
+	public Inventory( AbstractChar newOwnerPlayer, InventorySaveData isd ) {
+	  init(newOwnerPlayer);
+	  currGold = isd.currGold;
 
 		for( ItemSaveData currItemSD : isd.invList ) {
-			AbstractItem tmpItem = AbstractItem.load(currItemSD, ownerPlayer);
-			invGrid.add( tmpItem, tmpItem.pos, false );
+			invGrid.add( (AbstractItem)currItemSD.load(), currItemSD.pos, false );
 		}
 
-		for( int i = 0; i <= isd.equip.length-1; i++ ) {
+		for( int i = 0; i < isd.equip.length; i++ ) {
 			if( isd.equip[i]!=null ) {
-				equip.items[i] = AbstractItem.load( isd.equip[i], ownerPlayer );
+				addItemToEquip((AbstractItem)isd.equip[i].load(), i, false);
 			}
 		}
 
-		for( int i = 0; i <= isd.beltGrid.length-1; i++ ) {
+		for( int i = 0; i < isd.beltGrid.length; i++ ) {
 			if( isd.beltGrid[i]!=null ) {
-				beltGrid.itemList.add( AbstractItem.load( isd.beltGrid[i], ownerPlayer ) );
+				beltGrid.add((AbstractItem)isd.beltGrid[i].load(), new Vector(i, 0), false);
 			}
 		}
 
@@ -70,7 +66,9 @@ public class Inventory {
 
 	//----------
 
-	public void init() {
+	public void init( AbstractChar newOwnerPlayer ) {
+	  ownerPlayer = newOwnerPlayer;
+
 		equip = new Equip();
 
 		invGrid = new InventoryGrid();
@@ -84,11 +82,11 @@ public class Inventory {
 	//----------
 
 	public InventorySaveData save() {
-		return InventorySaveData.create(this);
+		return new InventorySaveData(this);
 	}
 
 	//----------
-	
+
 	private boolean isItemForBelt(AbstractItem newItem) {
 	  return pickedUpItem instanceof ConsumableItem &&
         pickedUpItem.invSize.isAllEqual(new Vector(1));
@@ -96,11 +94,6 @@ public class Inventory {
 
 	public void equipChangedTrigger() {
 		updateEffects();
-
-		twoHandedWeaponEquiped=false;
-		if( equip.getBySlot(Equip.INV_WEAPON)!=null ) {
-			twoHandedWeaponEquiped = ((WeaponItem)equip.getBySlot(Equip.INV_WEAPON)).isTwoHanded();
-		}
 
 		if (ownerPlayer!=null) ownerPlayer.updateStats();
 	}
@@ -114,10 +107,10 @@ public class Inventory {
 		    result.addToSelf( tmpItem.effects );
 		  }
 		}
-		
+
 		effects = result;
 	}
-	
+
 	//----------
 
 	public void updateReqMetFlags() {
@@ -131,19 +124,19 @@ public class Inventory {
 		  updateReqMetFlag(currItem);
     }
 	}
-	
+
 	public void updateReqMetFlag(AbstractItem it) {
 	  it.reqMetFlag = ownerPlayer.stats.isReqMet( it.requirements );
 	}
 
 	//----------
-	
+
 	public void pickupItem( AbstractItem it ) {
 //	  if( it.id == ItemData.GOLD ) { //TODO gold
 //      pickupGold( (int) it.dropValue );
 //      return;
 //    }
-	  
+
     if( contains(it) ) {
       removeItem( it );
     }
@@ -156,7 +149,7 @@ public class Inventory {
 
   public boolean pickupAuto( AbstractItem it ) {
     if(pickedUpItem!=null) System.err.println("pickupAuto() detected existing pickedUpItem");
-    
+
 //    if( it.id == ItemData.GOLD ) { //TODO gold
 //      pickupGold( (int) it.dropValue );
 //      return true;
@@ -169,7 +162,7 @@ public class Inventory {
     } else {
       result = invGrid.addPickupAuto();
     }
-    
+
     if( result ) {
       return true;
     } else {
@@ -187,36 +180,59 @@ public class Inventory {
     }
   }
 
-	public boolean addPickupToEquip( int targetSlot ) {
-		if (!pickedUpItem.reqMetFlag) return false;
+  public boolean addPickupToEquip( int targetSlot ) {
+    AbstractItem tmpPickup = pickedUpItem;
+    pickedUpItem = null; //clear room for possible displaced item
+    AbstractItem displacedItem = addItemToEquip(tmpPickup, targetSlot, true);
+    if (displacedItem==null) { //insert failed
+      pickedUpItem = tmpPickup; //restore previous state
+      return false;
+    } else if(displacedItem!=tmpPickup)  { //success, with displacement
+      pickedUpItem = displacedItem;
+    }
+    return true;
+  }
 
-		Class<? extends AbstractItem> targetSlotClass = equip.equipType[targetSlot];
-		if( targetSlotClass.isInstance(pickedUpItem) ) {
-			AbstractItem displacedItem = equip.getBySlot(targetSlot);
-			AbstractItem newItem = pickedUpItem;
-			pickedUpItem = null;
+  /**
+   * @returns
+   *  - if sucessfull without displacement -> the item passed to it
+   *  - if sucessfull with displacement -> the displaced item
+   *  - if fail -> null
+   *
+   */
+	public AbstractItem addItemToEquip( AbstractItem it, int targetSlot, boolean allowDisplacement ) {
+	  updateReqMetFlag(it);
+		if (!it.reqMetFlag) return null;
+		if( !equip.equipType[targetSlot].isInstance(it) ) return null;
 
-			if( targetSlot == Equip.INV_WEAPON ) {
-				if( ((WeaponItem)newItem).isTwoHanded() && equip.getBySlot(Equip.INV_SHIELD)!=null ) {
-					if (!pickupAuto( equip.getBySlot(Equip.INV_SHIELD) )) return false;
-				}
-			} else if( targetSlot == Equip.INV_SHIELD ) {
-				if( twoHandedWeaponEquiped && equip.getBySlot(Equip.INV_WEAPON)!=null ) {
-					if (!pickupAuto( equip.getBySlot(Equip.INV_WEAPON) )) return false;
-				}
-			}
-			if (displacedItem!=null) pickupItem( displacedItem );
-			
-			equip.items[targetSlot] = newItem;
-			newItem.pos = new Vector( targetSlot, 0 );
-			newItem.changeState( AbstractItem.StateInv.class );
-			if(newItem.souDrop>0) RpgGame.playSoundFX(newItem.souDrop);
+		AbstractItem displacedItem = equip.getBySlot(targetSlot);
+		if(!allowDisplacement && displacedItem!=null) return null;
 
-			equipChangedTrigger();
-			return true;
+		WeaponItem equippedWeapon = (WeaponItem)equip.getBySlot(Equip.INV_WEAPON);
+		ShieldItem equippedShield = (ShieldItem)equip.getBySlot(Equip.INV_SHIELD);
+
+		AbstractItem secondDisplacedItem = null;
+		if( targetSlot==Equip.INV_WEAPON && ((WeaponItem)it).isTwoHanded() && equippedShield!=null ) {
+		  secondDisplacedItem = equippedShield;
+		} else if( targetSlot==Equip.INV_SHIELD && equippedWeapon!=null && equippedWeapon.isTwoHanded() ) {
+		  secondDisplacedItem = equippedWeapon;
+		}
+		if(secondDisplacedItem!=null) {
+		  if ( !allowDisplacement ) return null;
+		  if(displacedItem==null) {
+		    displacedItem = secondDisplacedItem;
+		  } else {
+		    if ( !pickupAuto(secondDisplacedItem) ) return null;
+		  }
 		}
 
-		return false;
+		equip.items[targetSlot] = it;
+		it.pos = new Vector( targetSlot, 0 );
+		it.changeState( AbstractItem.StateInv.class );
+		if(it.souDrop>0) RpgGame.playSoundFX(it.souDrop);
+
+		equipChangedTrigger();
+		return displacedItem!=null ? displacedItem : it;
 	}
 
 	public boolean contains( AbstractItem it ) {
@@ -225,7 +241,7 @@ public class Inventory {
     } else
       return false;
   }
-	
+
 	public void removeItem( AbstractItem it ) {
 	  if (equip.contains(it)) {
 	    equip.items[(int) it.pos.x]=null;
@@ -262,27 +278,28 @@ public class Inventory {
 	}
 
 	//----------
-	
+
 	public class InventoryGrid extends AbstractItemGrid {
-	  
+
 	  @Override
 	  public Vector getGridSize() {
 	    return new Vector(10, 4);
 	  }
-	  
+
 	}
-	
+
 	public class BeltGrid extends AbstractItemGrid {
-    
+	  public static final int length = 10;
+
     @Override
     public Vector getGridSize() {
-      return new Vector(10, 1);
+      return new Vector(length, 1);
     }
-    
+
   }
-	
+
 	public class Equip {
-	  public int numSlots = 7;
+	  public static final int numSlots = 7;
 
 	  public static final int INV_WEAPON  = 0;
 	  public static final int INV_SHIELD  = 1;
@@ -291,10 +308,10 @@ public class Inventory {
 	  public static final int INV_AMULETT = 4;
 	  public static final int INV_RING1   = 5;
 	  public static final int INV_RING2   = 6;
-	  
+
 	  AbstractItem[] items;
 	  public Class<? extends AbstractItem>[] equipType;
-	  
+
     @SuppressWarnings("unchecked")
     public Equip() {
 	    items = new AbstractItem[numSlots];
@@ -308,18 +325,18 @@ public class Inventory {
 	    equipType[INV_RING1]   = RingItem.class;
 	    equipType[INV_RING2]   = RingItem.class;
 	  }
-	  
+
 	  public boolean contains(AbstractItem newItem) {
 	    for (AbstractItem currItem : items) {
 	      if (currItem==newItem) return true;
 	    }
 	    return false;
 	  }
-	  
+
 	  public AbstractItem getBySlot(int newSlot) {
 	    return items[newSlot];
 	  }
-	  
+
 	  public List<AbstractItem> getItems() {
 	    LinkedList<AbstractItem> result = new LinkedList<AbstractItem>();
 	    for (AbstractItem currItem : items) {
@@ -327,7 +344,7 @@ public class Inventory {
       }
 	    return result;
 	  }
-	  
+
 	}
 
 }

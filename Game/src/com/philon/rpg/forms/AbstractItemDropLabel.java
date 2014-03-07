@@ -5,7 +5,7 @@ import com.philon.engine.forms.AbstractLabel;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.mo.CombatMapObj;
+import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.item.category.ConsumableItem;
 import com.philon.rpg.spell.SpellData;

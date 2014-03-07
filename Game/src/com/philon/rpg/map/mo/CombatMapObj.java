@@ -1,4 +1,4 @@
-package com.philon.rpg.mo;
+package com.philon.rpg.map.mo;
 
 import java.util.LinkedList;
 
@@ -8,7 +8,7 @@ import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.mo.state.AbstractMapObjState;
+import com.philon.rpg.map.mo.state.AbstractMapObjState;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.spell.AbstractSpell;
 import com.philon.rpg.spell.SpellData;
@@ -35,27 +35,22 @@ import com.philon.rpg.stat.StatsObj.StatResistLightning;
 import com.philon.rpg.stat.effect.EffectsObj;
 
 public abstract class CombatMapObj extends UpdateMapObj {
-	public int currSelectedSpell;
+  public EffectsObj baseEffects;
+  public EffectsObj addedEffects;
+  public EffectsObj effects;
+
+  public StatsObj stats;
+  public LinkedList<AbstractSpell> activeSpells = new LinkedList<AbstractSpell>();
 
 	public int footstepCooldown;
 	public int castCooldown;
 	public int hitCooldown;
 
+	public int currSelectedSpell;
 	public int preparedSpell;
 	public Vector preparedTarPos;
-	public Selectable preparedTarget;
+	public RpgMapObj preparedTarget;
 	public boolean isPreparedManual;
-
-	public EffectsObj baseEffects;
-	public EffectsObj addedEffects;
-	public EffectsObj effects;
-
-	public StatsObj stats;
-	public LinkedList<AbstractSpell> activeSpells = new LinkedList<AbstractSpell>();
-
-  public float maxMeleeRange;
-
-	//----------
 
 	public CombatMapObj() {
 	  super();
@@ -63,8 +58,6 @@ public abstract class CombatMapObj extends UpdateMapObj {
 		replaceState( StateMovingStraight.class, StateMovingCombat.class);
 
 		baseEffects = getBaseEffects();
-		maxMeleeRange = getMaxMeleeRange();
-
 		updateStats();
 	}
 
@@ -93,23 +86,22 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  addedEffects = getAdditionalEffects();
 	  effects = EffectsObj.add(baseEffects, addedEffects);
 
-	  int tmpHealth=-1;
-	  int tmpMana=-1;
+	  int tmpHealth=0;
+	  int tmpMana=0;
+	  boolean statsWereEmpty = true;
 	  if (stats!=null) {
+	    statsWereEmpty = false;
       tmpHealth = (Integer) stats.getStatValue(StatHealth.class);
       tmpMana= (Integer) stats.getStatValue(StatMana.class);
 	  }
 
     stats = effects.getStats();
 
-    if (tmpHealth==-1) {
+    if (statsWereEmpty) {
       stats.addOrCreateStat(StatHealth.class, stats.getStatValue(StatMaxHealth.class));
-    } else {
-      stats.addOrCreateStat(StatHealth.class, tmpHealth);
-    }
-    if (tmpMana==-1) {
       stats.addOrCreateStat(StatMana.class, stats.getStatValue(StatMaxMana.class));
     } else {
+      stats.addOrCreateStat(StatHealth.class, tmpHealth);
       stats.addOrCreateStat(StatMana.class, tmpMana);
     }
   }
@@ -171,7 +163,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 	//----------
 
-	public boolean prepareSpell( int newSpellID, boolean isManual, Vector newTarPos, Selectable newTarget ) {
+	public boolean prepareSpell( int newSpellID, boolean isManual, Vector newTarPos, RpgMapObj newTarget ) {
 		if (castCooldown>0) return false;
 		if( newSpellID==SpellData.EMPTY ) return true;
 		if ( !(newSpellID==SpellData.MELEE || newSpellID==SpellData.ARROW)
@@ -189,7 +181,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 		if( newTarget!=null ) {
 			if( !(newTarget instanceof AbstractItem && ((AbstractItem)newTarget).currState!=AbstractItem.StateMap.class) ) {
-				newTarPos=((UpdateMapObj)newTarget).pos.copy();
+				newTarPos=((RpgMapObj)newTarget).pos.copy();
 			}
 		}
 		if (newTarPos!=null && !newTarPos.isAllEqual(new Vector())) turnToTarget(newTarPos);
@@ -208,7 +200,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 	//----------
 
-	public void castPreparedSpell( Vector newTarPos, Selectable newTarget ) {
+	public void castPreparedSpell( Vector newTarPos, RpgMapObj newTarget ) {
 		if( isPreparedManual ) {
 			castSpell(  preparedSpell, newTarPos, newTarget ); //use fresh values
 		} else {
@@ -229,7 +221,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 	//----------
 
-	public boolean castSpell( int newSpellID, Vector newTarPos, Selectable newTarget ) {
+	public boolean castSpell( int newSpellID, Vector newTarPos, RpgMapObj newTarget ) {
 		if (newTarget==null && newTarPos.isAllEqual(pos)) return false; //targeted outside game field;
 
 		AbstractSpell s = SpellData.createSpell(this, preparedSpell, stats.spells[preparedSpell], newTarPos, newTarget);
@@ -275,56 +267,12 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
   }
 
-	@Override
-	public void setLuminance( float newLuminance ) {
-    luminance = newLuminance;
-    if( luminance>0 ) {
-      RpgGame.inst.gGraphics.insertDynamicLightSource(this);
-    }
-  }
-
 	//----------
 
 	public boolean getCanSeeGO( RpgMapObj newTarget ) {
 		Vector tile1=pos.copy().roundAllInst();
 		Vector tile2=newTarget.pos.copy().roundAllInst();
 		return RpgGame.inst.gMap.tilesInSight( tile1, tile2 );
-	}
-
-	//----------
-
-	public LinkedList<CombatMapObj> getCombatGOsInRange( float newRange, Class<? extends CombatMapObj>[] effectedClasses ) {
-		LinkedList<CombatMapObj> result = new LinkedList<CombatMapObj>();
-		Vector minTile = new Vector( pos.x-newRange, pos.y-newRange ).roundAllInst();
-		Vector maxTile = new Vector( pos.x+newRange, pos.y+newRange ).roundAllInst();
-
-		for( int y = (int) minTile.y; y <= maxTile.y; y++ ) {
-			for( int x = (int) minTile.x; x <= maxTile.x; x++ ) {
-				Vector currTile = new Vector(x, y);
-				if( RpgGame.inst.gMap.isTileOnMap(currTile) ) {
-					float currDist = Vector.getDistance(pos, currTile);
-					if( currDist <= newRange ) {
-						for( RpgMapObj tmpMO : RpgGame.inst.gMap.grid[(int) currTile.y][(int) currTile.x].collList ) {
-							if( tmpMO instanceof CombatMapObj ) {
-								if( !result.contains(tmpMO) || tmpMO==this ) {
-									if( effectedClasses==null ) {
-										result.addLast((CombatMapObj)tmpMO);
-									} else {
-										for( int i = 0; i <= effectedClasses.length-1; i++ ) {
-											if( effectedClasses[i].isAssignableFrom(tmpMO.getClass()) ) {
-												result.addLast((CombatMapObj)tmpMO);
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return result;
 	}
 
 	//----------
@@ -394,7 +342,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  @Override
 	  public boolean execUpdate() {
 	    if( currSelectedSpell==SpellData.MELEE ) {
-	      if( currTargetDist<maxMeleeRange ) {
+	      if( currTargetDist < getMaxMeleeRange() ) {
 	        if(currImg!=getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(PhilonGame.fps/3), false));
 	        prepareSpell( currSelectedSpell, false, currTargetPos, currTarget );
 	        return true;
@@ -423,7 +371,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  public void execOnChange() {
 	    pathfindCooldown=0;
 	    if(animation.image!=ImageData.images[getImgMoving()]) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(PhilonGame.fps/3), false));
-	    if(!(currTarget instanceof Selectable)) {
+	    if(!(currTarget.isSelectable)) {
 	      changeState(StateIdle.class);
 	    }
 	  }
@@ -435,7 +383,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	    if( !states.get(CombatMapObj.StateMovingTarget.class).execUpdate() ) {
         if (currTargetDist < 1.5) { //moved to pos, ready to interact
           if(animation.image!=ImageData.images[getImgIdle()]) setAnimation(new FrameAnimation(ImageData.images[getImgIdle()], (int)(PhilonGame.fps/3), false));
-          interact((Selectable)currTarget);
+          interact(currTarget);
           return false; //finished
         } else {
           return false; //couldnt reach target

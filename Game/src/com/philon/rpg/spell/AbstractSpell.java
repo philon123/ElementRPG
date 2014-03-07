@@ -4,11 +4,11 @@ import java.util.LinkedList;
 import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.mo.BreakableMapObj;
-import com.philon.rpg.mo.CombatMapObj;
-import com.philon.rpg.mo.RpgMapObj;
-import com.philon.rpg.mo.Selectable;
-import com.philon.rpg.mo.StaticMapObj;
+import com.philon.rpg.map.mo.BreakableMapObj;
+import com.philon.rpg.map.mo.CombatMapObj;
+import com.philon.rpg.map.mo.RpgMapObj;
+import com.philon.rpg.map.mo.StaticMapObj;
+import com.philon.rpg.map.mo.UpdateMapObj.StateDying;
 import com.philon.rpg.mos.door.AbstractDoor;
 import com.philon.rpg.mos.shot.AbstractShot;
 import com.philon.rpg.mos.shot.ShotData;
@@ -24,7 +24,7 @@ public abstract class AbstractSpell {
 
 	public StatsObj stats;
 	public Vector tarPos;
-	public Selectable target;
+	public RpgMapObj target;
 	public boolean isDying=false;
 	public boolean passthrough=false;
 	public LinkedList<AbstractShot> shots = new LinkedList<AbstractShot>();
@@ -33,7 +33,7 @@ public abstract class AbstractSpell {
 
 	//----------
 
-	public void init( CombatMapObj newOwnerMO, int newSType, int newSLvl, Vector newTarPos, Selectable newTarget ) {
+	public void init( CombatMapObj newOwnerMO, int newSType, int newSLvl, Vector newTarPos, RpgMapObj newTarget ) {
 	  id            = newSType;
 	  sLvl          = newSLvl;
 	  target        = newTarget;
@@ -117,7 +117,7 @@ public abstract class AbstractSpell {
 
 	public void deleteObject() {
 		for( AbstractShot s : shots ) {
-			s.changeState( AbstractShot.StateDying.class );
+			s.changeState( StateDying.class );
 		}
 		isDying=true;
 	}
@@ -132,6 +132,7 @@ public abstract class AbstractSpell {
 		sh.tilesPerSecond = newShotSpeed;
 		sh.setTarget( target, tarPos );
 		shots.addLast(sh);
+		RpgGame.inst.gMap.insertMapObj(sh);
 	}
 
 	//----------

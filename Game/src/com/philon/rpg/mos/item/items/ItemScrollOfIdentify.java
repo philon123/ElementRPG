@@ -1,6 +1,6 @@
 package com.philon.rpg.mos.item.items;
 
-import com.philon.rpg.mo.CombatMapObj;
+import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.mos.item.category.ScrollItem;
 import com.philon.rpg.spell.SpellData;
 

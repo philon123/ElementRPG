@@ -3,22 +3,22 @@ package com.philon.rpg.mos;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.forms.AbstractVendorForm;
-import com.philon.rpg.mo.Selectable;
-import com.philon.rpg.mo.UpdateMapObj;
+import com.philon.rpg.map.mo.RpgMapObj;
+import com.philon.rpg.map.mo.UpdateMapObj;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.player.inventory.AbstractItemGrid;
 
-public abstract class AbstractVendor extends UpdateMapObj implements Selectable {
+public abstract class AbstractVendor extends UpdateMapObj {
   public ItemGrid itemGrid;
   public AbstractVendorForm form;
-  
+
   public AbstractVendor() {
     super();
-    
+
     itemGrid = new ItemGrid();
     addItems();
   }
-  
+
   @Override
   public int getImgIdle() {
     return 55;
@@ -48,30 +48,30 @@ public abstract class AbstractVendor extends UpdateMapObj implements Selectable 
   public int getImgMoving() {
     return 0;
   }
-  
+
   @Override
-  public void interactTrigger(UpdateMapObj objInteracting) {
+  public void interactTrigger(RpgMapObj objInteracting) {
     form.toggle();
   }
-  
+
   public void addItems() {
     AbstractItem newItem = null;
     do {
       newItem = createItem();
     } while (itemGrid.addAuto(newItem));
   }
-  
+
   public abstract AbstractItem createItem();
-  
+
   public void buyItem(AbstractItem newItem) {
     RpgGame.inst.localPlayer.inv.pickupGold((int)newItem.dropValue);
     itemGrid.addAuto(newItem);
   }
-  
+
   public AbstractItem getItemByCell(Vector cell) {
     return itemGrid.getItemByCell(cell);
   }
-  
+
   public class ItemGrid extends AbstractItemGrid {
 
     @Override
@@ -80,5 +80,5 @@ public abstract class AbstractVendor extends UpdateMapObj implements Selectable 
     }
 
   }
-  
+
 }

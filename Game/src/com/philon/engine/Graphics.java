@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.philon.engine.util.AnimTextureRegion;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 
@@ -57,17 +56,6 @@ public class Graphics {
 
     return new Vector[]{tmpPos, tmpSize};
   }
-
-	public void drawBaseImageRect( AnimTextureRegion newImage, Vector newPixPos, Vector newPixSize, float newBrightness, int newFrame, boolean isTransparent, boolean isHighlighted ) {
-	  Color tmpColor;
-		if( isHighlighted ) {
-		  tmpColor = Color.RED.cpy();
-		} else {
-		  tmpColor = new Color( newBrightness, newBrightness, newBrightness, 1 );
-		}
-		if( isTransparent ) tmpColor.a = 0.5f;
-		drawTextureRect( newImage.frames[newFrame], newPixPos, newPixSize, tmpColor );
-	}
 
 	//TODO use BitMapFontCache for static Texts
 	//TODO cache all texts drawn draw together at end of frame (how to handle overlaps of forms?)

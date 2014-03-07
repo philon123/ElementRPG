@@ -1,22 +1,20 @@
 package com.philon.rpg.mos.light;
 
 import com.philon.engine.util.Vector;
-import com.philon.rpg.mo.UpdateMapObj;
+import com.philon.rpg.map.mo.UpdateMapObj;
 
 public class Torch extends UpdateMapObj {
 
 	public Torch() {
-	  isCollObj=false;
+	  isCollObj = false;
 		setLuminance(0.5f);
+		isSelectable = false;
 	}
-	
+
 	@Override
 	public int getImgIdle() {
 	  return 339;
 	}
-	
-	
-	
 
   @Override
   public float getTilesPerSecond() {

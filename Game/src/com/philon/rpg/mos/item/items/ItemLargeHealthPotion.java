@@ -1,6 +1,6 @@
 package com.philon.rpg.mos.item.items;
 
-import com.philon.rpg.mo.CombatMapObj;
+import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.mos.item.category.PotionItem;
 import com.philon.rpg.stat.StatsObj.StatHealth;
 import com.philon.rpg.stat.StatsObj.StatMaxHealth;

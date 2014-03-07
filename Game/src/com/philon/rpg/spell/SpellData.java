@@ -5,8 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 import com.philon.engine.AbstractGameData;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.mo.CombatMapObj;
-import com.philon.rpg.mo.Selectable;
+import com.philon.rpg.map.mo.CombatMapObj;
+import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.spells.SpellArrow;
 import com.philon.rpg.spells.SpellFireBolt;
 import com.philon.rpg.spells.SpellFireWall;
@@ -16,17 +16,17 @@ import com.philon.rpg.spells.SpellKugelBlitz;
 import com.philon.rpg.spells.SpellMelee;
 import com.philon.rpg.spells.SpellNone;
 import com.philon.rpg.stat.StatsObj;
-import com.philon.rpg.stat.StatsObj.StatLightningDamage;
 import com.philon.rpg.stat.StatsObj.StatFireDamage;
-import com.philon.rpg.stat.StatsObj.StatMagic;
 import com.philon.rpg.stat.StatsObj.StatIceDamage;
+import com.philon.rpg.stat.StatsObj.StatLightningDamage;
+import com.philon.rpg.stat.StatsObj.StatMagic;
 import com.philon.rpg.stat.StatsObj.StatNormalDamage;
 
 public class SpellData extends AbstractGameData {
 	public static final int MAX_SPELL_LVL = 20;
 
 	public static int numSpells;
-	
+
 	public static final int EMPTY                      =  0;
 	public static final int MELEE                      =  1;
 	public static final int ARROW                      =  2;
@@ -83,22 +83,22 @@ public class SpellData extends AbstractGameData {
 	public static int[][]      manaCost;
 	public static StatsObj[][] reqs;
 	public static StatsObj[][] stats;
-	
+
 	public static Class<? extends AbstractSpell>[] spellClasses;
 
 	//----------
-	
+
 	@Override
   public String getTableName() {
     return "spell";
   }
-  
+
   //----------
-  
+
   @Override
   public void execInitArrays(int rowCount) {
     numSpells = rowCount;
-    
+
     displayText = new String  [rowCount];
     speed       = new float   [rowCount];
     castTime    = new float   [rowCount];
@@ -113,7 +113,7 @@ public class SpellData extends AbstractGameData {
     reqs        = new StatsObj[rowCount][];
     stats       = new StatsObj[rowCount][];
     manaCost    = new int     [rowCount][];
-    
+
     spellClasses = new Class[rowCount];
     spellClasses[EMPTY] = SpellNone.class;
     spellClasses[MELEE] = SpellMelee.class;
@@ -157,18 +157,18 @@ public class SpellData extends AbstractGameData {
 //    spellClasses[ELECTRO_MAGNETIC_FIREBALL] = .class;
 //    spellClasses[ELECTRO_MAGNETIC_FIRESTORM] = .class;
 
-    
+
   }
-  
+
   //----------
-  
-  public static AbstractSpell createSpell( CombatMapObj newOwnerMO, int newSType, int newSLvl, Vector newTarPos, Selectable newTarget ) {
+
+  public static AbstractSpell createSpell( CombatMapObj newOwnerMO, int newSType, int newSLvl, Vector newTarPos, RpgMapObj newTarget ) {
     AbstractSpell s=null;
     try {
       s = spellClasses[newSType].
-          getDeclaredConstructor(CombatMapObj.class, int.class, int.class, Vector.class, Selectable.class).
+          getDeclaredConstructor(CombatMapObj.class, int.class, int.class, Vector.class, RpgMapObj.class).
           newInstance( newOwnerMO, newSType, newSLvl, newTarPos, newTarget );
-      
+
     } catch (InstantiationException e) {
       e.printStackTrace();
     } catch (IllegalAccessException e) {
@@ -182,12 +182,12 @@ public class SpellData extends AbstractGameData {
     } catch (SecurityException e) {
       e.printStackTrace();
     }
-    
+
     return s;
   }
-  
+
   //----------
-  
+
   @Override
   public void execLoadRow(int rowNum, Object[] row) {
     displayText [rowNum] = (String) row[1];
@@ -211,19 +211,19 @@ public class SpellData extends AbstractGameData {
         reqs[rowNum][j].addOrCreateStat( StatMagic.class, (Integer)row[13] +j*(Integer)row[14] );
       stats[rowNum][j] = new StatsObj();
         stats[rowNum][j].addOrCreateStat(StatNormalDamage.class, new Vector(
-            new Float((Double)row[15]) + j*new Float((Double)row[16]), 
+            new Float((Double)row[15]) + j*new Float((Double)row[16]),
             new Float((Double)row[17]) + j*new Float((Double)row[18]) )
             );
         stats[rowNum][j].addOrCreateStat(StatFireDamage.class, new Vector(
-            new Float((Double)row[19]) + j*new Float((Double)row[20]), 
+            new Float((Double)row[19]) + j*new Float((Double)row[20]),
             new Float((Double)row[21]) + j*new Float((Double)row[22]) )
             );
         stats[rowNum][j].addOrCreateStat(StatLightningDamage.class, new Vector(
-            new Float((Double)row[23]) + j*new Float((Double)row[24]), 
+            new Float((Double)row[23]) + j*new Float((Double)row[24]),
             new Float((Double)row[25]) + j*new Float((Double)row[26]) )
             );
         stats[rowNum][j].addOrCreateStat(StatIceDamage.class, new Vector(
-            new Float((Double)row[27]) + j*new Float((Double)row[28]), 
+            new Float((Double)row[27]) + j*new Float((Double)row[28]),
             new Float((Double)row[29]) + j*new Float((Double)row[30]) )
             );
     }
@@ -237,5 +237,5 @@ public class SpellData extends AbstractGameData {
       return stats[newSpellID][newSpellLvl-1].getTotalDamage();
     }
   }
-  
+
 }

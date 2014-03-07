@@ -1,4 +1,4 @@
-package com.philon.rpg.mo.state;
+package com.philon.rpg.map.mo.state;
 
 public abstract class AbstractMapObjState {
 

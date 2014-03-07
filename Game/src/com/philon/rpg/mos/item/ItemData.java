@@ -88,12 +88,12 @@ public class ItemData {
 	public static final int EFFTYPE_NORMAL = 0;
   public static final int EFFTYPE_RARE   = 1;
   public static final int EFFTYPE_UNIQUE = 2;
-	
+
 	public static LinkedHashMap<Class<? extends AbstractItem>, Integer> itemClassToRarityMap;
 
 	public static AbstractItem createItem(Class<? extends AbstractItem> clazz) {
 	  AbstractItem result=null;
-	  
+
 	  try {
       result = clazz.newInstance();
       result.setPosition(new Vector());
@@ -102,10 +102,10 @@ public class ItemData {
     } catch (IllegalAccessException e) {
       e.printStackTrace();
     }
-	  
+
 	  return result;
 	}
-	
+
   public static void loadMedia() {
 		itemClassToRarityMap = new LinkedHashMap<Class<? extends AbstractItem>, Integer>();
 		registerItemClass( ItemAmulet1.class, 1 );
@@ -184,13 +184,13 @@ public class ItemData {
 		registerItemClass( ItemTwoHandedSword.class, 1 );
 		registerItemClass( ItemWarHammer.class, 1 );
   }
-  
+
   public static void registerItemClass(Class<? extends AbstractItem> itemClass, int rarity) {
     itemClassToRarityMap.put(itemClass, rarity);
   }
-  
+
   //----------
-  
+
   public static AbstractItem createRandomItem( float newDropValue ) {
     AbstractItem it;
     float targetValue = (float) ((newDropValue*0.5f) + (Math.random()*newDropValue)); //0.5 - 1.5 dropvalues
@@ -203,7 +203,7 @@ public class ItemData {
     }
     Class<? extends AbstractItem> randomItemClass = possibleItems.get((int) Util.random(0, possibleItems.size()-1));
     if (Math.random()<0.3) randomItemClass=ItemScrollOfIdentify.class;
-    
+
     it = createItem(randomItemClass);
     targetValue -= it.dropValue;
     if (!(it instanceof ConsumableItem)) {
@@ -212,23 +212,22 @@ public class ItemData {
       if( it.prefix != null ) {
         targetValue -= it.prefix.getDropValue();
       }
-  
+
       it.suffix = PrefixSuffixData.createRandomSuffix( (int) (targetValue*0.75f) );
       if( it.suffix != null ) {
         targetValue -= it.suffix.getDropValue();
       }
     }
-    
+
     if( it.prefix!=null || it.suffix!=null ) {
       it.iEffType = EFFTYPE_RARE;
       it.deidentify();
     } else {
       it.iEffType = EFFTYPE_NORMAL;
     }
-    
+
     //finalize
     it.updateEffects();
-    it.updateStats();
     return it;
   }
 

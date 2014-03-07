@@ -6,12 +6,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.philon.engine.Input;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.mo.RpgMapObj;
-import com.philon.rpg.mo.BreakableMapObj;
-import com.philon.rpg.mo.CombatMapObj;
-import com.philon.rpg.mo.Selectable;
-import com.philon.rpg.mo.CombatMapObj.StateHit;
-import com.philon.rpg.mo.UpdateMapObj.StateDying;
+import com.philon.rpg.map.mo.BreakableMapObj;
+import com.philon.rpg.map.mo.CombatMapObj;
+import com.philon.rpg.map.mo.CombatMapObj.StateHit;
+import com.philon.rpg.map.mo.RpgMapObj;
+import com.philon.rpg.map.mo.UpdateMapObj.StateDying;
+import com.philon.rpg.map.mo.UpdateMapObj.StateMovingStraight;
 import com.philon.rpg.mos.enemy.AbstractEnemy;
 import com.philon.rpg.mos.player.AbstractChar;
 import com.philon.rpg.stat.StatsObj.StatM1Stype;
@@ -21,23 +21,23 @@ public class RpgInput extends Input {
   public static final int invHotkey = Keys.I;
   public static final int speHotkey = Keys.L; //TODO change back
   public static final int chaHotkey = Keys.C;
-  
-  public Selectable selectedMO;
-  
+
+  public RpgMapObj selectedMO;
+
   public RpgInput() {
     keysWatched.addLast(invHotkey);
     keysWatched.addLast(chaHotkey);
     keysWatched.addLast(speHotkey);
   }
-  
+
   @Override
   public void handleUserInput() {
     super.handleUserInput();
-    
+
     if (keysIsReleased.get(invHotkey)) RpgGame.inst.localPlayer.invForm.toggle();
     if (keysIsReleased.get(speHotkey)) RpgGame.inst.localPlayer.spellForm.toggle();
     if (keysIsReleased.get(chaHotkey)) RpgGame.inst.localPlayer.charForm.toggle();
-    
+
     //keyboard
     Vector newPDir = new Vector();
     if( Gdx.input.isKeyPressed(Keys.W) ) {
@@ -58,23 +58,20 @@ public class RpgInput extends Input {
     }
     RpgGame.inst.localPlayer.newDir = newPDir;
     if (newPDir.equals(new Vector())) {
-      if (RpgGame.inst.localPlayer.isKeyMovement) RpgGame.inst.localPlayer.changeState(AbstractChar.StateIdle.class);
       RpgGame.inst.localPlayer.isKeyMovement = false;
+      if (RpgGame.inst.localPlayer.isKeyMovement && RpgGame.inst.localPlayer.currState==StateMovingStraight.class) {
+        RpgGame.inst.localPlayer.changeState(AbstractChar.StateIdle.class);
+      }
     } else {
       newPDir.normalizeInst();
       RpgGame.inst.localPlayer.isKeyMovement = true;
     }
-    
-    
-//  //for debug, change level
-//  if (Gdx.input.isKeyPressed(Keys.UP)) changeLevel(currLevel-1);
-//  if (Gdx.input.isKeyPressed(Keys.DOWN)) changeLevel(currLevel+1);
   }
-  
+
   public void handleMouseOverGame( Vector mousePixPos, boolean isM1down, boolean isM2down ) {
     Vector mouseTilePos = RpgGame.inst.gGraphics.getTilePosByPixPos(mousePixPos);
     if (mouseTilePos==null) mouseTilePos=RpgGame.inst.localPlayer.pos.copy();
-    
+
     //selectedMO
     selectedMO = selectObjectByTilePos(mouseTilePos);
     RpgGame.inst.localPlayer.inv.hoveredOverItem = null;
@@ -84,15 +81,15 @@ public class RpgInput extends Input {
     if (m1Click) m1actionPerformed=true;
     if (m2Click) m2actionPerformed=true;
     if (!(m1Click || m2Click)) return;
-    
-    if (m1Click || m2Click) {
+
+    if (isM1down || isM2down) {
       if( selectedMO==null ) {
         RpgGame.inst.localPlayer.setTarget( null, mouseTilePos.copy() );
       } else {
         RpgGame.inst.localPlayer.setTarget( selectedMO );
       }
     }
-    
+
     if (!(RpgGame.inst.localPlayer.currState==StateHit.class || RpgGame.inst.localPlayer.currState==StateDying.class)) {
       boolean isShiftDown = Gdx.input.isKeyPressed(Keys.SHIFT_LEFT);
       if( m1Click ) {
@@ -112,7 +109,7 @@ public class RpgInput extends Input {
         if( selectedMO instanceof AbstractEnemy || selectedMO instanceof BreakableMapObj ) {
           RpgGame.inst.localPlayer.changeState( CombatMapObj.StateAttacking.class );
           return;
-        } 
+        }
         RpgGame.inst.localPlayer.changeState( CombatMapObj.StateInteracting.class );
       }
       if( m2Click ) {
@@ -121,41 +118,26 @@ public class RpgInput extends Input {
         return;
       }
     }
-    
+
   }
-  
-  public Selectable selectObjectByTilePos(Vector newTilePos) {
+
+  public RpgMapObj selectObjectByTilePos(Vector newTilePos) {
     Vector mouseTile = Vector.floorAll( newTilePos );
     if( !RpgGame.inst.gMap.isTileOnMap(mouseTile) ) return null;
 
-    LinkedList<RpgMapObj> selectedList = RpgGame.inst.gGraphics.getMOsAtPixel( realMousePos );
-    if( selectedList==null ) return null;
-    
-    //remove irrelevant mos
+    LinkedList<RpgMapObj> selectedList = RpgGame.inst.gMap.selectMOsAtPixel( realMousePos );
     selectedList.remove(RpgGame.inst.localPlayer);
-    LinkedList<RpgMapObj> removeList = new LinkedList<RpgMapObj>();
-    
-    for (RpgMapObj tmpMO :selectedList) {
-      if(!(tmpMO instanceof Selectable)) {
-        removeList.addLast(tmpMO);
-      }
-    }
-    selectedList.removeAll(removeList);
     if (selectedList.isEmpty()) return null;
-    
+
     //prioritize enemies to be selected
     for( RpgMapObj tmpMO : selectedList ) {
       if(tmpMO instanceof AbstractEnemy) {
-        return (Selectable)tmpMO;
+        return tmpMO;
       }
     }
 
     //if no enemy found -> other selectable
-    return (Selectable)selectedList.getFirst();
+    return selectedList.getFirst();
   }
-  
-  
-  
-  
-  
+
 }

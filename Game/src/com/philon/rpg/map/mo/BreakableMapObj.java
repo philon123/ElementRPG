@@ -1,32 +1,52 @@
-package com.philon.rpg.mo;
+package com.philon.rpg.map.mo;
 
-import com.philon.engine.FrameAnimation;
 import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.mo.state.AbstractMapObjState;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.item.ItemData;
 
-public abstract class BreakableMapObj extends UpdateMapObj implements Selectable {
+public abstract class BreakableMapObj extends ToggleMapObj {
   public int breakTimer;
+
+  public BreakableMapObj() {
+    replaceState(StateOpening.class, StateBreaking.class);
+    replaceState(StateOpen.class, StateBroken.class);
+  }
+
+  @Override
+  public void toggle() {
+    if( currState==StateClosed.class ) {
+      changeState( StateOpening.class );
+      hasBeenToggled = true;
+    }
+  }
 
   public abstract int getImgBreak();
   public abstract int getSouBreak();
   public abstract int getDropValue();
 
+  @Override
+  public int getSouOpening() {
+    return getSouBreak();
+  }
+
+  @Override
+  public int getToggleImage() {
+    return getImgBreak();
+  }
+
+  @Override
+  public int getToggleTime() {
+    return getAnimDur();
+  }
+
   public int getAnimDur() {
     return (int) PhilonGame.fps/2;
   }
 
-  @Override
-  public Class<? extends AbstractMapObjState> getDefaultState() {
-    return IntactState.class;
-  }
-
   public void destroy() {
-    changeState(BreakingState.class);
+    changeState(StateBreaking.class);
   }
 
   @Override
@@ -54,29 +74,12 @@ public abstract class BreakableMapObj extends UpdateMapObj implements Selectable
     return 0;
   }
 
-  @Override
-  public void interactTrigger(UpdateMapObj objInteracting) {
-
-  }
-
-  public class IntactState extends AbstractMapObjState {
+  public class StateBreaking extends StateOpening {
     @Override
     public void execOnChange() {
-      setAnimation(new FrameAnimation(ImageData.images[getImgBreak()]));
-    }
+      super.execOnChange();
 
-    @Override
-    public boolean execUpdate() {
-      return true;
-    }
-  }
-
-  public class BreakingState extends AbstractMapObjState {
-    @Override
-    public void execOnChange() {
-      setAnimation(new FrameAnimation(ImageData.images[getImgBreak()], getAnimDur(), false));
       breakTimer = getAnimDur();
-      isCollObj=false;
 
       AbstractItem it = ItemData.createRandomItem( getDropValue() );
       Vector newItemPos = RpgGame.inst.gMap.getNextFreeTile(pos, false, false, true, true);
@@ -92,21 +95,19 @@ public abstract class BreakableMapObj extends UpdateMapObj implements Selectable
     public boolean execUpdate() {
       breakTimer -= 1;
       if (breakTimer==0) {
-        changeState(BrokenState.class);
+        changeState(StateOpen.class);
       }
       return true;
     }
   }
 
-  public class BrokenState extends AbstractMapObjState {
+  public class StateBroken extends StateOpen {
     @Override
     public void execOnChange() {
-      setAnimation(new FrameAnimation(ImageData.images[getImgBreak()], 0, true));
-    }
+      super.execOnChange();
 
-    @Override
-    public boolean execUpdate() {
-      return true;
+      isCollObj=false;
+      isSelectable = false;
     }
   }
 

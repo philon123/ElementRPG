@@ -2,16 +2,16 @@ package com.philon.rpg.spells;
 
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.mo.CombatMapObj;
-import com.philon.rpg.mo.Selectable;
+import com.philon.rpg.map.mo.CombatMapObj;
+import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.mos.shot.ShotFire;
 import com.philon.rpg.spell.AbstractSpell;
 
 public class SpellFireWall extends AbstractSpell {
 
-  public SpellFireWall(CombatMapObj newOwnerMO, int newSType, int newSLvl, Vector newTarPos, Selectable newTarget) {
+  public SpellFireWall(CombatMapObj newOwnerMO, int newSType, int newSLvl, Vector newTarPos, RpgMapObj newTarget) {
     init(newOwnerMO, newSType, newSLvl, newTarPos, newTarget);
-    
+
     Vector newPos;
     Vector newOffset;
     Vector newCollRadius=new Vector(0.7f);
@@ -31,5 +31,5 @@ public class SpellFireWall extends AbstractSpell {
       }
     }
   }
-  
+
 }

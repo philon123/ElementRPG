@@ -4,12 +4,11 @@ import com.philon.engine.util.Vector;
 import com.philon.rpg.stat.effect.EffectsObjSaveData;
 import com.philon.rpg.stat.presuf.PrefixSuffixSaveData;
 
-public class ItemSaveData {
+public class OldItemSaveData {
 	public Class<? extends AbstractItem> itemClass;
 	public Vector pos;
 	public boolean isIdentified;
 	public int iEffType;
-	public int occSlot;
 
 	public EffectsObjSaveData baseEffects;
 	public PrefixSuffixSaveData prefix;
@@ -17,7 +16,7 @@ public class ItemSaveData {
 
 	//----------
 
-	public ItemSaveData( AbstractItem it ) {
+	public OldItemSaveData( AbstractItem it ) {
 		iEffType = it.iEffType;
 
 		itemClass = it.getClass();

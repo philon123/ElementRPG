@@ -1,19 +1,17 @@
 package com.philon.rpg;
-import java.util.LinkedList;
-
 import com.badlogic.gdx.Screen;
 import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.map.RpgMap;
 import com.philon.rpg.map.RpgMapSaveData;
 import com.philon.rpg.map.generator.MapGenerator;
-import com.philon.rpg.mo.UpdateMapObj;
-import com.philon.rpg.mos.enemy.AbstractEnemy;
+import com.philon.rpg.mos.item.AbstractItem.ItemSaveData;
+import com.philon.rpg.mos.item.items.ItemShortBow;
 import com.philon.rpg.mos.player.AbstractChar;
+import com.philon.rpg.mos.player.AbstractChar.CharacterSaveData;
 import com.philon.rpg.mos.player.CharAmazon;
-import com.philon.rpg.mos.player.CharData;
-import com.philon.rpg.mos.player.PlayerSaveData;
-import com.philon.rpg.mos.shot.AbstractShot;
+import com.philon.rpg.mos.player.inventory.Inventory.Equip;
+import com.philon.rpg.mos.player.inventory.InventorySaveData;
 import com.philon.rpg.mos.wall.CellarMapStylye;
 import com.philon.rpg.util.RpgUtil;
 
@@ -27,26 +25,25 @@ public class RpgGame extends PhilonGame {
 	public RpgUtil gUtil;
 
 	public RpgMapSaveData levelData[];
-	public PlayerSaveData playerData;
+	public CharacterSaveData playerData; //TODO player is already saved by map. what to do?
 	public int numLevels=10;
 	public int currLevel;
 
 	public AbstractChar localPlayer;
-	public LinkedList<UpdateMapObj> dynamicMapObjs = new LinkedList<UpdateMapObj>();
-	public LinkedList<AbstractEnemy> enemies = new LinkedList<AbstractEnemy>();
 
 	@Override
 	public void create() {
 	  super.create();
 
 	  RpgDatabase.loadAll();
+	  resetLevelSpecificData();
 
 		gGraphics = new RpgGraphics();
 		gInput = new RpgInput();
 		gUtil = new RpgUtil();
 		levelData = new RpgMapSaveData[numLevels];
 
-//	  SoundData.souMusic.play(); //TODO music
+//	  SoundData.souMusic.play();
 		inst = this;
 		changeLevel(0);
 	}
@@ -60,18 +57,18 @@ public class RpgGame extends PhilonGame {
   public void render() {
     super.render();
 
-//    long t = System.currentTimeMillis();
+    long t = System.currentTimeMillis();
 
     gInput.handleUserInput();
-//    System.out.println("game: ui: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
+    System.out.println("game: ui: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
 
     gGraphics.updateMinMaxTilesOnScreen();
-    updateMapObjs();
+    gMap.updateMapObjs();
     PhilonGame.gForms.updateForms();
-//    System.out.println("game: mos: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
+    System.out.println("game: mos: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
 
     gGraphics.drawAll();
-//    System.out.println("game: drawmap: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
+    System.out.println("game: drawmap: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
   }
 
   @Override
@@ -91,53 +88,52 @@ public class RpgGame extends PhilonGame {
     SoundData.sounds[sound].play();
   }
 
+  private void resetLevelSpecificData() {
+    localPlayer = null;
+		gMap = null;
+  }
+
 	public void changeLevel( int newLevel ) {
 		int prevLevel = currLevel;
 		currLevel = newLevel;
-		enemies = new LinkedList<AbstractEnemy>();
 
 		//save and delete current level
 		if( gMap!=null ) {
 			levelData[currLevel] = gMap.save();
 			playerData = localPlayer.save();
-			gMap.deleteObject();
+			resetLevelSpecificData();
 		}
 
 		//load level or create new
-		gMap = new RpgMap();
 		if( levelData[newLevel]==null ) {
-			gMap.init(new MapGenerator().generateMap(new Vector(100)), new CellarMapStylye());
+			gMap = new RpgMap( new MapGenerator().generateRpgMap(new Vector(100), new CellarMapStylye()) );
 		} else {
-			gMap.init(levelData[newLevel]);
+			gMap = new RpgMap( levelData[newLevel] );
 		}
 
 		//determine spawn tile
 		Vector newPos;
-		if (currLevel-prevLevel<0) { //coming up
-			newPos=gMap.spawnComingUpTile.copy();
-		} else { //going down or spawning in lvl0
-			newPos=gMap.spawnComingDownTile.copy();
+		if (prevLevel-currLevel<=0) { //level has increased -> coming down
+		  newPos = gMap.spawnComingDown.copy();
+		} else { //coming up
+		  newPos = gMap.spawnComingUp.copy();
 		}
 
 		//create or load player
 		if( playerData==null ) {
-			localPlayer = CharData.createChar(CharAmazon.class);
-			localPlayer.setPosition(newPos);
+		  localPlayer = createAmazon(newPos).load();
 		} else {
-			localPlayer = CharData.loadChar(playerData);
-			localPlayer.setPosition(newPos);
-			localPlayer.pos = newPos.copy();
+			localPlayer = playerData.load();
 		}
-		gGraphics.centeredMo=localPlayer;
+		gMap.insertMapObj(localPlayer);
+		gGraphics.centeredMo = localPlayer;
 	}
 
-	public void updateMapObjs() {
-	  for (int i=0; i<dynamicMapObjs.size(); i++) {
-	    UpdateMapObj currMO = dynamicMapObjs.get(i);
-			if( gGraphics.isTileOnScreen( currMO.pos.copy().roundAllInst() ) || currMO instanceof AbstractShot ) {
-				currMO.update();
-			}
-	  }
+	public CharacterSaveData createAmazon(Vector newPos) {
+	  InventorySaveData newInventorySD = new InventorySaveData();
+	  newInventorySD.equip[Equip.INV_WEAPON] = new ItemSaveData( ItemShortBow.class );
+
+	  return new CharacterSaveData(CharAmazon.class, newPos, new Vector(1, 0), 0, newInventorySD);
 	}
 
 }
