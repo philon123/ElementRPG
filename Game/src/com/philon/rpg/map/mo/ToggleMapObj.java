@@ -70,9 +70,9 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 		if( openCloseCooldown>0 ) {
 			openCloseCooldown -= 1;
 			if( openCloseCooldown==0 ) {
-				if( currState==StateOpening.class ) {
+				if( currState instanceof StateOpening ) {
 					changeState( StateOpen.class );
-				} else if( currState==StateClosing.class ) {
+				} else if( currState instanceof StateClosing ) {
 					changeState( StateClosed.class );
 				}
 			}
@@ -81,9 +81,9 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 	}
 
 	public void toggle() {
-		if( currState==StateClosed.class ) {
+		if( currState instanceof StateClosed ) {
 			changeState( StateOpening.class );
-		} else if( currState==StateOpen.class ) {
+		} else if( currState instanceof StateOpen ) {
 			changeState( StateClosing.class );
 		}
 		hasBeenToggled = true;
@@ -163,18 +163,18 @@ public abstract class ToggleMapObj extends UpdateMapObj {
     public Class<? extends AbstractMapObjState> state;
     public boolean hasBeenToggled;
 
-    public ToggleMOSaveData(Class<? extends ToggleMapObj> newObjClass, Vector newPos, Vector newDirection, Class<? extends AbstractMapObjState> newState, boolean newHasBeenToggled) {
+    public ToggleMOSaveData(Class<? extends ToggleMapObj> newObjClass, Vector newPos, Vector newDirection, Class<? extends AbstractMapObjState> newStateClass, boolean newHasBeenToggled) {
       super(newObjClass, newPos, newDirection);
 
       hasBeenToggled = newHasBeenToggled;
-      state = newState;
-      if(state==StateOpening.class) state = StateOpen.class;
-      if(state==StateClosing.class) state = StateClosed.class;
+      state = newStateClass;
+      if(StateOpening.class.isAssignableFrom(state)) state = StateOpen.class;
+      if(StateClosing.class.isAssignableFrom(state)) state = StateClosed.class;
 
     }
 
     public ToggleMOSaveData(ToggleMapObj obj) {
-      this( obj.getClass(), obj.pos, obj.direction, obj.currState, obj.hasBeenToggled );
+      this( obj.getClass(), obj.pos, obj.direction, obj.currState.getClass(), obj.hasBeenToggled );
     }
 
     @Override

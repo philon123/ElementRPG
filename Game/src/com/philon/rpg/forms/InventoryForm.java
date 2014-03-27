@@ -223,8 +223,13 @@ public class InventoryForm extends AbstractForm {
     }
 
     @Override
-    public boolean dropPickupToCell(Vector newCell) {
-      return RpgGame.inst.localPlayer.inv.invGrid.addPickup(newCell, true);
+    public void dropPickupToCell(Vector newCell) {
+      AbstractItem result = RpgGame.inst.localPlayer.inv.invGrid.add(RpgGame.inst.localPlayer.inv.pickedUpItem, newCell, true);
+      if(result==null) {
+        RpgGame.inst.localPlayer.inv.pickedUpItem = null;
+      } else if(result!=RpgGame.inst.localPlayer.inv.pickedUpItem) {
+        RpgGame.inst.localPlayer.inv.pickedUpItem = result;
+      }
     }
 
   }

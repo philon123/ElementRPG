@@ -6,22 +6,23 @@ import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.CombatMapObj;
+import com.philon.rpg.map.mo.CombatMapObj.StateCasting;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.item.category.ConsumableItem;
 import com.philon.rpg.spell.SpellData;
 
 public abstract class AbstractItemDropLabel extends AbstractLabel {
-  
-  public abstract boolean dropPickupToPixel(Vector newPixel);
+
+  public abstract void dropPickupToPixel(Vector newPixel);
 
   public abstract AbstractItem getItemByPixel(Vector newPixel);
-  
+
   @Override
   public void handleMouseOver(Vector newMousePos) {
     AbstractItem itemAtMouse = getItemByPixel(newMousePos);
     RpgGame.inst.localPlayer.inv.hoveredOverItem = itemAtMouse;
   }
-  
+
   @Override
   public void handleClickLeft(Vector clickedPixel) {
     AbstractItem itemAtMouse = getItemByPixel(clickedPixel);
@@ -35,15 +36,15 @@ public abstract class AbstractItemDropLabel extends AbstractLabel {
       }
     }
   }
-  
+
   public void handleClickItemLeft(AbstractItem clickedItem) {
     RpgGame.inst.localPlayer.inv.pickupItem( clickedItem );
   }
-  
+
   @Override
   public void handleClickRight(Vector clickedPixel) {
     AbstractItem itemAtMouse = getItemByPixel(clickedPixel);
-    if( RpgGame.inst.localPlayer.currState==CombatMapObj.StateCasting.class ) {
+    if( RpgGame.inst.localPlayer.currState instanceof StateCasting ) {
       RpgGame.inst.localPlayer.changeState( CombatMapObj.StateIdle.class );
     } else {
       if( itemAtMouse!=null ) {
@@ -51,17 +52,17 @@ public abstract class AbstractItemDropLabel extends AbstractLabel {
       }
     }
   }
-  
+
   public void handleClickItemRight(AbstractItem clickedItem) {
     if( clickedItem instanceof ConsumableItem ) {
       RpgGame.inst.localPlayer.consumeItem( (ConsumableItem)clickedItem );
     }
   }
-  
+
   public Vector getCellSize() {
     return new Vector(64);
   }
-  
+
   public void drawInvItem( AbstractItem it, Vector newPixel ) {
     Vector cellSize = getCellSize();
     Vector pixSize = Vector.mul( it.invSize, cellSize );
@@ -79,5 +80,5 @@ public abstract class AbstractItemDropLabel extends AbstractLabel {
     RpgGame.inst.gGraphics.drawTextureRect( ImageData.images[ImageData.IMG_FORM_BACK_SLOT].frames[0], newPixel, pixSize, tmpColor );
     RpgGame.inst.gGraphics.drawTextureRect( ImageData.images[it.imgInv].frames[0], newPixel, pixSize, Color.WHITE );
   }
-  
+
 }

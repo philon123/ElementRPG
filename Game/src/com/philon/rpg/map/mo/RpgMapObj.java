@@ -90,7 +90,7 @@ public abstract class RpgMapObj extends MapObject {
 	/**
 	 * Holds all information needed to restore this object when the map is reloaded.
 	 * <p></p>
-	 * Extend to save custom values. If you do, make sure to also override save()
+	 * Extend to save custom values. Make sure to override both constructors
 	 */
 	public static class RpgMapObjSaveData {
 	  public Vector pos;
@@ -113,6 +113,9 @@ public abstract class RpgMapObj extends MapObject {
 	    this(obj.getClass(), obj.pos, obj.direction);
 	  }
 
+	  /*
+	   * Load this SaveData to recieve an RpgMapObj. Override to make sure all your data is loaded
+	   */
 	  public RpgMapObj load() {
 	    RpgMapObj result = RpgUtil.instantiateClass(objClass);
 

@@ -4,7 +4,6 @@ import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.SkillData;
-import com.philon.rpg.SoundData;
 import com.philon.rpg.forms.CharacterForm;
 import com.philon.rpg.forms.InventoryForm;
 import com.philon.rpg.forms.SpellForm;
@@ -103,24 +102,38 @@ public abstract class AbstractChar extends CombatMapObj {
     return super.useMana(amount);
   }
 
-  @Override
-	public void update() {
-		if(isKeyMovement && !(currState==StateHit.class || currState==StateDying.class || currState==StateCasting.class)) {
-			direction = newDir.copy();
-			currPath = null;
-			pathfindCooldown = 0;
-			currTarget = null;
-			currTargetPos = null;
-			changeState(StateMovingStraight.class);
-		}
+  public void setKeyMovement(Vector newDirection) {
+    if( !(currState instanceof StateHit || currState instanceof StateDying || currState instanceof StateCasting) ) {
+      direction = newDirection.copy();
+      currPath = null;
+      pathfindCooldown = 0;
+      setTarget(null, pos.copy().addInst(newDirection));
+      currTarget = null;
+      currTargetPos = null;
 
-		super.update();
-	}
+      if(!(currState instanceof StateMovingStraight)) changeState(StateMovingStraight.class);
+      isKeyMovement = true;
+    }
+  }
+
+  public void stopKeyMovement() {
+    if (!isKeyMovement) return;
+
+    isKeyMovement = false;
+    direction = newDir.copy();
+    currPath = null;
+    pathfindCooldown = 0;
+    currTarget = null;
+    currTargetPos = null;
+
+    if( !(currState instanceof StateHit || currState instanceof StateDying || currState instanceof StateCasting) ) {
+      changeState(StateIdle.class);
+    }
+  }
 
   @Override
 	public void interact( RpgMapObj newTarget ) {
 		if(currTarget instanceof AbstractItem) {
-		  RpgGame.playSoundFX( SoundData.SOU_PICKUP );
 			if( PhilonGame.gForms.isFormActive(InventoryForm.class)) {
 				inv.pickupItem( (AbstractItem)currTarget );
 			} else {

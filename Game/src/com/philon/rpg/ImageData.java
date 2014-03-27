@@ -5,7 +5,6 @@ import java.util.HashMap;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
-import com.philon.engine.AbstractGameData;
 import com.philon.engine.util.AnimTextureRegion;
 import com.philon.engine.util.Vector;
 

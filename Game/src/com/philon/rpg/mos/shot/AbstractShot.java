@@ -30,7 +30,7 @@ public abstract class AbstractShot extends CombatMapObj {
     potentialColls = getPotentialCollisions( targetOffset );
     if( !(potentialColls==null || potentialColls.isEmpty()) ) {
       collisionTrigger( (RpgMapObj)(potentialColls.getFirst()) );
-      if (currState==StateDying.class) return null;
+      if (currState instanceof StateDying) return null;
     }
 
     return targetOffset.copy();

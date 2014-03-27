@@ -56,15 +56,14 @@ public class RpgInput extends Input {
        newPDir.x += +1;
        newPDir.y += -1;
     }
-    RpgGame.inst.localPlayer.newDir = newPDir;
     if (newPDir.equals(new Vector())) {
-      RpgGame.inst.localPlayer.isKeyMovement = false;
-      if (RpgGame.inst.localPlayer.isKeyMovement && RpgGame.inst.localPlayer.currState==StateMovingStraight.class) {
+      RpgGame.inst.localPlayer.stopKeyMovement();
+      if (RpgGame.inst.localPlayer.isKeyMovement && RpgGame.inst.localPlayer.currState instanceof StateMovingStraight) {
         RpgGame.inst.localPlayer.changeState(AbstractChar.StateIdle.class);
       }
     } else {
       newPDir.normalizeInst();
-      RpgGame.inst.localPlayer.isKeyMovement = true;
+      RpgGame.inst.localPlayer.setKeyMovement(newPDir);
     }
   }
 
@@ -90,7 +89,7 @@ public class RpgInput extends Input {
       }
     }
 
-    if (!(RpgGame.inst.localPlayer.currState==StateHit.class || RpgGame.inst.localPlayer.currState==StateDying.class)) {
+    if (!(RpgGame.inst.localPlayer.currState instanceof StateHit || RpgGame.inst.localPlayer.currState instanceof StateDying)) {
       boolean isShiftDown = Gdx.input.isKeyPressed(Keys.SHIFT_LEFT);
       if( m1Click ) {
         RpgGame.inst.localPlayer.currSelectedSpell = (Integer) RpgGame.inst.localPlayer.stats.getStatValue(StatM1Stype.class);

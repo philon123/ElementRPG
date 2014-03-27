@@ -3,7 +3,6 @@ package com.philon.rpg;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
-import com.philon.engine.AbstractGameData;
 
 public class SoundData extends AbstractGameData {
   public static final int SOU_FOOTSTEP =  6;

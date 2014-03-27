@@ -55,8 +55,6 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	public CombatMapObj() {
 	  super();
 
-		replaceState( StateMovingStraight.class, StateMovingCombat.class);
-
 		baseEffects = getBaseEffects();
 		updateStats();
 	}
@@ -116,7 +114,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 		//hit
 		if( hitCooldown>0 ) {
 			hitCooldown -= 1;
-			if (hitCooldown==0 && currState!=StateDying.class) changeState( StateIdle.class ); //TODO move to StateHit
+			if (hitCooldown==0 && !(currState instanceof StateDying) ) changeState( StateIdle.class ); //TODO move to StateHit
 		}
 
 		//footsteps
@@ -180,7 +178,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 		}
 
 		if( newTarget!=null ) {
-			if( !(newTarget instanceof AbstractItem && ((AbstractItem)newTarget).currState!=AbstractItem.StateMap.class) ) {
+			if( !(newTarget instanceof AbstractItem && !(((AbstractItem)newTarget).currState instanceof AbstractItem.StateMap) ) ) {
 				newTarPos=((RpgMapObj)newTarget).pos.copy();
 			}
 		}
@@ -259,7 +257,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
       killedBy = attackedBy;
       changeState( StateDying.class );
     } else {
-      if( !(currState==StateHit.class) && Math.random()<0.8 ) {
+      if( !(currState instanceof StateHit) && Math.random()<0.8 ) {
         changeState(StateHit.class);
       }
       RpgGame.playSoundFX( getSouHit() );
@@ -296,7 +294,6 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 	  @Override
 	  public void execOnChange() {
-	    states.get(StateIdle.class).execOnChange();
 	    setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(PhilonGame.fps/3), false));
 	  }
 
@@ -329,7 +326,12 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	//----------
 
 	public class StateAttacking extends AbstractMapObjState {
+	  private StateMovingTarget m_movingTarget;
 	  private int currImg = 0;
+
+	  protected StateMovingTarget getStateMovingTarget() {
+	    return m_movingTarget!=null ? m_movingTarget : createState(StateMovingTarget.class);
+	  }
 
 	  @Override
 	  public void execOnChange() {
@@ -348,12 +350,13 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	        return true;
 	      } else {
 	        if(currImg==getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(PhilonGame.fps/3), false));
-  	      return states.get(CombatMapObj.StateMovingTarget.class).execUpdate();
+  	      return getStateMovingTarget().execUpdate();
 	      }
+
 	    } else {
 	      if(currImg==getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(PhilonGame.fps/3), false));
 	      if( !prepareSpell( currSelectedSpell, false, currTargetPos, currTarget ) ) {
-	        changeState(defaultState);
+	        changeState(getDefaultState());
 	        return false;
 	      } else {
 	        return true;
@@ -366,21 +369,25 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	//----------
 
 	public class StateInteracting extends AbstractMapObjState {
+	  private StateMovingTarget m_movingTarget;
+
+    protected StateMovingTarget getStateMovingTarget() {
+      return m_movingTarget!=null ? m_movingTarget : createState(StateMovingTarget.class);
+    }
 
 	  @Override
 	  public void execOnChange() {
+	    assert currTarget.isSelectable;
+
 	    pathfindCooldown=0;
 	    if(animation.image!=ImageData.images[getImgMoving()]) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(PhilonGame.fps/3), false));
-	    if(!(currTarget.isSelectable)) {
-	      changeState(StateIdle.class);
-	    }
 	  }
 
 	  @Override
 	  public boolean execUpdate() {
 	    if (currTarget==null) return false; //nothing to interact with;
 
-	    if( !states.get(CombatMapObj.StateMovingTarget.class).execUpdate() ) {
+	    if( !getStateMovingTarget().execUpdate() ) {
         if (currTargetDist < 1.5) { //moved to pos, ready to interact
           if(animation.image!=ImageData.images[getImgIdle()]) setAnimation(new FrameAnimation(ImageData.images[getImgIdle()], (int)(PhilonGame.fps/3), false));
           interact(currTarget);

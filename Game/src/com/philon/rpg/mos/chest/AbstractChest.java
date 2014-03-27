@@ -8,12 +8,6 @@ import com.philon.rpg.mos.item.ItemData;
 
 public abstract class AbstractChest extends ToggleMapObj {
 
-	public AbstractChest() {
-	  super();
-
-	  replaceState(StateOpening.class, StateChestOpening.class);
-	}
-
 	public abstract int getDropValue();
 
 	public class StateChestOpening extends StateOpening {

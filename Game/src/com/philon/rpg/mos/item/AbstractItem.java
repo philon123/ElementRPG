@@ -4,6 +4,7 @@ import com.philon.engine.FrameAnimation;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
+import com.philon.rpg.SoundData;
 import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.map.mo.UpdateMapObj;
 import com.philon.rpg.map.mo.state.AbstractMapObjState;
@@ -40,11 +41,6 @@ public abstract class AbstractItem extends UpdateMapObj {
 	public AbstractItem() {
 	  super();
 
-	  addState( StateIdle.class );
-    addState( StatePickedUp.class );
-    addState( StateMap.class );
-    addState( StateInv.class );
-
     displayText = getItemName();
     dropValue   = getDropValue();
     baseEffects = getBaseEffects();
@@ -54,6 +50,8 @@ public abstract class AbstractItem extends UpdateMapObj {
     souFlip = getSouFlip();
     imgMap = getImgMap();
     imgInv = getImgInv();
+
+    isCollObj = false;
 
     updateEffects();
 	}
@@ -175,11 +173,12 @@ public abstract class AbstractItem extends UpdateMapObj {
 	public class StatePickedUp extends AbstractMapObjState {
 	  @Override
 	  public void execOnChange() {
-	    if( currState==AbstractItem.StateMap.class ) {
+	    if( currState instanceof StateMap ) {
 	      deleteObject();
 	    }
 
 	    setAnimation(new FrameAnimation(ImageData.images[imgInv]));
+	    RpgGame.playSoundFX(SoundData.SOU_PICKUP);
 	  }
 
     @Override

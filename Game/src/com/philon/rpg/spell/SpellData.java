@@ -2,8 +2,8 @@ package com.philon.rpg.spell;
 
 import java.lang.reflect.InvocationTargetException;
 
-import com.philon.engine.AbstractGameData;
 import com.philon.engine.util.Vector;
+import com.philon.rpg.AbstractGameData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.map.mo.RpgMapObj;

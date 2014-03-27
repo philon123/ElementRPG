@@ -9,14 +9,9 @@ import com.philon.rpg.mos.item.ItemData;
 public abstract class BreakableMapObj extends ToggleMapObj {
   public int breakTimer;
 
-  public BreakableMapObj() {
-    replaceState(StateOpening.class, StateBreaking.class);
-    replaceState(StateOpen.class, StateBroken.class);
-  }
-
   @Override
   public void toggle() {
-    if( currState==StateClosed.class ) {
+    if( currState instanceof StateClosed ) {
       changeState( StateOpening.class );
       hasBeenToggled = true;
     }
@@ -39,14 +34,6 @@ public abstract class BreakableMapObj extends ToggleMapObj {
   @Override
   public int getToggleTime() {
     return getAnimDur();
-  }
-
-  public int getAnimDur() {
-    return (int) PhilonGame.fps/2;
-  }
-
-  public void destroy() {
-    changeState(StateBreaking.class);
   }
 
   @Override
@@ -72,6 +59,16 @@ public abstract class BreakableMapObj extends ToggleMapObj {
   @Override
   public int getSouDie() {
     return 0;
+  }
+
+  public int getAnimDur() {
+    return (int) PhilonGame.fps/2;
+  }
+
+  public void destroy() {
+    changeState(StateBreaking.class);
+    isCollObj = false;
+    isSelectable = false;
   }
 
   public class StateBreaking extends StateOpening {

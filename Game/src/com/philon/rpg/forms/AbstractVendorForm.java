@@ -50,10 +50,9 @@ public abstract class AbstractVendorForm extends AbstractForm {
       return currVendor.itemGrid.itemList;
     }
 
-    public boolean dropPickupToCell(Vector newCell) {
+    public void dropPickupToCell(Vector newCell) {
       currVendor.buyItem(RpgGame.inst.localPlayer.inv.pickedUpItem);
       RpgGame.inst.localPlayer.inv.pickedUpItem = null;
-      return true;
     }
 
     @Override

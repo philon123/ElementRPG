@@ -1,12 +1,12 @@
 package com.philon.rpg.map.mo;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import com.philon.engine.FrameAnimation;
 import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Path;
+import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
@@ -14,10 +14,10 @@ import com.philon.rpg.map.mo.state.AbstractMapObjState;
 import com.philon.rpg.util.RpgUtil;
 
 public abstract class UpdateMapObj extends RpgMapObj {
-	public Class<? extends AbstractMapObjState> currState = null;
-	public Class<? extends AbstractMapObjState> defaultState;
-	public LinkedHashMap<Class<? extends AbstractMapObjState>, AbstractMapObjState> states
-	 = new LinkedHashMap<Class<? extends AbstractMapObjState>, AbstractMapObjState>();
+  HashMap<Class<? extends AbstractMapObjState>, Class<? extends AbstractMapObjState>> stateMap =
+      new HashMap<Class<? extends AbstractMapObjState>, Class<? extends AbstractMapObjState>>();
+
+	public AbstractMapObjState currState = null;
 
 	public float v=0;
 	public float tilesPerSecond=0;
@@ -41,8 +41,7 @@ public abstract class UpdateMapObj extends RpgMapObj {
 		loadStates();
 
 		tilesPerSecond = getTilesPerSecond();
-		defaultState = getDefaultState();
-		changeState(defaultState);
+		changeState(getDefaultState());
 	}
 
 	public abstract float getTilesPerSecond();
@@ -59,52 +58,42 @@ public abstract class UpdateMapObj extends RpgMapObj {
     return (int) (PhilonGame.fps/3);
   }
 
-	public void loadStates() {
-	  LinkedList<Class<?>> hierarchy = new LinkedList<Class<?>>();
-    Class<?> currClass = getClass();
-    do {
-      hierarchy.addFirst(currClass);
-      currClass = currClass.getSuperclass();
-    } while(currClass!=RpgMapObj.class);
-
-    for (Class<?> currentClass : hierarchy) {
-      for (Class<?> tmpClass : currentClass.getDeclaredClasses()) {
-        if (AbstractMapObjState.class.isAssignableFrom(tmpClass)) {
-          addState(tmpClass.asSubclass(AbstractMapObjState.class));
+  @SuppressWarnings("unchecked")
+  public void loadStates() {
+    for (Class<? extends RpgMapObj> currentClass : getClassHierarchy(getClass(), RpgMapObj.class) ) {
+      for (Class<?> newClass : currentClass.getDeclaredClasses()) {
+        if ( !AbstractMapObjState.class.isAssignableFrom(newClass) ) continue;
+        for(Class<? extends AbstractMapObjState> currClass : getClassHierarchy(newClass, AbstractMapObjState.class)) {
+          stateMap.put(currClass, (Class<? extends AbstractMapObjState>)newClass);
         }
       }
     }
-	}
+  }
 
-	public void addState(Class<? extends AbstractMapObjState> newStateClass) {
-	  addStateInternal(newStateClass, newStateClass);
-	}
+  @SuppressWarnings("unchecked")
+  public static <T> LinkedList<Class<? extends T>> getClassHierarchy(Class<?> forClass, Class<T> boundClass) {
+    LinkedList<Class<? extends T>> result = new LinkedList<Class<? extends T>>();
 
-	public void addStateInternal(Class<? extends AbstractMapObjState> newKeyClass, Class<? extends AbstractMapObjState> newStateClass) {
-	  try {
-      AbstractMapObjState newState = (AbstractMapObjState) newStateClass.getConstructors()[0].newInstance(this);
-      states.put(newKeyClass, newState);
-    } catch (InstantiationException e) {
-      e.printStackTrace();
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-    } catch (IllegalArgumentException e) {
-      e.printStackTrace();
-    } catch (InvocationTargetException e) {
-      e.printStackTrace();
-    } catch (SecurityException e) {
-      e.printStackTrace();
-    }
-	}
+    Class<?> currClass = forClass;
+    do {
+      if(boundClass.isAssignableFrom(currClass) && currClass!=boundClass) result.addFirst((Class<? extends T>)currClass);
+      currClass = currClass.getSuperclass();
+    } while(currClass!=null);
 
-	public void replaceState( Class<? extends AbstractMapObjState> oldStateClass, Class<? extends AbstractMapObjState> newStateClass ) {
-	  addStateInternal(oldStateClass, newStateClass);
-	}
+    return result;
+  }
 
-	public void changeState( Class<? extends AbstractMapObjState> newState ) {
-	  if (newState==currState) return;
-	  states.get(newState).execOnChange();
+	public void changeState( Class<? extends AbstractMapObjState> newStateClass ) {
+	  AbstractMapObjState newState = createState(newStateClass);
+
+	  if (currState!=null && newStateClass==currState.getClass()) return;
+	  newState.execOnChange();
 	  currState = newState;
+	}
+
+	@SuppressWarnings("unchecked")
+  public <T> T createState(Class<? extends T> newStateClass) {
+	  return (T) Util.instantiateClass(stateMap.get(newStateClass), this);
 	}
 
 	public void deathTrigger(CombatMapObj killedBy) {
@@ -120,8 +109,8 @@ public abstract class UpdateMapObj extends RpgMapObj {
 
 		//state update callback
 		if (currState == null) new IllegalArgumentException("currState is not initialized at obj: " + getClass().getSimpleName());
-		if( !states.get(currState).execUpdate() ) { //update failed, revert to default state
-		  if(!(StateDying.class.isAssignableFrom(currState))) {
+		if( !currState.execUpdate() ) { //update failed, revert to default state
+		  if( !(currState instanceof StateDying) ) {
 		    changeState(StateIdle.class);
 		  }
 		}
@@ -305,10 +294,15 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	//----------
 
 	public class StateMovingTarget extends AbstractMapObjState {
+	  StateMovingStraight m_movingStraight;
+
+    protected StateMovingStraight getStateMovingStraight() {
+      return m_movingStraight!=null ? m_movingStraight : createState(StateMovingStraight.class);
+    }
 
     @Override
     public void execOnChange() {
-      states.get(UpdateMapObj.StateMovingStraight.class).execOnChange();
+      getStateMovingStraight().execOnChange();
     }
 
     @Override
@@ -317,7 +311,8 @@ public abstract class UpdateMapObj extends RpgMapObj {
       float maxDist = collRect.getLength() + 0.2f;
       if (tmpDist<maxDist) return false;
       direction = Vector.sub(currTargetPos, pos).normalizeInst();
-      return states.get(UpdateMapObj.StateMovingStraight.class).execUpdate();
+
+      return getStateMovingStraight().execUpdate();
     }
 
   }
@@ -325,10 +320,15 @@ public abstract class UpdateMapObj extends RpgMapObj {
   //----------
 
 	public class StateMovingSmart extends AbstractMapObjState {
+    StateMovingStraight m_movingStraight;
+
+    protected StateMovingStraight getStateMovingStraight() {
+      return m_movingStraight!=null ? m_movingStraight : createState(StateMovingStraight.class);
+    }
 
 	  @Override
 	  public void execOnChange() {
-	    states.get(UpdateMapObj.StateMovingStraight.class).execOnChange();
+	    getStateMovingStraight().execOnChange();
 	    pathfindCooldown=0;
 	  }
 
@@ -348,7 +348,7 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	    Vector nextNodeDelta = currPath.nodes[currPathNode].pos.copy().subInst(pos);
 
 	    direction = nextNodeDelta.copy().normalizeInst();
-	    if (!states.get(UpdateMapObj.StateMovingStraight.class).execUpdate()) {
+	    if (!getStateMovingStraight().execUpdate()) {
 	      return false; //obstacle on the way
 	    }
 

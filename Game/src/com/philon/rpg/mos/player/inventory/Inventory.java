@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.SoundData;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.item.AbstractItem.ItemSaveData;
 import com.philon.rpg.mos.item.category.AmuletItem;
@@ -132,6 +131,8 @@ public class Inventory {
 	//----------
 
 	public void pickupItem( AbstractItem it ) {
+	  if(pickedUpItem!=null) System.err.println("pickupAuto() detected existing pickedUpItem");
+
 //	  if( it.id == ItemData.GOLD ) { //TODO gold
 //      pickupGold( (int) it.dropValue );
 //      return;
@@ -144,7 +145,6 @@ public class Inventory {
     pickedUpItem = it;
     it.changeState( AbstractItem.StatePickedUp.class );
     updateReqMetFlag(it);
-    RpgGame.playSoundFX(SoundData.SOU_PICKUP);
   }
 
   public boolean pickupAuto( AbstractItem it ) {
@@ -174,8 +174,8 @@ public class Inventory {
   public void dropPickup() {
     Vector newTile = RpgGame.inst.gMap.getNextFreeTile( ownerPlayer.pos, false, false, true, true );
     if( newTile != null ) {
-      pickedUpItem.changeState( AbstractItem.StateMap.class );
       pickedUpItem.setPosition(newTile);
+      pickedUpItem.changeState( AbstractItem.StateMap.class );
       pickedUpItem = null;
     }
   }
@@ -229,7 +229,7 @@ public class Inventory {
 		equip.items[targetSlot] = it;
 		it.pos = new Vector( targetSlot, 0 );
 		it.changeState( AbstractItem.StateInv.class );
-		if(it.souDrop>0) RpgGame.playSoundFX(it.souDrop);
+		RpgGame.playSoundFX(it.souDrop);
 
 		equipChangedTrigger();
 		return displacedItem!=null ? displacedItem : it;

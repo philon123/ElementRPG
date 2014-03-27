@@ -42,7 +42,7 @@ public abstract class AbstractEnemy extends CombatMapObj {
 	//----------
 
 	public void update() {
-	  if (!(currState==StateHit.class || currState==StateDying.class)) {
+	  if (!(currState instanceof StateHit || currState instanceof StateDying)) {
   		if( getCanSeeGO(RpgGame.inst.localPlayer) ) {
   			setTarget(RpgGame.inst.localPlayer);
   			currSelectedSpell = (Integer)stats.getStatValue(StatM1Stype.class);

@@ -1,6 +1,5 @@
-package com.philon.engine;
+package com.philon.rpg;
 
-import com.philon.rpg.RpgDatabase;
 
 public abstract class AbstractGameData {
   

@@ -1,5 +1,7 @@
 package com.philon.engine.util;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class Util {
 
 	//------------------------------
@@ -214,6 +216,24 @@ public class Util {
     valueString.insert(valueString.length()-1-2, ',');
     return sign + valueString;
   }
+
+	@SuppressWarnings("unchecked")
+  public static <T> T instantiateClass(Class<T> newClass, Object... args) {
+	  try {
+      return (T)newClass.getConstructors()[0].newInstance(args);
+    } catch (InstantiationException e) {
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+    } catch (SecurityException e) {
+      e.printStackTrace();
+    }
+    return null;
+	}
 
 }
 

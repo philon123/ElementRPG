@@ -57,18 +57,18 @@ public class RpgGame extends PhilonGame {
   public void render() {
     super.render();
 
-    long t = System.currentTimeMillis();
+//    long t = System.currentTimeMillis();
 
     gInput.handleUserInput();
-    System.out.println("game: ui: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
+//    System.out.println("game: ui: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
 
     gGraphics.updateMinMaxTilesOnScreen();
     gMap.updateMapObjs();
     PhilonGame.gForms.updateForms();
-    System.out.println("game: mos: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
+//    System.out.println("game: mos: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
 
     gGraphics.drawAll();
-    System.out.println("game: drawmap: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
+//    System.out.println("game: drawmap: " + (System.currentTimeMillis()-t)); t = System.currentTimeMillis();
   }
 
   @Override
@@ -99,16 +99,16 @@ public class RpgGame extends PhilonGame {
 
 		//save and delete current level
 		if( gMap!=null ) {
-			levelData[currLevel] = gMap.save();
+			levelData[prevLevel] = gMap.save();
 			playerData = localPlayer.save();
 			resetLevelSpecificData();
 		}
 
 		//load level or create new
-		if( levelData[newLevel]==null ) {
+		if( levelData[currLevel]==null ) {
 			gMap = new RpgMap( new MapGenerator().generateRpgMap(new Vector(100), new CellarMapStylye()) );
 		} else {
-			gMap = new RpgMap( levelData[newLevel] );
+			gMap = new RpgMap( levelData[currLevel] );
 		}
 
 		//determine spawn tile

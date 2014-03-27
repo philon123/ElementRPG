@@ -13,17 +13,17 @@ import com.philon.rpg.stat.StatsObj.StatM1Stype;
 import com.philon.rpg.stat.StatsObj.StatM2Stype;
 
 public class StatusbarForm extends AbstractForm {
-  
+
   @Override
   public Vector getPosByScreenSize(Vector newScreenSize) {
     return new Vector(0, newScreenSize.y-150);//+75);
   }
-  
+
   @Override
   public Vector getSizeByScreenSize(Vector newScreenSize) {
     return new Vector(1600, 150);
   }
-  
+
   @Override
   public void draw() {
 //  if( fID==FormData.STATUSBAR ) { //TODO health orbs
@@ -56,13 +56,13 @@ public class StatusbarForm extends AbstractForm {
 //  setColor(255, 255, 255);
 //  drawRect( tmpPos.x, tmpPos.y, tmpSize.x, tmpSize.y*(1-orbFill) );
 //}
-    
+
     super.draw();
-    
+
   }
-  
+
   public class Spell1Button extends AbstractButton {
-    
+
     public Spell1Button() {
       ID = 8;
       pos = new Vector(0.11f, 0.56f) ;
@@ -70,13 +70,13 @@ public class StatusbarForm extends AbstractForm {
       img = 0;
       imgPressed = 0;
     }
-    
+
     @Override
     public void execAction() {
       RpgGame.inst.gInput.isSelectingLeft=true;
       RpgGame.inst.localPlayer.spellSelectForm.toggle();
     }
-    
+
     @Override
     public void update() {
       if (RpgGame.inst.localPlayer==null) return;
@@ -84,11 +84,11 @@ public class StatusbarForm extends AbstractForm {
       img = SpellData.iconImg[tmpSpell];
       imgPressed = SpellData.iconImg[tmpSpell];
     }
-    
+
   }
 
   public class Spell2Button extends AbstractButton {
-    
+
     public Spell2Button() {
       ID = 9;
       pos = new Vector(0.85f, 0.56f) ;
@@ -96,13 +96,13 @@ public class StatusbarForm extends AbstractForm {
       img = 0;
       imgPressed = 0;
     }
-    
+
     @Override
     public void execAction() {
       RpgGame.inst.gInput.isSelectingLeft=false;
       RpgGame.inst.localPlayer.spellSelectForm.toggle();
     }
-    
+
     @Override
     public void update() {
       if (RpgGame.inst.localPlayer==null) return;
@@ -110,9 +110,9 @@ public class StatusbarForm extends AbstractForm {
       img = SpellData.iconImg[tmpSpell];
       imgPressed = SpellData.iconImg[tmpSpell];
     }
-    
+
   }
-  
+
   public class BackgroundLabel extends AbstractLabel {
 
     public BackgroundLabel() {
@@ -157,21 +157,26 @@ public class StatusbarForm extends AbstractForm {
       size = new Vector(630.00f, 66.00f) ;
       img = 297;
       displayText = "";
-      
+
       gridSize = new Vector(10, 1);
       cellSize = Vector.div(size, gridSize);
     }
-    
+
     @Override
-    public boolean dropPickupToCell(Vector newCell) {
-      return RpgGame.inst.localPlayer.inv.beltGrid.addPickup(newCell, true);
+    public void dropPickupToCell(Vector newCell) {
+      AbstractItem result = RpgGame.inst.localPlayer.inv.beltGrid.add(RpgGame.inst.localPlayer.inv.pickedUpItem, newCell, true);
+      if(result==null) {
+        RpgGame.inst.localPlayer.inv.pickedUpItem = null;
+      } else if(result!=RpgGame.inst.localPlayer.inv.pickedUpItem) {
+        RpgGame.inst.localPlayer.inv.pickedUpItem = result;
+      }
     }
 
     @Override
     public AbstractItem getItemByCell(Vector newCell) {
       return RpgGame.inst.localPlayer.inv.beltGrid.getItemByCell(newCell);
     }
-    
+
     @Override
     public List<AbstractItem> getItemsForDraw() {
       return RpgGame.inst.localPlayer.inv.beltGrid.itemList;
@@ -179,5 +184,5 @@ public class StatusbarForm extends AbstractForm {
 
   }
 
-  
+
 }
