@@ -1,10 +1,32 @@
 package com.philon.engine.util;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Comparator;
+import java.util.LinkedList;
+
+import javax.management.RuntimeErrorException;
 
 public class Util {
 
-	//------------------------------
+  public @Retention(RetentionPolicy.RUNTIME) @interface Order {
+    int value();
+  }
+
+  public static int getOrderForClass(Class<?> clazz) {
+    Order a = clazz.getAnnotation(Order.class);
+    if(a==null) throw new RuntimeErrorException(new Error("Class " + clazz.getClass().getSimpleName() + " doesn't have an Order annotation!"));
+    return a.value();
+  }
+
+  public static class OrderComperator implements Comparator<Class<?>> {
+    public int compare(Class<?> o1, Class<?> o2) {
+      int order1 = getOrderForClass(o1);
+      int order2 = getOrderForClass(o2);
+      return ((Integer)order1).compareTo(order2);
+    }
+  }
 
 	public static int round( float f ) {
 		return (int) Math.floor(f+0.5f);
@@ -234,6 +256,19 @@ public class Util {
     }
     return null;
 	}
+
+  @SuppressWarnings("unchecked")
+  public static <T> LinkedList<Class<? extends T>> getClassHierarchy(Class<?> forClass, Class<T> boundClass) {
+    LinkedList<Class<? extends T>> result = new LinkedList<Class<? extends T>>();
+
+    Class<?> currClass = forClass;
+    do {
+      if(boundClass.isAssignableFrom(currClass) && currClass!=boundClass) result.addFirst((Class<? extends T>)currClass);
+      currClass = currClass.getSuperclass();
+    } while(currClass!=null);
+
+    return result;
+  }
 
 }
 

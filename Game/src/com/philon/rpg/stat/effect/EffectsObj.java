@@ -1,14 +1,13 @@
 package com.philon.rpg.stat.effect;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Comparator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import javax.management.RuntimeErrorException;
 
 import com.philon.engine.util.Util;
+import com.philon.engine.util.Util.Order;
+import com.philon.engine.util.Util.OrderComperator;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.spell.SpellData;
 import com.philon.rpg.stat.StatsObj;
@@ -47,27 +46,12 @@ import com.philon.rpg.stat.StatsObj.StatStrength;
 import com.philon.rpg.stat.StatsObj.StatVitality;
 
 public class EffectsObj {
-	public @Retention(RetentionPolicy.RUNTIME) @interface Order {
-    int value();
-  }
-
   public TreeMap<Class<? extends AbstractEffect>, AbstractEffect> effects;
 
 	//----------
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
   public EffectsObj() {
-		effects = new TreeMap<Class<? extends AbstractEffect>, AbstractEffect>(new Comparator() {
-	    public int compare(Object o1, Object o2) {
-        int order1 = getOrderForClass((Class<? extends AbstractEffect>)o1);
-        int order2 = getOrderForClass((Class<? extends AbstractEffect>)o2);
-        return ((Integer)order1).compareTo(order2);
-	    }
-
-	    public int getOrderForClass(Class<? extends AbstractEffect> clazz) {
-	      return clazz.getAnnotation(Order.class).value();
-	    }
-		});
+		effects = new TreeMap<Class<? extends AbstractEffect>, AbstractEffect>(new OrderComperator());
 	}
 
 

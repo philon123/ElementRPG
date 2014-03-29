@@ -7,6 +7,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
 import com.philon.engine.forms.AbstractForm;
 import com.philon.engine.forms.AbstractGUIElement;
+import com.philon.engine.user.UserAction;
 import com.philon.engine.util.Vector;
 
 public class Input {
@@ -30,6 +31,26 @@ public class Input {
   public Input() {
     //hotkeys
     keysWatched = new LinkedList<Integer>();
+  }
+
+  public LinkedList<UserAction> getUserInput() {
+    LinkedList<UserAction> result = new LinkedList<UserAction>();
+
+    //hotkeys
+    for(int currKey : keysWatched) {
+      Boolean tmp = keysIsPressed.get(currKey);
+      boolean wasKeyPressed = tmp==null ? false : tmp;
+      boolean isKeyPressed = Gdx.input.isKeyPressed(currKey);
+
+      if (wasKeyPressed && !isKeyPressed) {
+        keysIsReleased.put(currKey, true);
+      } else {
+        keysIsReleased.put(currKey, false);
+      }
+      keysIsPressed.put(currKey, isKeyPressed);
+    }
+
+    return result;
   }
 
   public void handleUserInput() {

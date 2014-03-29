@@ -60,27 +60,14 @@ public abstract class UpdateMapObj extends RpgMapObj {
 
   @SuppressWarnings("unchecked")
   public void loadStates() {
-    for (Class<? extends RpgMapObj> currentClass : getClassHierarchy(getClass(), RpgMapObj.class) ) {
+    for (Class<? extends RpgMapObj> currentClass : Util.getClassHierarchy(getClass(), RpgMapObj.class) ) {
       for (Class<?> newClass : currentClass.getDeclaredClasses()) {
         if ( !AbstractMapObjState.class.isAssignableFrom(newClass) ) continue;
-        for(Class<? extends AbstractMapObjState> currClass : getClassHierarchy(newClass, AbstractMapObjState.class)) {
+        for(Class<? extends AbstractMapObjState> currClass : Util.getClassHierarchy(newClass, AbstractMapObjState.class)) {
           stateMap.put(currClass, (Class<? extends AbstractMapObjState>)newClass);
         }
       }
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <T> LinkedList<Class<? extends T>> getClassHierarchy(Class<?> forClass, Class<T> boundClass) {
-    LinkedList<Class<? extends T>> result = new LinkedList<Class<? extends T>>();
-
-    Class<?> currClass = forClass;
-    do {
-      if(boundClass.isAssignableFrom(currClass) && currClass!=boundClass) result.addFirst((Class<? extends T>)currClass);
-      currClass = currClass.getSuperclass();
-    } while(currClass!=null);
-
-    return result;
   }
 
 	public void changeState( Class<? extends AbstractMapObjState> newStateClass ) {
