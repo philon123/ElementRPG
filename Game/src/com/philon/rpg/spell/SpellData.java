@@ -3,10 +3,10 @@ package com.philon.rpg.spell;
 import java.lang.reflect.InvocationTargetException;
 
 import com.philon.engine.util.Vector;
-import com.philon.rpg.AbstractGameData;
-import com.philon.rpg.RpgGame;
+import com.philon.rpg.RpgData;
 import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.map.mo.RpgMapObj;
+import com.philon.rpg.mos.player.AbstractChar;
 import com.philon.rpg.spells.SpellArrow;
 import com.philon.rpg.spells.SpellFireBolt;
 import com.philon.rpg.spells.SpellFireWall;
@@ -22,7 +22,7 @@ import com.philon.rpg.stat.StatsObj.StatLightningDamage;
 import com.philon.rpg.stat.StatsObj.StatMagic;
 import com.philon.rpg.stat.StatsObj.StatNormalDamage;
 
-public class SpellData extends AbstractGameData {
+public class SpellData {
 	public static final int MAX_SPELL_LVL = 20;
 
 	public static int numSpells;
@@ -88,15 +88,16 @@ public class SpellData extends AbstractGameData {
 
 	//----------
 
-	@Override
-  public String getTableName() {
-    return "spell";
+	public static void loadMedia() {
+    Object[][] result = RpgData.db.execQuery("SELECT * FROM spell ORDER BY id ASC");
+    execInitArrays(result.length);
+
+    for (int i=0; i<result.length; i++) {
+      execLoadRow((Integer)(result[i][0]), result[i]);
+    }
   }
 
-  //----------
-
-  @Override
-  public void execInitArrays(int rowCount) {
+  public static void execInitArrays(int rowCount) {
     numSpells = rowCount;
 
     displayText = new String  [rowCount];
@@ -188,8 +189,7 @@ public class SpellData extends AbstractGameData {
 
   //----------
 
-  @Override
-  public void execLoadRow(int rowNum, Object[] row) {
+  public static void execLoadRow(int rowNum, Object[] row) {
     displayText [rowNum] = (String) row[1];
     speed       [rowNum] = new Float((Double)row[2]);
     castTime    [rowNum] = new Float((Double)row[3]);
@@ -229,9 +229,9 @@ public class SpellData extends AbstractGameData {
     }
   }
 
-  public static Vector getTotalDmg( int newSpellID, int newSpellLvl ) {
+  public static Vector getTotalDmg( AbstractChar forChar, int newSpellID, int newSpellLvl ) {
     if( newSpellID==MELEE || newSpellID==ARROW ) {
-      return RpgGame.inst.localPlayer.stats.getTotalDamage();
+      return forChar.stats.getTotalDamage();
     } else {
       if (newSpellID==EMPTY || newSpellLvl==0) return new Vector();
       return stats[newSpellID][newSpellLvl-1].getTotalDamage();

@@ -2,30 +2,48 @@ package com.philon.rpg.forms;
 
 import java.util.List;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.philon.engine.forms.AbstractButton;
-import com.philon.engine.forms.AbstractForm;
-import com.philon.engine.forms.AbstractLabel;
+import com.philon.engine.forms.GuiElement;
+import com.philon.engine.util.Util.Order;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.mos.item.AbstractItem;
+import com.philon.rpg.mos.player.AbstractChar;
 import com.philon.rpg.spell.SpellData;
 import com.philon.rpg.stat.StatsObj.StatM1Stype;
 import com.philon.rpg.stat.StatsObj.StatM2Stype;
 
-public class StatusbarForm extends AbstractForm {
+@Order(10)
+public class StatusbarForm extends GuiElement {
 
   @Override
-  public Vector getPosByScreenSize(Vector newScreenSize) {
-    return new Vector(0, newScreenSize.y-150);//+75);
+  protected boolean isStrechable() {
+    return false;
+  }
+  @Override
+  protected boolean isScaleByX() {
+    return true;
+  }
+  @Override
+  protected float getConfiguredScale() {
+    return 1;
+  }
+  @Override
+  protected float getConfiguredXYRatio() {
+    return 20;
+  }
+  @Override
+  protected int getConfiguredAlignment() {
+    return GuiElement.ALIGN_BOTTOM_LEFT;
+  }
+  @Override
+  protected int getConfiguredBackground() {
+    return 239;
   }
 
   @Override
-  public Vector getSizeByScreenSize(Vector newScreenSize) {
-    return new Vector(1600, 150);
-  }
-
-  @Override
-  public void draw() {
+  public void execDraw(SpriteBatch batch) {
 //  if( fID==FormData.STATUSBAR ) { //TODO health orbs
 //  float orbFill;
 //  //draw health orb
@@ -57,132 +75,188 @@ public class StatusbarForm extends AbstractForm {
 //  drawRect( tmpPos.x, tmpPos.y, tmpSize.x, tmpSize.y*(1-orbFill) );
 //}
 
-    super.draw();
+    super.execDraw(batch);
 
   }
 
-  public class Spell1Button extends AbstractButton {
-
-    public Spell1Button() {
-      ID = 8;
-      pos = new Vector(0.11f, 0.56f) ;
-      size = new Vector(66.00f, 66.00f) ;
-      img = 0;
-      imgPressed = 0;
-    }
-
+  public class OrbHealthLabel extends GuiElement {
     @Override
-    public void execAction() {
-      RpgGame.inst.gInput.isSelectingLeft=true;
-      RpgGame.inst.localPlayer.spellSelectForm.toggle();
+    protected boolean isStrechable() {
+      return false;
     }
-
     @Override
-    public void update() {
-      if (RpgGame.inst.localPlayer==null) return;
-      int tmpSpell = (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatM1Stype.class);
-      img = SpellData.iconImg[tmpSpell];
-      imgPressed = SpellData.iconImg[tmpSpell];
+    protected float getConfiguredXYRatio() {
+      return 174f/150f;
     }
-
-  }
-
-  public class Spell2Button extends AbstractButton {
-
-    public Spell2Button() {
-      ID = 9;
-      pos = new Vector(0.85f, 0.56f) ;
-      size = new Vector(66.00f, 66.00f) ;
-      img = 0;
-      imgPressed = 0;
-    }
-
     @Override
-    public void execAction() {
-      RpgGame.inst.gInput.isSelectingLeft=false;
-      RpgGame.inst.localPlayer.spellSelectForm.toggle();
+    protected float getConfiguredScale() {
+      return 2;
     }
-
     @Override
-    public void update() {
-      if (RpgGame.inst.localPlayer==null) return;
-      int tmpSpell = (Integer)RpgGame.inst.localPlayer.stats.getStatValue(StatM2Stype.class);
-      img = SpellData.iconImg[tmpSpell];
-      imgPressed = SpellData.iconImg[tmpSpell];
+    protected int getConfiguredAlignment() {
+      return GuiElement.ALIGN_BOTTOM_LEFT;
     }
-
-  }
-
-  public class BackgroundLabel extends AbstractLabel {
-
-    public BackgroundLabel() {
-      ID = 41;
-      pos = new Vector(0.00f, 0.00f) ;
-      size = new Vector(1600.00f, 150.00f) ;
-      img = 239;
-      displayText = "";
-    }
-
-  }
-
-  public class OrbManaLabel extends AbstractLabel {
-
-    public OrbManaLabel() {
-      ID = 43;
-      pos = new Vector(0.89f, 0.00f) ;
-      size = new Vector(174.00f, 150.00f) ;
-      img = 238;
-      displayText = "";
-    }
-
-  }
-
-  public class OrbHealthLabel extends AbstractLabel {
-
-    public OrbHealthLabel() {
-      ID = 42;
-      pos = new Vector(0.00f, 0.00f) ;
-      size = new Vector(174.00f, 150.00f) ;
-      img = 237;
-      displayText = "";
-    }
-
-  }
-
-  public class BeltGridLabel extends AbstractItemGridLabel {
-
-    public BeltGridLabel() {
-      ID = 44;
-      pos = new Vector(0.30f, 0.56f) ;
-      size = new Vector(630.00f, 66.00f) ;
-      img = 297;
-      displayText = "";
-
-      gridSize = new Vector(10, 1);
-      cellSize = Vector.div(size, gridSize);
-    }
-
     @Override
-    public void dropPickupToCell(Vector newCell) {
-      AbstractItem result = RpgGame.inst.localPlayer.inv.beltGrid.add(RpgGame.inst.localPlayer.inv.pickedUpItem, newCell, true);
-      if(result==null) {
-        RpgGame.inst.localPlayer.inv.pickedUpItem = null;
-      } else if(result!=RpgGame.inst.localPlayer.inv.pickedUpItem) {
-        RpgGame.inst.localPlayer.inv.pickedUpItem = result;
+    protected int getConfiguredBackground() {
+      return 237;
+    }
+  }
+
+  public class OrbManaLabel extends GuiElement {
+    @Override
+    protected boolean isStrechable() {
+      return false;
+    }
+    @Override
+    protected float getConfiguredXYRatio() {
+      return 174f/150f;
+    }
+    @Override
+    protected float getConfiguredScale() {
+      return 2;
+    }
+    @Override
+    protected int getConfiguredAlignment() {
+      return GuiElement.ALIGN_BOTTOM_RIGHT;
+    }
+    @Override
+    protected int getConfiguredBackground() {
+      return 238;
+    }
+  }
+
+  public class CenteredGroupBox extends GuiElement {
+    @Override
+    protected boolean isStrechable() {
+      return false;
+    }
+    @Override
+    protected float getConfiguredXYRatio() {
+      return 12;
+    }
+    @Override
+    protected float getConfiguredScale() {
+      return 1;
+    }
+    @Override
+    protected int getConfiguredAlignment() {
+      return GuiElement.ALIGN_CENTER;
+    }
+
+    public class Spell1Button extends AbstractButton {
+      @Override
+      protected boolean isStrechable() {
+        return false;
+      }
+      @Override
+      protected float getConfiguredXYRatio() {
+        return 1;
+      }
+      @Override
+      protected float getConfiguredScale() {
+        return 1f;
+      }
+      @Override
+      protected int getConfiguredAlignment() {
+        return GuiElement.ALIGN_TOP_LEFT;
+      }
+      @Override
+      protected int getConfiguredBackground() {
+        int tmpSpell = (Integer)RpgGame.inst.getExclusiveUser().character.stats.getStatValue(StatM1Stype.class);
+        return SpellData.iconImg[tmpSpell];
+      }
+      @Override
+      protected int getConfiguredImgPressed() {
+        return getConfiguredBackground();
+      }
+      @Override
+      public void execAction() {
+        SpellSelectForm existingForm = RpgGame.inst.guiHierarchy.getElementByClass(SpellSelectForm.class);
+        if(existingForm==null) {
+          SpellSelectForm ssf = new SpellSelectForm();
+          ssf.setIsSelectingForLeft(true);
+          RpgGame.inst.guiHierarchy.insertElement(ssf);
+        } else {
+          RpgGame.inst.guiHierarchy.removeElementByClass(SpellSelectForm.class);
+        }
       }
     }
 
-    @Override
-    public AbstractItem getItemByCell(Vector newCell) {
-      return RpgGame.inst.localPlayer.inv.beltGrid.getItemByCell(newCell);
+    public class Spell2Button extends AbstractButton {
+      @Override
+      protected boolean isStrechable() {
+        return false;
+      }
+      @Override
+      protected float getConfiguredXYRatio() {
+        return 1;
+      }
+      @Override
+      protected float getConfiguredScale() {
+        return 1f;
+      }
+      @Override
+      protected int getConfiguredAlignment() {
+        return GuiElement.ALIGN_TOP_RIGHT;
+      }
+      @Override
+      protected int getConfiguredBackground() {
+        int tmpSpell = (Integer)RpgGame.inst.getExclusiveUser().character.stats.getStatValue(StatM2Stype.class);
+        return SpellData.iconImg[tmpSpell];
+      }
+      @Override
+      protected int getConfiguredImgPressed() {
+        return getConfiguredBackground();
+      }
+      @Override
+      public void execAction() {
+        SpellSelectForm existingForm = RpgGame.inst.guiHierarchy.getElementByClass(SpellSelectForm.class);
+        if(existingForm==null) {
+          SpellSelectForm ssf = new SpellSelectForm();
+          ssf.setIsSelectingForLeft(false);
+          RpgGame.inst.guiHierarchy.insertElement(ssf);
+        } else {
+          RpgGame.inst.guiHierarchy.removeElementByClass(SpellSelectForm.class);
+        }
+      }
     }
 
-    @Override
-    public List<AbstractItem> getItemsForDraw() {
-      return RpgGame.inst.localPlayer.inv.beltGrid.itemList;
+    public class BeltGridLabel extends AbstractItemGridLabel {
+      @Override
+      protected float getConfiguredScale() {
+        return 1;
+      }
+      @Override
+      protected Vector getConfiguredGridSize() {
+        return new Vector(10, 1);
+      }
+      @Override
+      protected Vector getConfiguredPosition() {
+        return new Vector(1/12f, 0);
+      }
+      @Override
+      protected int getConfiguredBackground() {
+        return 297;
+      }
+      @Override
+      public void dropPickupToCell(Vector newCell) {
+        AbstractChar character = RpgGame.inst.getExclusiveUser().character;
+        AbstractItem result = character.inv.beltGrid.add(character.inv.pickedUpItem, newCell, true);
+        if(result==null) {
+          character.inv.pickedUpItem = null;
+        } else if(result!=character.inv.pickedUpItem) {
+          character.inv.pickedUpItem = result;
+        }
+      }
+      @Override
+      public AbstractItem getItemByCell(Vector newCell) {
+        return RpgGame.inst.getExclusiveUser().character.inv.beltGrid.getItemByCell(newCell);
+      }
+      @Override
+      public List<AbstractItem> getItemsForDraw() {
+        return RpgGame.inst.getExclusiveUser().character.inv.beltGrid.itemList;
+      }
     }
-
   }
-
 
 }

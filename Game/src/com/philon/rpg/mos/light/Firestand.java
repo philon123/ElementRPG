@@ -8,7 +8,7 @@ public class Firestand extends UpdateMapObj {
 	public Firestand() {
 	  super();
 
-		setLuminance(0.5f);
+		setLuminance(0.33f);
 		isSelectable = false;
 	}
 

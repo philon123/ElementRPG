@@ -4,7 +4,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.philon.engine.util.Vector;
-import com.philon.rpg.RpgGame;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.item.AbstractItem.ItemSaveData;
 import com.philon.rpg.mos.item.category.AmuletItem;
@@ -16,6 +15,7 @@ import com.philon.rpg.mos.item.category.ShieldItem;
 import com.philon.rpg.mos.item.category.WeaponItem;
 import com.philon.rpg.mos.player.AbstractChar;
 import com.philon.rpg.stat.effect.EffectsObj;
+import com.philon.rpg.util.RpgUtil;
 
 public class Inventory {
 	public AbstractChar ownerPlayer;
@@ -28,7 +28,6 @@ public class Inventory {
 	public int currGold=10000;
 
 	public AbstractItem pickedUpItem;
-	public AbstractItem hoveredOverItem;
 
 	//----------
 
@@ -88,7 +87,7 @@ public class Inventory {
 
 	private boolean isItemForBelt(AbstractItem newItem) {
 	  return pickedUpItem instanceof ConsumableItem &&
-        pickedUpItem.invSize.isAllEqual(new Vector(1));
+        pickedUpItem.getInvSize().isAllEqual(new Vector(1));
 	}
 
 	public void equipChangedTrigger() {
@@ -158,9 +157,19 @@ public class Inventory {
     pickupItem( it );
     boolean result;
     if(isItemForBelt(pickedUpItem)) {
-      result = beltGrid.addPickupAuto();
+      if (beltGrid.addAuto(pickedUpItem) ) {
+        pickedUpItem = null;
+        result = true;
+      } else {
+        result = false;
+      }
     } else {
-      result = invGrid.addPickupAuto();
+      if( invGrid.addAuto(pickedUpItem) ) {
+        pickedUpItem = null;
+        result = true;
+      } else {
+        result = false;
+      }
     }
 
     if( result ) {
@@ -172,7 +181,7 @@ public class Inventory {
   }
 
   public void dropPickup() {
-    Vector newTile = RpgGame.inst.gMap.getNextFreeTile( ownerPlayer.pos, false, false, true, true );
+    Vector newTile = RpgUtil.getNextFreeTile( ownerPlayer.pos, false, false, true, true );
     if( newTile != null ) {
       pickedUpItem.setPosition(newTile);
       pickedUpItem.changeState( AbstractItem.StateMap.class );
@@ -188,7 +197,7 @@ public class Inventory {
       pickedUpItem = tmpPickup; //restore previous state
       return false;
     } else if(displacedItem!=tmpPickup)  { //success, with displacement
-      pickedUpItem = displacedItem;
+      pickupItem(displacedItem);
     }
     return true;
   }
@@ -229,7 +238,6 @@ public class Inventory {
 		equip.items[targetSlot] = it;
 		it.pos = new Vector( targetSlot, 0 );
 		it.changeState( AbstractItem.StateInv.class );
-		RpgGame.playSoundFX(it.souDrop);
 
 		equipChangedTrigger();
 		return displacedItem!=null ? displacedItem : it;

@@ -66,7 +66,11 @@ public class Vector {
 	  BigDecimal b = new BigDecimal(this.y);
 	  a = a.divide(new BigDecimal("1"), 2, BigDecimal.ROUND_HALF_UP);
     b = b.divide(new BigDecimal("1"), 2, BigDecimal.ROUND_HALF_UP);
-	 	return "(" + a.toPlainString() + ", " + b.toPlainString() + ") ";
+	 	return "(" + a.toPlainString() + ", " + b.toPlainString() + ")";
+	}
+
+	public String toStringIntRounded() {
+	  return "(" + Util.round(x) + ", " + Util.round(y) + ")";
 	}
 
 	public String toStringIntRange() {
@@ -248,6 +252,11 @@ public class Vector {
 		return false;
 	}
 
+	public boolean isEitherSOE( Vector otherVec ) {
+    if (x<=otherVec.x || y<=otherVec.y) return true;
+    return false;
+  }
+
 	//----------
 
 	public boolean isAllLarger( Vector otherVec ) {
@@ -268,6 +277,11 @@ public class Vector {
 		if (x>otherVec.x || y>otherVec.y) return true;
 		return false;
 	}
+
+	public boolean isEitherLOE( Vector otherVec ) {
+    if (x>=otherVec.x || y>=otherVec.y) return true;
+    return false;
+  }
 
 	//----------
 
@@ -404,7 +418,18 @@ public class Vector {
 	  return Util.round( Util.random(x, y) );
 	}
 
+	public static Vector applyBounds(Vector in, Vector lower, Vector upper) {
+	  return new Vector(
+	      in.x<lower.x ? lower.x : in.x>upper.x ? upper.x : in.x,
+	      in.y<lower.y ? lower.y : in.y>upper.y ? upper.y : in.y
+	 );
+	}
+
+	public Vector applyBoundsInst(Vector lower, Vector upper) {
+	  x = x<lower.x ? lower.x : x>upper.x ? upper.x : x;
+	  y = y<lower.y ? lower.y : y>upper.y ? upper.y : y;
+	  return this;
+	}
+
 
 }
-
-//------------------------------

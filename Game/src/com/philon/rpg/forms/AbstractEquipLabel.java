@@ -1,36 +1,50 @@
 package com.philon.rpg.forms;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.philon.engine.Data;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.mos.item.AbstractItem;
 
-public abstract class AbstractEquipLabel extends AbstractItemDropLabel {
+public abstract class AbstractEquipLabel extends AbstractItemGridLabel {
   public int equipSlotNr;
 
   @Override
-  public void draw(Vector containerPos, Vector containerSize) {
-    super.draw(containerPos, containerSize);
+  public void execDraw(SpriteBatch batch) {
+    int tmpImage = getConfiguredBackground();
+    if(tmpImage!=0) {
+      batch.draw(Data.textures.get(tmpImage).frames[0], absPos.x, absPos.y, absSize.x, absSize.y);
+    }
 
-    AbstractItem currItem = RpgGame.inst.localPlayer.inv.equip.getBySlot(equipSlotNr);
-    if( !(currItem==null) ) {
-      Vector tmpPos = Vector.mul( pos, containerSize ).addInst(containerPos);
-      tmpPos.addInst( Vector.sub( size, currItem.invSize.copy().mulInst(getCellSize()) ).mulScalarInst(0.5f) );
-      drawInvItem( currItem, tmpPos );
+    AbstractItem it = getItem();
+    if( !(it==null) ) {
+      Vector itemCellPos = Vector.mulScalar( Vector.sub(getConfiguredGridSize(), it.getInvSize()), 0.5f );
+      drawInvItem(batch, it, itemCellPos);
     }
   }
 
   @Override
-  public void dropPickupToPixel(Vector newPixel) {
-    RpgGame.inst.localPlayer.inv.addPickupToEquip(equipSlotNr);
+  public void dropPickupToCell(Vector newPixel) {
+    RpgGame.inst.getExclusiveUser().character.inv.addPickupToEquip(equipSlotNr);
   }
 
   @Override
-  public AbstractItem getItemByPixel(Vector newPixel) {
+  public AbstractItem getItemByCell(Vector newCell) {
     return getItem();
   }
 
   public AbstractItem getItem() {
-    return RpgGame.inst.localPlayer.inv.equip.getBySlot(equipSlotNr);
+    return RpgGame.inst.getExclusiveUser().character.inv.equip.getBySlot(equipSlotNr);
+  }
+
+  @Override
+  protected List<AbstractItem> getItemsForDraw() {
+    LinkedList<AbstractItem> result = new LinkedList<AbstractItem>();
+    result.add(getItem());
+    return result;
   }
 
 }

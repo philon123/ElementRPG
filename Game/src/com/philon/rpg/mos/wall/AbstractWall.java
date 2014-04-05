@@ -1,10 +1,11 @@
 package com.philon.rpg.mos.wall;
 
+import com.philon.engine.Data;
 import com.philon.engine.FrameAnimation;
+import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.ImageData;
+import com.philon.rpg.map.generator.MapGenerator;
 import com.philon.rpg.map.mo.RpgMapObj;
-import com.philon.rpg.util.RpgUtil;
 
 public abstract class AbstractWall extends RpgMapObj {
   public boolean isBlock; //must be set before use of setWallType()
@@ -25,38 +26,38 @@ public abstract class AbstractWall extends RpgMapObj {
     wallType = newWallType;
 
     switch (newWallType) {
-      case WallData.WALLTYPE_PILLAR :
+      case MapGenerator.WALLTYPE_PILLAR :
         setImageHelper( getImgBlock() );
         break;
-      case WallData.WALLTYPE_STRAIGHT :
+      case MapGenerator.WALLTYPE_STRAIGHT :
         if (isBlock) {
           setImageHelper( getImgBlockSingleSide() );
         } else {
           setImageHelper( getImgWallStraight() );
         }
         break;
-      case WallData.WALLTYPE_STUB :
+      case MapGenerator.WALLTYPE_STUB :
         if (isBlock) {
           setImageHelper( getImgBlockSingleSide() );
         } else {
           setImageHelper( getImgWallStub() );
         }
         break;
-      case WallData.WALLTYPE_CORNER :
+      case MapGenerator.WALLTYPE_CORNER :
         if (isBlock) {
           setImageHelper( getImgBlockCorner() );
         } else {
           setImageHelper( getImgWallCorner() );
         }
         break;
-      case WallData.WALLTYPE_TRIPOD :
+      case MapGenerator.WALLTYPE_TRIPOD :
         if (isBlock) {
           setImageHelper( getImgBlockSingleSide() );
         } else {
           setImageHelper( getImgWallTripod() );
         }
         break;
-      case WallData.WALLTYPE_CROSS :
+      case MapGenerator.WALLTYPE_CROSS :
         if (isBlock) {
           setImageHelper( getImgBlockCross() );
         } else {
@@ -67,7 +68,7 @@ public abstract class AbstractWall extends RpgMapObj {
   }
 
   private void setImageHelper(int newImage) {
-    setAnimation(new FrameAnimation(ImageData.images[newImage]));
+    setAnimation(new FrameAnimation(Data.textures.get(newImage)));
   }
 
   public abstract int getImgBlock();
@@ -103,7 +104,7 @@ public abstract class AbstractWall extends RpgMapObj {
 
     @Override
     public RpgMapObj load() { //custom load because image is not set in constructor (image has to be set first)
-      AbstractWall result = (AbstractWall)RpgUtil.instantiateClass(objClass);
+      AbstractWall result = (AbstractWall)Util.instantiateClass(objClass);
 
       result.isBlock = isBlock;
       result.setImageByWallType(wallType);

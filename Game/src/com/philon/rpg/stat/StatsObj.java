@@ -1,5 +1,4 @@
 package com.philon.rpg.stat;
-import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
@@ -10,9 +9,9 @@ public class StatsObj {
 	public int[] spells = new int[SpellData.numSpells];
 
 	@SuppressWarnings("rawtypes")
-  public LinkedHashMap<Class<? extends AbstractStat>, AbstractStat> statMap 
+  public LinkedHashMap<Class<? extends AbstractStat>, AbstractStat> statMap
 	 = new LinkedHashMap<Class<? extends AbstractStat>, AbstractStat>();
-	
+
 	public StatsObj() {
 	}
 
@@ -21,37 +20,38 @@ public class StatsObj {
 	  T result = (T) statMap.get(clazz);
 	  return result;
   }
-	
+
 	@SuppressWarnings("rawtypes")
   public Object getStatValue(Class<? extends AbstractStat> clazz) {
 	  AbstractStat stat = getStat(clazz);
 	  return stat==null ? createStat(clazz, null).getValue() : stat.getValue();
 	}
-	
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+  public void setStatValue(Class<? extends AbstractStat> clazz, Object newValue) {
+	  AbstractStat stat = getStat(clazz);
+	  if(stat!=null) {
+	    stat.setValue(newValue);
+	  } else {
+	    createStat(clazz, newValue);
+	  }
+	}
+
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	public AbstractStat<?> createStat(Class<? extends AbstractStat> clazz, Object newValue) {
 	  AbstractStat newStat = null;
 	  try {
         newStat = clazz.getDeclaredConstructor(StatsObj.class).newInstance( this );
-        newStat.setValue(newValue);
-        
-      } catch (InstantiationException e) {
-        e.printStackTrace();
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (IllegalArgumentException e) {
-        e.printStackTrace();
-      } catch (InvocationTargetException e) {
-        e.printStackTrace();
-      } catch (NoSuchMethodException e) {
-        e.printStackTrace();
-      } catch (SecurityException e) {
+        if(newValue!=null) {
+          newStat.addValue(newValue);
+        }
+      } catch (Exception e) {
         e.printStackTrace();
       }
-	  
+
 	  return newStat;
 	}
-	
+
 	@SuppressWarnings({"unchecked", "rawtypes"})
   public void addOrCreateStat( Class<? extends AbstractStat> clazz, Object newValue ) {
 	  if (statMap.containsKey(clazz)) {
@@ -61,6 +61,12 @@ public class StatsObj {
   	}
   }
 
+	public void finalize() {
+	  for(AbstractStat<?> currStat : statMap.values()) {
+	    currStat.validateValue();
+	  }
+	}
+
 	public Vector getTotalDamage() {
 	  Vector norDmg = (Vector) getStatValue(StatNormalDamage.class);
 	  if (norDmg==null) norDmg=new Vector();
@@ -68,22 +74,22 @@ public class StatsObj {
 	  if (firDmg==null) firDmg=new Vector();
 	  Vector eleDmg = (Vector) getStatValue(StatLightningDamage.class);
 	  if (eleDmg==null) eleDmg=new Vector();
-	  Vector magDmg = (Vector) getStatValue(StatIceDamage.class);
-	  if (magDmg==null) magDmg=new Vector();
-	  
+	  Vector iceDmg = (Vector) getStatValue(StatIceDamage.class);
+	  if (iceDmg==null) iceDmg=new Vector();
+
 	  return new Vector().
 	      addInst(norDmg).
 	      addInst(firDmg).
 	      addInst(eleDmg).
-	      addInst(magDmg);
+	      addInst(iceDmg);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
   public boolean isReqMet( StatsObj req ) {
 	  for (Entry<Class<? extends AbstractStat>, AbstractStat> currReqEntry : req.statMap.entrySet()) {
 	    Object reqValue = req.getStatValue(currReqEntry.getKey());
 	    Object thisValue = getStatValue(currReqEntry.getKey());
-	    
+
 	    if ( IntegerStat.class.isAssignableFrom(currReqEntry.getKey()) ) {
 	      if ((Integer)thisValue < (Integer)reqValue) return false;
 	    } else if ( FloatStat.class.isAssignableFrom(currReqEntry.getKey()) ) {
@@ -105,13 +111,25 @@ public class StatsObj {
 		return dt;
 	}
 
+	public String toString() {
+	  String result = "";
+	  for(AbstractStat<?> currStat : statMap.values()) {
+	    result += "[" + currStat.getClass().getSimpleName() + ": " + currStat.getValue().toString() + "] ";
+	  }
+	  return result;
+	}
+
 	public abstract class AbstractStat<T> {
     T value;
-    
+
+    public AbstractStat() {
+      value = getDefaultValue();
+    }
+
     public T getValue() {
       return value;
     }
-    
+
     public void setValue(T newValue) {
       if (newValue==null) {
         value = getDefaultValue();
@@ -119,11 +137,14 @@ public class StatsObj {
         value = newValue;
       }
     }
-    
+
+    public void validateValue() {
+    }
+
     public abstract T getDefaultValue();
     public abstract void addValue(T newValue);
   }
-  
+
   public abstract class IntegerStat extends AbstractStat<Integer> {
     public void addValue(Integer newValue) {
       setValue(getValue() + newValue);
@@ -132,8 +153,17 @@ public class StatsObj {
     public Integer getDefaultValue() {
       return 0;
     }
+    @Override
+    public void validateValue() {
+      if(!isNegativePossible() && getValue()<0) {
+        setValue(0);
+      }
+    }
+    protected boolean isNegativePossible() {
+      return true;
+    }
   }
-  
+
   public abstract class FloatStat extends AbstractStat<Float> {
     public void addValue(Float newValue) {
       setValue(getValue() + newValue);
@@ -143,7 +173,7 @@ public class StatsObj {
       return 0f;
     }
   }
-  
+
   public abstract class BooleanStat extends AbstractStat<Boolean> {
     public void addValue(Boolean newValue) {
       if (newValue) setValue(true);
@@ -153,7 +183,7 @@ public class StatsObj {
       return false;
     }
   }
-  
+
   public abstract class VectorStat extends AbstractStat<Vector> {
     public void addValue(Vector newValue) {
       setValue( Vector.add(getValue(), (Vector)newValue) );
@@ -169,19 +199,43 @@ public class StatsObj {
       return getValue().getRandomFloatValue();
     }
   }
-  
-  public class StatStrength extends IntegerStat {}
-  public class StatDexterity extends IntegerStat {}
-  public class StatVitality extends IntegerStat {}
-  public class StatMagic extends IntegerStat {}
+
+  public class StatStrength extends IntegerStat {
+    @Override
+    protected boolean isNegativePossible() {
+      return false;
+    }
+  }
+  public class StatDexterity extends IntegerStat {
+    @Override
+    protected boolean isNegativePossible() {
+      return false;
+    }
+  }
+  public class StatVitality extends IntegerStat {
+    @Override
+    protected boolean isNegativePossible() {
+      return false;
+    }
+  }
+  public class StatMagic extends IntegerStat {
+    @Override
+    protected boolean isNegativePossible() {
+      return false;
+    }
+  }
   public class StatMaxHealth extends IntegerStat {
+    @Override
+    protected boolean isNegativePossible() {
+      return false;
+    }
     @Override
     public void addValue(Integer newValue) {
       int newMaxHealth = getValue() + newValue;
       if (newMaxHealth < 0) {
         setValue(0);
       } else {
-        setValue(newValue);
+        setValue(newMaxHealth);
       }
     }
   }
@@ -201,12 +255,16 @@ public class StatsObj {
   }
   public class StatMaxMana extends IntegerStat {
     @Override
+    protected boolean isNegativePossible() {
+      return false;
+    }
+    @Override
     public void addValue(Integer newValue) {
       int newMaxMana = getValue() + newValue;
       if (newMaxMana < 0) {
         setValue(0);
       } else {
-        setValue(newValue);
+        setValue(newMaxMana);
       }
     }
   }
@@ -244,6 +302,10 @@ public class StatsObj {
   public class StatResistIce extends FloatStat {}
   public class StatArmor extends IntegerStat {
     @Override
+    protected boolean isNegativePossible() {
+      return false;
+    }
+    @Override
     public void addValue(Integer newValue) {
       setValue(newValue);
       addOrCreateStat( StatMulNorDmgReduce.class, newValue/200f );
@@ -253,8 +315,6 @@ public class StatsObj {
   public class StatFireDamage extends VectorStat {}
   public class StatLightningDamage extends VectorStat {}
   public class StatIceDamage extends VectorStat {}
-  public class StatDurability extends IntegerStat {}
-  public class StatIndestructable extends BooleanStat {}
   public class StatM1Stype extends IntegerStat {
     @Override
     public Integer getDefaultValue() {

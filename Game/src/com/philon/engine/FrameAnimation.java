@@ -1,22 +1,22 @@
 package com.philon.engine;
 
-import com.philon.engine.util.AnimTextureRegion;
+import com.philon.engine.util.AnimImage;
 
 public class FrameAnimation {
-  public AnimTextureRegion image;
+  public AnimImage image;
   private int durationInFrames;
   private int animLengthInFrames;
-  private int startFrame=-1;
+  private int startFrame = -1;
   private boolean currAnimReversed;
 
   private int currAnimFrame;
   private int dir=0;
 
-  public FrameAnimation(AnimTextureRegion newImage) {
+  public FrameAnimation(AnimImage newImage) {
     this(newImage, 0, false);
   }
 
-  public FrameAnimation(AnimTextureRegion newImage, int newAnimLength, boolean animReversed) {
+  public FrameAnimation(AnimImage newImage, int newAnimLength, boolean animReversed) {
     setImage(newImage);
     if (newAnimLength>0) {
       startAnim(newAnimLength, animReversed);
@@ -26,7 +26,7 @@ public class FrameAnimation {
     }
   }
 
-  private void setImage( AnimTextureRegion newAnimTexture ) {
+  private void setImage( AnimImage newAnimTexture ) {
     image = newAnimTexture;
     animLengthInFrames = (int)(newAnimTexture.dimensions.x);
     currAnimFrame = 0;
@@ -45,7 +45,7 @@ public class FrameAnimation {
 
   public void startAnim( int newAnimLen, boolean reverseAnim ) {
     durationInFrames = newAnimLen;
-    startFrame = PhilonGame.currFrame;
+    startFrame = PhilonGame.inst.currFrame;
     currAnimReversed = reverseAnim;
   }
 
@@ -56,7 +56,7 @@ public class FrameAnimation {
   public void updateAnimFrame() {
     if (startFrame<0) return; //no animation -> keep frame frozen
 
-    currAnimFrame = (int) (( ((PhilonGame.currFrame-startFrame) / (durationInFrames*1.0f)) * animLengthInFrames ) % animLengthInFrames);
+    currAnimFrame = (int) (( ((PhilonGame.inst.currFrame-startFrame) / (durationInFrames*1.0f)) * animLengthInFrames ) % animLengthInFrames);
     if (currAnimReversed) currAnimFrame=(animLengthInFrames-1)-currAnimFrame;
   }
 

@@ -14,12 +14,12 @@ public class ShotArrow extends AbstractShot {
 
   @Override
   public int getImgDying() {
-    return 0;
+    return 235;
   }
 
   @Override
   public int getSouDie() {
     return 0;
   }
-  
+
 }

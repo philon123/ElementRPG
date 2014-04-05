@@ -3,7 +3,7 @@ import com.philon.engine.util.Vector;
 
 public class MapObject {
   public Vector pos;
-  public Vector direction;
+  public Vector direction = new Vector();
   public Vector speed;
 
   public FrameAnimation animation;

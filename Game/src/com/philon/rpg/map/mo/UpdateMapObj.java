@@ -3,12 +3,12 @@ package com.philon.rpg.map.mo;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import com.philon.engine.Data;
 import com.philon.engine.FrameAnimation;
 import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Path;
 import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.state.AbstractMapObjState;
 import com.philon.rpg.util.RpgUtil;
@@ -30,14 +30,12 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	public Path currPath;
 	public int currPathNode;
 
-	public int dieCooldown;
 	public int pathfindCooldown;
 
 	public CombatMapObj killedBy=null;
 
 	public UpdateMapObj() {
 	  super();
-
 		loadStates();
 
 		tilesPerSecond = getTilesPerSecond();
@@ -55,15 +53,16 @@ public abstract class UpdateMapObj extends RpgMapObj {
   }
 
   public int getDieCooldown() {
-    return (int) (PhilonGame.fps/3);
+    return (int) (PhilonGame.inst.fps/3);
   }
 
   @SuppressWarnings("unchecked")
   public void loadStates() {
     for (Class<? extends RpgMapObj> currentClass : Util.getClassHierarchy(getClass(), RpgMapObj.class) ) {
       for (Class<?> newClass : currentClass.getDeclaredClasses()) {
-        if ( !AbstractMapObjState.class.isAssignableFrom(newClass) ) continue;
-        for(Class<? extends AbstractMapObjState> currClass : Util.getClassHierarchy(newClass, AbstractMapObjState.class)) {
+        if(!AbstractMapObjState.class.isAssignableFrom(newClass)) continue;
+        Class<? extends AbstractMapObjState> newClassCasted = newClass.asSubclass(AbstractMapObjState.class);
+        for(Class<? extends AbstractMapObjState> currClass : Util.getClassHierarchy(newClassCasted, AbstractMapObjState.class)) {
           stateMap.put(currClass, (Class<? extends AbstractMapObjState>)newClass);
         }
       }
@@ -84,7 +83,7 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	}
 
 	public void deathTrigger(CombatMapObj killedBy) {
-		RpgGame.playSoundFX( getSouDie() );
+		RpgGame.inst.playSoundFX( getSouDie() );
 	}
 
 	public void update() {
@@ -189,7 +188,7 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	}
 
 	public LinkedList<RpgMapObj> getPotentialCollisions( Vector newOffset ) {
-		LinkedList<RpgMapObj> result = RpgGame.inst.gMap.getRectColls(Vector.add(pos, newOffset), collRect);
+		LinkedList<RpgMapObj> result = RpgUtil.getRectColls(Vector.add(pos, newOffset), collRect);
 		result =  RpgUtil.filterList( result, true, true, false, false, true, true );
 		if (result==null) return null;
 		result.remove(this);
@@ -203,10 +202,11 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	public void setTarget( RpgMapObj newTarget, Vector newTargetPos ) {
 		currTarget = newTarget;
 		currTargetPos = newTargetPos;
-		if( currTargetPos==null && currTarget!=null ) {
-			currTargetPos = ((RpgMapObj)currTarget).pos.copy();
+
+		if(currTarget!=null && currTargetPos==null) {
+			currTargetPos = currTarget.pos.copy();
 		}
-		turnToTarget( currTargetPos );
+		if(currTargetPos!=null) turnToTarget( currTargetPos );
 		updateTarget();
 	}
 
@@ -222,7 +222,7 @@ public abstract class UpdateMapObj extends RpgMapObj {
 
 	  @Override
 	  public void execOnChange() {
-	    setAnimation(new FrameAnimation(ImageData.images[getImgIdle()], (int)(PhilonGame.fps/3), false));
+	    setAnimation(new FrameAnimation(Data.textures.get(getImgIdle()), (int)(PhilonGame.inst.fps/3), false));
 	    v=0;
 	  }
 
@@ -236,10 +236,11 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	//----------
 
 	public class StateDying extends AbstractMapObjState {
+	  public int dieCooldown;
 
 	  @Override
 	  public void execOnChange() {
-	    setAnimation(new FrameAnimation(ImageData.images[getImgDying()], getDieCooldown(), false));
+	    setAnimation(new FrameAnimation(Data.textures.get(getImgDying()), getDieCooldown(), false));
 	    dieCooldown = getDieCooldown();
 	    v=0;
 	    deathTrigger(killedBy);
@@ -263,12 +264,12 @@ public abstract class UpdateMapObj extends RpgMapObj {
 
 	  @Override
 	  public void execOnChange() {
-	    setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(PhilonGame.fps/3), false));
+	    setAnimation(new FrameAnimation(Data.textures.get(getImgMoving()), (int)(PhilonGame.inst.fps/3), false));
 	  }
 
 	  @Override
 	  public boolean execUpdate() {
-	    v = tilesPerSecond / PhilonGame.fps;
+	    v = tilesPerSecond / PhilonGame.inst.fps;
 	    Vector newOffset = Vector.mulScalar(direction, v);
 	    newOffset = getNewPositionOffset(newOffset);
 	    if (newOffset==null) return false;
@@ -295,7 +296,7 @@ public abstract class UpdateMapObj extends RpgMapObj {
     @Override
     public boolean execUpdate() {
       float tmpDist = Vector.getDistance(pos, currTargetPos);
-      float maxDist = collRect.getLength() + 0.2f;
+      float maxDist = collRect.x/2f + 0.2f;
       if (tmpDist<maxDist) return false;
       direction = Vector.sub(currTargetPos, pos).normalizeInst();
 
@@ -323,7 +324,7 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	  public boolean execUpdate() {
 	  //get/update path
 	    if( (currPath==null && pathfindCooldown==0) || pathfindCooldown==0 ) {
-	      currPath = RpgGame.inst.gMap.getAStarPath( pos, currTargetPos );
+	      currPath = RpgUtil.getAStarPath( pos, currTargetPos );
 	      currPathNode=0;
 	      pathfindCooldown=60;
 	    }

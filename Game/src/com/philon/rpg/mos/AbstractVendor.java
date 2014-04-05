@@ -1,8 +1,10 @@
 package com.philon.rpg.mos;
 
+import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.forms.AbstractVendorForm;
+import com.philon.rpg.forms.InventoryForm;
 import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.map.mo.UpdateMapObj;
 import com.philon.rpg.mos.item.AbstractItem;
@@ -10,7 +12,6 @@ import com.philon.rpg.mos.player.inventory.AbstractItemGrid;
 
 public abstract class AbstractVendor extends UpdateMapObj {
   public ItemGrid itemGrid;
-  public AbstractVendorForm form;
 
   public AbstractVendor() {
     super();
@@ -18,6 +19,8 @@ public abstract class AbstractVendor extends UpdateMapObj {
     itemGrid = new ItemGrid();
     addItems();
   }
+
+  protected abstract Class<? extends AbstractVendorForm> getFormClass();
 
   @Override
   public int getImgIdle() {
@@ -51,7 +54,9 @@ public abstract class AbstractVendor extends UpdateMapObj {
 
   @Override
   public void interactTrigger(RpgMapObj objInteracting) {
-    form.toggle();
+    AbstractVendorForm newForm = Util.instantiateClass(getFormClass());
+    newForm.setVendor(this);
+    RpgGame.inst.startExclusiveSession(RpgGame.inst.activeUser, newForm, new InventoryForm());
   }
 
   public void addItems() {
@@ -64,7 +69,7 @@ public abstract class AbstractVendor extends UpdateMapObj {
   public abstract AbstractItem createItem();
 
   public void buyItem(AbstractItem newItem) {
-    RpgGame.inst.localPlayer.inv.pickupGold((int)newItem.dropValue);
+    RpgGame.inst.getExclusiveUser().character.inv.pickupGold((int)newItem.getDropValue());
     itemGrid.addAuto(newItem);
   }
 
@@ -73,12 +78,10 @@ public abstract class AbstractVendor extends UpdateMapObj {
   }
 
   public class ItemGrid extends AbstractItemGrid {
-
     @Override
     public Vector getGridSize() {
       return new Vector(10, 10);
     }
-
   }
 
 }

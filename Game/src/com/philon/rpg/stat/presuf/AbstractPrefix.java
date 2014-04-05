@@ -5,5 +5,5 @@ public abstract class AbstractPrefix extends AbstractPrefixSuffix {
   public AbstractPrefix(int newLevel) {
     super(newLevel);
   }
-  
+
 }

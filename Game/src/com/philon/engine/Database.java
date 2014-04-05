@@ -10,26 +10,25 @@ import java.util.ArrayList;
 public class Database {
     Connection connection = null;
     Statement statement;
-    
-  public Database() {
+
+  public Database(String dbPath) {
   	try {
   	    Class.forName("org.sqlite.JDBC"); //this initalizes the class through the current class loader
   	} catch (ClassNotFoundException e) {
   	    throw new RuntimeException("Couldn't find JDBC driver class");
   	}
-  	
-  	String path = "assets/data/db/Game.db";
-  	if (!getConnection(path)) {
-  	    throw new RuntimeException("Failed to load DB, probably wrong path: " + path);
+
+  	if (!getConnection(dbPath)) {
+  	    throw new RuntimeException("Failed to load DB, probably wrong path: " + dbPath);
   	}
   }
-    
-  public boolean getConnection(String absPath) {
+
+  private boolean getConnection(String absPath) {
     try {
 	    connection = DriverManager.getConnection("jdbc:sqlite:" + absPath);
 	    statement = connection.createStatement();
 	    statement.setQueryTimeout(30);  // set timeout to 30 sec.
-	    
+
 	    return true;
     } catch (SQLException e) {
 	    e.printStackTrace();
@@ -39,16 +38,16 @@ public class Database {
 	    } catch(SQLException ee) {
 	      // connection close failed.
 	      System.err.println(ee);
-	    } 
+	    }
 	    return false;
     }
   }
-  
+
   public Object[][] execQuery(String sql) {
   	ResultSet rs;
   	ArrayList<ArrayList<Object>> result0 = new ArrayList<ArrayList<Object>>();
   	try {
-  	  
+
       rs = statement.executeQuery(sql);
       int numRows=0;
       while(rs.next()) {
@@ -59,31 +58,23 @@ public class Database {
         }
       }
       if (numRows==0) return new Object[0][0];
-      
+
       ArrayList<Object[]> result1 = new ArrayList<Object[]>();
       for (ArrayList<Object> currList : result0) {
         result1.add(currList.toArray());
       }
-      
+
       Object[][] result2 = new Object[numRows][];
       for (int i=0; i<result1.size(); i++) {
         result2[i] = result1.get(i);
       }
-      
+
       return result2;
-      
+
   	} catch (SQLException e) {
   	    System.err.println("Bad SQL: " + sql);
   	    e.printStackTrace();
   	    throw new RuntimeException("SQL Query failed. Probably bad syntax");
-  	}
-  }
-    
-  public static void main(String[] args) {
-  	Database db = new Database();
-  	Object[][] result = db.execQuery("select url from image");
-  	for (Object[] row : result) {
-  	  System.out.println("URL = " + row[0]);
   	}
   }
 }

@@ -1,52 +1,36 @@
 package com.philon.rpg.mos.player;
 
-import com.philon.engine.PhilonGame;
+import com.badlogic.gdx.Gdx;
+import com.philon.engine.input.User;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
+import com.philon.rpg.RpgUser;
 import com.philon.rpg.SkillData;
-import com.philon.rpg.forms.CharacterForm;
 import com.philon.rpg.forms.InventoryForm;
-import com.philon.rpg.forms.SpellForm;
-import com.philon.rpg.forms.SpellSelectForm;
-import com.philon.rpg.forms.StatusbarForm;
 import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.item.category.ConsumableItem;
 import com.philon.rpg.mos.player.inventory.Inventory;
-import com.philon.rpg.mos.player.inventory.Inventory.Equip;
 import com.philon.rpg.mos.player.inventory.InventorySaveData;
 import com.philon.rpg.spell.AbstractSpell;
 import com.philon.rpg.spell.SpellData;
 import com.philon.rpg.stat.StatsObj.StatDefaultSpell;
-import com.philon.rpg.stat.StatsObj.StatDurability;
 import com.philon.rpg.stat.StatsObj.StatHealth;
+import com.philon.rpg.stat.StatsObj.StatM1Stype;
 import com.philon.rpg.stat.StatsObj.StatM2Stype;
 import com.philon.rpg.stat.StatsObj.StatMana;
 import com.philon.rpg.stat.StatsObj.StatMaxHealth;
 import com.philon.rpg.stat.effect.EffectsObj;
-import com.philon.rpg.stat.effect.EffectsObj.EffectAddDexterity;
-import com.philon.rpg.stat.effect.EffectsObj.EffectAddDurability;
-import com.philon.rpg.stat.effect.EffectsObj.EffectAddMagic;
-import com.philon.rpg.stat.effect.EffectsObj.EffectAddStrength;
-import com.philon.rpg.stat.effect.EffectsObj.EffectAddVitality;
+import com.philon.rpg.util.RpgUtil;
 
 public abstract class AbstractChar extends CombatMapObj {
-	public Vector newDir=new Vector();
-	public boolean isKeyMovement=false;
-
 	public int xp;
-	public int currLevel=1;
+	public int currLevel = 1;
 	public int freeStatPoints;
 
 	public Inventory inv;
 	public int skills[];
-
-	public InventoryForm invForm;
-  public CharacterForm charForm;
-  public SpellForm spellForm;
-  public SpellSelectForm spellSelectForm;
-  public StatusbarForm statbarForm;
 
   public int souNoMana;
 
@@ -64,29 +48,19 @@ public abstract class AbstractChar extends CombatMapObj {
     stats.spells[SpellData.FIRE_BOLT] += 1;
     stats.spells[SpellData.KUGELBLITZ] += 1;
     stats.spells[SpellData.HEALING] += 1;
-
-    invForm = new InventoryForm();
-    charForm = new CharacterForm();
-    spellForm = new SpellForm();
-    spellSelectForm = new SpellSelectForm();
-    statbarForm = new StatusbarForm();
-    statbarForm.activate();
 	}
 
 	public abstract int getSouNoMana();
 	public abstract int getNumSkills();
 	public abstract String getCharText();
-
   @Override
   public float getTilesPerSecond() {
     return 4;
   }
-
   @Override
   public int getSouFootstep() {
     return 0;
   }
-
   @Override
   public Vector getCollRect() {
     return new Vector(0.3f);
@@ -95,14 +69,36 @@ public abstract class AbstractChar extends CombatMapObj {
   @Override
   public boolean useMana(int amount) {
     if( amount > (Integer)stats.getStatValue(StatMana.class) ) {
-      if (souNoMana>0) RpgGame.playSoundFX( souNoMana );
+      if (souNoMana>0) RpgGame.inst.playSoundFX( souNoMana );
       return false;
     }
 
     return super.useMana(amount);
   }
 
+  @Override
+  public void deathTrigger(CombatMapObj killedBy) {
+    super.deathTrigger(killedBy);
+
+    User thisUser = null;
+    for(User currUser : RpgGame.inst.users) {
+      if(((RpgUser)currUser).character==this) {
+        thisUser = currUser;
+        break;
+      }
+    }
+    if(RpgGame.inst.getExclusiveUser()!=null && RpgGame.inst.getExclusiveUser().character==this) {
+      RpgGame.inst.endExclusiveSession();
+    }
+    RpgGame.inst.users.remove(thisUser);
+    if(RpgGame.inst.users.isEmpty()) Gdx.app.exit();
+  }
+
   public void setKeyMovement(Vector newDirection) {
+    if(newDirection.isAllEqual(new Vector())) {
+      stopKeyMovement();
+      return;
+    }
     if( !(currState instanceof StateHit || currState instanceof StateDying || currState instanceof StateCasting) ) {
       direction = newDirection.copy();
       currPath = null;
@@ -112,15 +108,10 @@ public abstract class AbstractChar extends CombatMapObj {
       currTargetPos = null;
 
       if(!(currState instanceof StateMovingStraight)) changeState(StateMovingStraight.class);
-      isKeyMovement = true;
     }
   }
 
-  public void stopKeyMovement() {
-    if (!isKeyMovement) return;
-
-    isKeyMovement = false;
-    direction = newDir.copy();
+  private void stopKeyMovement() {
     currPath = null;
     pathfindCooldown = 0;
     currTarget = null;
@@ -131,34 +122,33 @@ public abstract class AbstractChar extends CombatMapObj {
     }
   }
 
+  public void setAttackingDir(Vector newDirection) {
+    if(newDirection.isAllEqual(new Vector())) return;
+
+    if( !(currState instanceof StateHit || currState instanceof StateDying || currState instanceof StateCasting) ) {
+      Vector newMapDir = RpgUtil.getTilePosByBaseScreenPos(newDirection);
+      Vector newTargetPos = Vector.add(pos, newMapDir);
+      prepareSpell((Integer)stats.getStatValue(StatM1Stype.class), false, newTargetPos, null);
+    }
+  }
+
+  public void stopAttackingDir() {
+    if( !(currState instanceof StateHit || currState instanceof StateDying || currState instanceof StateCasting) ) {
+      changeState(StateIdle.class);
+    }
+  }
+
   @Override
 	public void interact( RpgMapObj newTarget ) {
-		if(currTarget instanceof AbstractItem) {
-			if( PhilonGame.gForms.isFormActive(InventoryForm.class)) {
-				inv.pickupItem( (AbstractItem)currTarget );
+    if(newTarget==null) return;
+		if(newTarget instanceof AbstractItem) {
+			if( RpgGame.inst.guiHierarchy.getElementByClass(InventoryForm.class)!=null ) {
+				inv.pickupItem( (AbstractItem)newTarget );
 			} else {
-				inv.pickupAuto( (AbstractItem)currTarget );
+				inv.pickupAuto( (AbstractItem)newTarget );
 			}
 		}
 		super.interact(newTarget);
-	}
-
-	@Override
-	public boolean castSpell( int newSpellID, Vector newTarPos, RpgMapObj newTarget ) {
-		boolean superResult = super.castSpell( newSpellID, newTarPos, newTarget );
-		if (!superResult) return false;
-
-		if( newSpellID==SpellData.MELEE || newSpellID==SpellData.ARROW ) {
-		  if (Math.random()<0.05) {
-		    AbstractItem tmpWeapon = inv.equip.getBySlot(Equip.INV_WEAPON);
-		    tmpWeapon.baseEffects.addOrCreateEffect(EffectAddDurability.class, -1);
-		    tmpWeapon.updateEffects();
-  			if( (Integer)tmpWeapon.stats.getStatValue(StatDurability.class) <= 0 ) {
-  				inv.removeItem(tmpWeapon);
-  			}
-		  }
-		}
-		return true;
 	}
 
 	@Override
@@ -197,40 +187,14 @@ public abstract class AbstractChar extends CombatMapObj {
 		}
 	}
 
-	//----------
-
 	public int getSkillGeneration( int newSkillLevel ) {
 		int skillGeneration = (int) Math.floor(newSkillLevel / 5);
 		if (skillGeneration>3) skillGeneration=3; //would be 4 is reached skill lvl 2;
 		return skillGeneration;
 	}
 
-	//----------
-
 	public void improveSkill( int newSkill ) {
 		setSkill( newSkill, skills[newSkill]+1 );
-	}
-
-	//----------
-
-	public void improveStr() {
-	  baseEffects.addOrCreateEffect(EffectAddStrength.class, 1);
-		updateStats();
-	}
-
-	public void improveDex() {
-	  baseEffects.addOrCreateEffect(EffectAddDexterity.class, 1);
-		updateStats();
-	}
-
-	public void improveVit() {
-	  baseEffects.addOrCreateEffect(EffectAddVitality.class, 1);
-		updateStats();
-	}
-
-	public void improveMag() {
-	  baseEffects.addOrCreateEffect(EffectAddMagic.class, 1);
-		updateStats();
 	}
 
 	public void addXP( int newXP ) {
@@ -241,13 +205,12 @@ public abstract class AbstractChar extends CombatMapObj {
 	  }
 	}
 
-	//----------
-
 	public void levelUp() {
 	  currLevel++;
 	  freeStatPoints += 5;
+	  stats.addOrCreateStat(StatHealth.class, stats.getStatValue(StatMaxHealth.class));
 
-	  RpgGame.playSoundFX(14);
+	  RpgGame.inst.playSoundFX(14);
 	}
 
 	//----------
@@ -274,20 +237,20 @@ public abstract class AbstractChar extends CombatMapObj {
 
   public static class CharacterSaveData extends RpgMapObjSaveData {
     public int xp;
-    public InventorySaveData inv;
+    public InventorySaveData inv = new InventorySaveData();
     public int[] skills = new int[SkillData.numSkills];
 
-    public CharacterSaveData(Class<? extends RpgMapObj> newObjClass, Vector newPos, Vector newDirection, int newXp, InventorySaveData newInventorySD) {
+    public CharacterSaveData(Class<? extends RpgMapObj> newObjClass, Vector newPos, Vector newDirection, int newXp) {
       super(newObjClass, newPos, newDirection);
 
       xp = newXp;
-      inv = newInventorySD;
     }
 
     public CharacterSaveData(AbstractChar obj) {
-      this(obj.getClass(), obj.pos, obj.direction, obj.xp, obj.inv.save() );
+      this(obj.getClass(), obj.pos, obj.direction, obj.xp);
 
       skills = obj.skills;
+      inv = obj.inv.save();
     }
 
     @Override

@@ -5,9 +5,14 @@ import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.item.ItemData;
+import com.philon.rpg.util.RpgUtil;
 
 public abstract class BreakableMapObj extends ToggleMapObj {
   public int breakTimer;
+
+  public BreakableMapObj() {
+    isSelectable = false;
+  }
 
   @Override
   public void toggle() {
@@ -62,7 +67,7 @@ public abstract class BreakableMapObj extends ToggleMapObj {
   }
 
   public int getAnimDur() {
-    return (int) PhilonGame.fps/2;
+    return (int) PhilonGame.inst.fps/2;
   }
 
   public void destroy() {
@@ -79,13 +84,13 @@ public abstract class BreakableMapObj extends ToggleMapObj {
       breakTimer = getAnimDur();
 
       AbstractItem it = ItemData.createRandomItem( getDropValue() );
-      Vector newItemPos = RpgGame.inst.gMap.getNextFreeTile(pos, false, false, true, true);
+      Vector newItemPos = RpgUtil.getNextFreeTile(pos, false, false, true, true);
       if( newItemPos!=null ) {
         it.setPosition(newItemPos);
         it.changeState( AbstractItem.StateMap.class );
       }
 
-      RpgGame.playSoundFX(getSouBreak());
+      RpgGame.inst.playSoundFX(getSouBreak());
     }
 
     @Override

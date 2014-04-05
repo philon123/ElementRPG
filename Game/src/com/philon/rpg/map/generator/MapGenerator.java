@@ -96,7 +96,8 @@ public class MapGenerator {
             } else if( getIsBlock(new Vector(x, y-1), newMapData) ) {
               result.add(new RpgMapObjSaveData(mapStyle.getTorchClass(), new Vector(x, y-1), new Vector(0, 1)));
             } else { //create firestand
-              result.add( new RpgMapObjSaveData(mapStyle.getFirestandClass(), currTile, new Vector(0, 1)) );
+              result.add( new RpgMapObjSaveData(mapStyle.getFirestandClass(), currTile,
+                  Math.random()>0.5 ? new Vector(0, 1) : new Vector(1, 0)) );
             }
 
             break;
@@ -136,7 +137,7 @@ public class MapGenerator {
               isVendorPlaced = true;
             }
 
-            if (Math.random()<0.01) {
+            if (Math.random()<0.03) {
               result.addAll( addMonsterGroup( mapStyle.getRandomEnemyClass(), new Vector(x, y), new Vector(Util.rand(1, 2), Util.rand(1, 2)) ) );
             } else if (Math.random()<0.02) { //create chests
               result.add(new ToggleMOSaveData(mapStyle.getChestClass(), currTile, Math.random()<0.5 ? new Vector(1, 0) : new Vector(0, 1),
@@ -171,7 +172,9 @@ public class MapGenerator {
 
     for( int y = (int)newPos.y; y < newPos.y+count.y; y++ ) {
       for( int x = (int)newPos.x; x < newPos.x+count.x; x++ ) {
-        result.add( new RpgMapObjSaveData(clazz, new Vector(x, y), new Vector(1, 0)) );
+        if(layout[y][x]==RoomData.TILE_FLOOR) {
+          result.add( new RpgMapObjSaveData(clazz, new Vector(x, y), new Vector(1, 0)) );
+        }
       }
     }
 

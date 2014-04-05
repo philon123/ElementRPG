@@ -2,11 +2,11 @@ package com.philon.rpg.map.mo;
 
 import java.util.LinkedList;
 
+import com.philon.engine.Data;
 import com.philon.engine.FrameAnimation;
 import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.state.AbstractMapObjState;
 import com.philon.rpg.mos.item.AbstractItem;
@@ -33,10 +33,10 @@ import com.philon.rpg.stat.StatsObj.StatResistFire;
 import com.philon.rpg.stat.StatsObj.StatResistIce;
 import com.philon.rpg.stat.StatsObj.StatResistLightning;
 import com.philon.rpg.stat.effect.EffectsObj;
+import com.philon.rpg.util.RpgUtil;
 
 public abstract class CombatMapObj extends UpdateMapObj {
   public EffectsObj baseEffects;
-  public EffectsObj addedEffects;
   public EffectsObj effects;
 
   public StatsObj stats;
@@ -71,7 +71,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
   }
 
   public float getMaxMeleeRange() {
-    return 0.7f;
+    return 0.5f;
   }
 
 	public void update() {
@@ -81,8 +81,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	}
 
 	public void updateStats() {
-	  addedEffects = getAdditionalEffects();
-	  effects = EffectsObj.add(baseEffects, addedEffects);
+	  effects = EffectsObj.add(baseEffects, getAdditionalEffects());
 
 	  int tmpHealth=0;
 	  int tmpMana=0;
@@ -135,11 +134,11 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 	@Override
 	public void deathTrigger(CombatMapObj killedBy) {
+	  super.deathTrigger(killedBy);
+
 		for( AbstractSpell s : activeSpells ) {
 			s.deleteObject();
 		}
-
-		super.deathTrigger(killedBy);
 	}
 
 	//----------
@@ -172,9 +171,9 @@ public abstract class CombatMapObj extends UpdateMapObj {
 		v = 0;
 
 		if( newSpellID==SpellData.MELEE || newSpellID==SpellData.ARROW ) {
-			castCooldown = (int) (PhilonGame.fps / (Float)stats.getStatValue(StatAttackRate.class));
+			castCooldown = (int) (PhilonGame.inst.fps / (Float)stats.getStatValue(StatAttackRate.class));
 		} else {
-			castCooldown = (int) (PhilonGame.fps / (Float)stats.getStatValue(StatCastRate.class));
+			castCooldown = (int) (PhilonGame.inst.fps / (Float)stats.getStatValue(StatCastRate.class));
 		}
 
 		if( newTarget!=null ) {
@@ -189,8 +188,8 @@ public abstract class CombatMapObj extends UpdateMapObj {
 		preparedTarget = newTarget;
 		isPreparedManual = isManual;
 
-		RpgGame.playSoundFX( SpellData.souPrepare[newSpellID] );
-		RpgGame.playSoundFX( getSouAttack() );
+		RpgGame.inst.playSoundFX( SpellData.souPrepare[newSpellID] );
+		RpgGame.inst.playSoundFX( getSouAttack() );
 
 		changeState( StateCasting.class );
 		return true;
@@ -260,17 +259,17 @@ public abstract class CombatMapObj extends UpdateMapObj {
       if( !(currState instanceof StateHit) && Math.random()<0.8 ) {
         changeState(StateHit.class);
       }
-      RpgGame.playSoundFX( getSouHit() );
+      RpgGame.inst.playSoundFX( getSouHit() );
     }
 
   }
 
 	//----------
 
-	public boolean getCanSeeGO( RpgMapObj newTarget ) {
+	public boolean getCanSeeMO( RpgMapObj newTarget ) {
 		Vector tile1=pos.copy().roundAllInst();
 		Vector tile2=newTarget.pos.copy().roundAllInst();
-		return RpgGame.inst.gMap.tilesInSight( tile1, tile2 );
+		return RpgUtil.tilesInSight( tile1, tile2 );
 	}
 
 	//----------
@@ -279,8 +278,8 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 	  public boolean execUpdate() {
 	    if( footstepCooldown==0 ) {
-	      RpgGame.playSoundFX( getSouFootstep() );
-	      footstepCooldown = (int) (PhilonGame.fps / 3);
+	      RpgGame.inst.playSoundFX( getSouFootstep() );
+	      footstepCooldown = (int) (PhilonGame.inst.fps / 3);
 	    }
 
 	    return super.execUpdate();
@@ -294,7 +293,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 	  @Override
 	  public void execOnChange() {
-	    setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(PhilonGame.fps/3), false));
+	    setAnimation(new FrameAnimation(Data.textures.get(getImgCasting()), (int)(PhilonGame.inst.fps/3), false));
 	  }
 
 	  @Override
@@ -311,9 +310,9 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  @Override
 	  public void execOnChange() {
 	    v=0;
-	    int newHitFrames = (int)( ((Float)stats.getStatValue(StatHitRecovery.class)+1) * (PhilonGame.fps/3) );
+	    int newHitFrames = (int)( ((Float)stats.getStatValue(StatHitRecovery.class)+1) * (PhilonGame.inst.fps/3) );
 	    hitCooldown = newHitFrames;
-	    setAnimation(new FrameAnimation(ImageData.images[getImgHit()], newHitFrames, false));
+	    setAnimation(new FrameAnimation(Data.textures.get(getImgHit()), newHitFrames, false));
 	  }
 
 	  @Override
@@ -325,7 +324,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 	//----------
 
-	public class StateAttacking extends AbstractMapObjState {
+	public class StateAttackingSmart extends AbstractMapObjState {
 	  private StateMovingTarget m_movingTarget;
 	  private int currImg = 0;
 
@@ -337,7 +336,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  public void execOnChange() {
 	    pathfindCooldown=0;
 
-	    setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(PhilonGame.fps/3), false));
+	    setAnimation(new FrameAnimation(Data.textures.get(getImgCasting()), (int)(PhilonGame.inst.fps/3), false));
 	    currImg = getImgCasting();
 	  }
 
@@ -345,16 +344,16 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	  public boolean execUpdate() {
 	    if( currSelectedSpell==SpellData.MELEE ) {
 	      if( currTargetDist < getMaxMeleeRange() ) {
-	        if(currImg!=getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgCasting()], (int)(PhilonGame.fps/3), false));
+	        if(currImg!=getImgCasting()) setAnimation(new FrameAnimation(Data.textures.get(getImgCasting()), (int)(PhilonGame.inst.fps/3), false));
 	        prepareSpell( currSelectedSpell, false, currTargetPos, currTarget );
 	        return true;
 	      } else {
-	        if(currImg==getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(PhilonGame.fps/3), false));
+	        if(currImg==getImgCasting()) setAnimation(new FrameAnimation(Data.textures.get(getImgMoving()), (int)(PhilonGame.inst.fps/3), false));
   	      return getStateMovingTarget().execUpdate();
 	      }
 
 	    } else {
-	      if(currImg==getImgCasting()) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(PhilonGame.fps/3), false));
+	      if(currImg==getImgCasting()) setAnimation(new FrameAnimation(Data.textures.get(getImgMoving()), (int)(PhilonGame.inst.fps/3), false));
 	      if( !prepareSpell( currSelectedSpell, false, currTargetPos, currTarget ) ) {
 	        changeState(getDefaultState());
 	        return false;
@@ -380,7 +379,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 	    assert currTarget.isSelectable;
 
 	    pathfindCooldown=0;
-	    if(animation.image!=ImageData.images[getImgMoving()]) setAnimation(new FrameAnimation(ImageData.images[getImgMoving()], (int)(PhilonGame.fps/3), false));
+	    if(animation.image!=Data.textures.get(getImgMoving())) setAnimation(new FrameAnimation(Data.textures.get(getImgMoving()), (int)(PhilonGame.inst.fps/3), false));
 	  }
 
 	  @Override
@@ -389,7 +388,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
 
 	    if( !getStateMovingTarget().execUpdate() ) {
         if (currTargetDist < 1.5) { //moved to pos, ready to interact
-          if(animation.image!=ImageData.images[getImgIdle()]) setAnimation(new FrameAnimation(ImageData.images[getImgIdle()], (int)(PhilonGame.fps/3), false));
+          if(animation.image!=Data.textures.get(getImgIdle())) setAnimation(new FrameAnimation(Data.textures.get(getImgIdle()), (int)(PhilonGame.inst.fps/3), false));
           interact(currTarget);
           return false; //finished
         } else {

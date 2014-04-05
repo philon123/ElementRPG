@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import javax.management.RuntimeErrorException;
 
 import com.philon.engine.util.Vector;
-import com.philon.rpg.RpgGame;
 import com.philon.rpg.mos.item.AbstractItem;
 
 public abstract class AbstractItemGrid {
@@ -36,7 +35,7 @@ public abstract class AbstractItemGrid {
    *  - another item (yes, and returned item was displaced) <br>
    */
   public AbstractItem isCanInsert( AbstractItem newItem, Vector newCell, boolean allowDisplacement ) {
-    Vector itSize = newItem.invSize;
+    Vector itSize = newItem.getInvSize();
     if (Vector.add( newCell, itSize ).isEitherLarger(gridSize)) return newItem;
 
     AbstractItem displacedItem=null;
@@ -55,12 +54,12 @@ public abstract class AbstractItemGrid {
     return displacedItem;
   }
 
-  public void insert(AbstractItem newItem, Vector newCell) {
+  protected void insert(AbstractItem newItem, Vector newCell) {
     Vector itSize = newItem.getInvSize();
     for( int x = 0; x < itSize.x; x++ ) {
       for( int y = 0; y < itSize.y; y++ ) {
         if(grid[(int) (newCell.y+y)][(int) (newCell.x+x)]!=null)
-          throw new RuntimeErrorException(new Error(), "You tried to overwrite an Item!");
+          throw new RuntimeErrorException(new Error(), "You tried to overwrite an Item in " + getClass().getSimpleName() + "!");
         grid[(int) (newCell.y+y)][(int) (newCell.x+x)] = newItem;
       }
     }
@@ -74,15 +73,15 @@ public abstract class AbstractItemGrid {
    * attempts to insert an item to the grid.
    * <p>
    * possible return values: <br>
-   *  - 1 - null (item inserted without problem) <br>
-   *  - 2 - the item passed to the function (failed to insert) <br>
+   *  - 1 - the item passed to the function (failed to insert) <br>
+   *  - 2 - null (item inserted without problem) <br>
    *  - 3 - another item (insert successful, returned item was displaced) <br>
    */
   public AbstractItem add( AbstractItem newItem, Vector newCell, boolean allowDisplacement ) {
     AbstractItem displacedItem = isCanInsert(newItem, newCell, allowDisplacement);
-    if(displacedItem==newItem) return newItem; //case 2
+    if(displacedItem==newItem) return newItem; //case 1
 
-    if(displacedItem==null) { //case 1
+    if(displacedItem==null) { //case 2
       insert(newItem, newCell);
       return null;
     }
@@ -91,20 +90,6 @@ public abstract class AbstractItemGrid {
     remove(displacedItem);
     insert(newItem, newCell);
     return displacedItem;
-  }
-
-  public boolean addPickup( Vector newCell, boolean allowDisplacement ) {
-    int tmpSouDrop = RpgGame.inst.localPlayer.inv.pickedUpItem.souDrop;
-    AbstractItem displacedItem = add( RpgGame.inst.localPlayer.inv.pickedUpItem, newCell, allowDisplacement );
-    if (displacedItem==RpgGame.inst.localPlayer.inv.pickedUpItem){
-      return false;
-    } else if (displacedItem==null) {
-      RpgGame.inst.localPlayer.inv.pickedUpItem=null;
-    } else {
-      RpgGame.inst.localPlayer.inv.pickupItem(displacedItem);
-    }
-    RpgGame.playSoundFX(tmpSouDrop);
-    return true;
   }
 
   public boolean addAuto(AbstractItem newItem) {
@@ -119,20 +104,12 @@ public abstract class AbstractItemGrid {
     return false;
   }
 
-  public boolean addPickupAuto() {
-    if (addAuto(RpgGame.inst.localPlayer.inv.pickedUpItem) ) {
-      RpgGame.inst.localPlayer.inv.pickedUpItem = null;
-      return true;
-    }
-    return false;
-  }
-
   public void remove( AbstractItem it ) {
     if (!itemList.contains(it)) return;
-    Vector itSize = it.invSize;
+    Vector itSize = it.getInvSize();
 
-    for( int x = 0; x <= itSize.x-1; x++ ) {
-      for( int y = 0; y <= itSize.y-1; y++ ) {
+    for( int x = 0; x < itSize.x; x++ ) {
+      for( int y = 0; y < itSize.y; y++ ) {
         grid[(int) (it.pos.y+y)][(int) (it.pos.x+x)] = null;
       }
     }

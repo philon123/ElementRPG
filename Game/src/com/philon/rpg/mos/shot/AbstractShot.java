@@ -2,7 +2,6 @@ package com.philon.rpg.mos.shot;
 import java.util.LinkedList;
 
 import com.philon.engine.util.Vector;
-import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.map.mo.state.AbstractMapObjState;
@@ -38,7 +37,7 @@ public abstract class AbstractShot extends CombatMapObj {
 
   @Override
   public LinkedList<RpgMapObj> getPotentialCollisions( Vector newOffset ) {
-    LinkedList<RpgMapObj> result = RpgGame.inst.gMap.getRectColls(Vector.add(pos, newOffset), collRect);
+    LinkedList<RpgMapObj> result = RpgUtil.getRectColls(Vector.add(pos, newOffset), collRect);
     result =  RpgUtil.filterList( result, true, true, false, false, false, true );
     if (result==null) return null;
     result.remove(this);
@@ -58,12 +57,12 @@ public abstract class AbstractShot extends CombatMapObj {
 
   @Override
   public Vector getCollRect() {
-    return new Vector(0.2f);
+    return new Vector(0.25f);
   }
 
   @Override
   public int getDieCooldown() {
-    return 0;
+    return 10;
   }
 
   @Override

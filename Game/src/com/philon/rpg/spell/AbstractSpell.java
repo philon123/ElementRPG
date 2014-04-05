@@ -14,6 +14,7 @@ import com.philon.rpg.mos.shot.AbstractShot;
 import com.philon.rpg.mos.shot.ShotData;
 import com.philon.rpg.mos.wall.AbstractWall;
 import com.philon.rpg.stat.StatsObj;
+import com.philon.rpg.util.RpgUtil;
 import com.philon.rpg.util.TimerListObject;
 
 public abstract class AbstractSpell {
@@ -51,7 +52,7 @@ public abstract class AbstractSpell {
 	  pos = newOwnerMO.pos.copy().addInst( Vector.sub( tarPos, newOwnerMO.pos ).normalizeInst().mulScalarInst(newCastRange) );
 
 	  stats = getBaseStats();
-	  RpgGame.playSoundFX( SpellData.souCast[id] );
+	  RpgGame.inst.playSoundFX( SpellData.souCast[id] );
 	}
 
 	public StatsObj getBaseStats() {
@@ -86,25 +87,23 @@ public abstract class AbstractSpell {
 				return;
 			}
 		}
-		hitObjects.addLast( new TimerListObject(mo, (int)(PhilonGame.fps/3)) );
+		hitObjects.addLast( new TimerListObject(mo, (int)(PhilonGame.inst.fps/3)) );
 
 		if (mo instanceof StaticMapObj || mo instanceof AbstractWall || mo instanceof AbstractDoor) {
-		  shotCollidedTrigger( shotObj, true );
+		  shotCollidedTrigger( shotObj, false );
 		} else if (mo instanceof BreakableMapObj) {
       ((BreakableMapObj)mo).destroy();
-      shotCollidedTrigger( shotObj, true );
+      shotCollidedTrigger( shotObj, false );
 		} else if (mo instanceof CombatMapObj) {
 		  ownerMO.attack((CombatMapObj)mo, this);
-		  shotCollidedTrigger( shotObj, false );
+		  shotCollidedTrigger( shotObj, true );
 		}
-
-
 	}
 
 	//----------
 
-	public void shotCollidedTrigger( AbstractShot shotObj, boolean denyPassthrough ) {
-		if( passthrough==false || denyPassthrough ) {
+	private void shotCollidedTrigger( AbstractShot shotObj, boolean allowPassthrough ) {
+		if( passthrough==false || allowPassthrough ) {
 			shots.remove( shotObj );
 			shotObj.changeState( AbstractShot.StateDying.class );
 			if( shots.isEmpty() ) {
@@ -131,8 +130,9 @@ public abstract class AbstractSpell {
 		sh.setPosition(newShotPos);
 		sh.tilesPerSecond = newShotSpeed;
 		sh.setTarget( target, tarPos );
+		sh.turnToDirection(Vector.sub(pos, ownerMO.pos));
 		shots.addLast(sh);
-		RpgGame.inst.gMap.insertMapObj(sh);
+		RpgUtil.insertMapObj(sh);
 	}
 
 	//----------

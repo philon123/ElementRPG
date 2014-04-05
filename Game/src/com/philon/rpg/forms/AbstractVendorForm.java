@@ -2,26 +2,38 @@ package com.philon.rpg.forms;
 
 import java.util.List;
 
-import com.philon.engine.PhilonGame;
-import com.philon.engine.forms.AbstractButton;
-import com.philon.engine.forms.AbstractForm;
-import com.philon.engine.forms.AbstractLabel;
+import com.philon.engine.forms.GuiElement;
+import com.philon.engine.util.Util.Order;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
+import com.philon.rpg.RpgUser;
 import com.philon.rpg.mos.AbstractVendor;
 import com.philon.rpg.mos.item.AbstractItem;
+import com.philon.rpg.mos.player.inventory.Inventory;
 
-public abstract class AbstractVendorForm extends AbstractForm {
+@Order(10)
+public abstract class AbstractVendorForm extends GuiElement {
   public AbstractVendor currVendor;
 
   @Override
-  public Vector getPosByScreenSize(Vector newScreenSize) {
-    return new Vector();
+  protected boolean isStrechable() {
+    return false;
   }
-
   @Override
-  public Vector getSizeByScreenSize(Vector newScreenSize) {
-    return new Vector(700, 700);
+  protected float getConfiguredXYRatio() {
+    return 1;
+  }
+  @Override
+  protected int getConfiguredAlignment() {
+    return GuiElement.ALIGN_TOP_LEFT;
+  }
+  @Override
+  protected float getConfiguredScale() {
+    return 0.9f;
+  }
+  @Override
+  protected int getConfiguredBackground() {
+    return 229;
   }
 
   public void setVendor(AbstractVendor newVendor) {
@@ -29,73 +41,51 @@ public abstract class AbstractVendorForm extends AbstractForm {
   }
 
   public class VendorGridLabel extends AbstractItemGridLabel {
-
-    public VendorGridLabel() {
-      pos = new Vector(0.05f, 0.05f) ;
-      size = new Vector(630, 630) ;
-      img = 242;
-      displayText="";
-
-      gridSize = new Vector(10, 10);
-      cellSize = Vector.div(size, gridSize);
+    @Override
+    protected float getConfiguredScale() {
+      return 0.9f;
     }
-
+    @Override
+    protected Vector getConfiguredGridSize() {
+      return new Vector(10, 10);
+    }
+    @Override
+    protected int getConfiguredBackground() {
+      return 242;
+    }
+    @Override
+    protected Vector getConfiguredPosition() {
+      return new Vector(0.05f);
+    }
     @Override
     public AbstractItem getItemByCell(Vector newCell) {
       return currVendor.itemGrid.getItemByCell(newCell);
     }
-
     @Override
     public List<AbstractItem> getItemsForDraw() {
       return currVendor.itemGrid.itemList;
     }
-
     public void dropPickupToCell(Vector newCell) {
-      currVendor.buyItem(RpgGame.inst.localPlayer.inv.pickedUpItem);
-      RpgGame.inst.localPlayer.inv.pickedUpItem = null;
+      RpgUser exclusiveUser = RpgGame.inst.getExclusiveUser();
+      currVendor.buyItem(exclusiveUser.character.inv.pickedUpItem);
+      exclusiveUser.character.inv.pickedUpItem = null;
     }
-
     @Override
     public void handleClickItemLeft(AbstractItem clickedItem) {
       //don't do anyting
     }
-
     @Override
     public void handleClickItemRight(AbstractItem clickedItem) {
-      if (RpgGame.inst.localPlayer.inv.currGold>=clickedItem.dropValue) {
-        RpgGame.inst.localPlayer.inv.currGold -= clickedItem.dropValue;
-        if (RpgGame.inst.localPlayer.inv.pickedUpItem==null) {
+      Inventory inv = RpgGame.inst.getExclusiveUser().character.inv;
+
+      if (inv.currGold>=clickedItem.getDropValue()) {
+        inv.currGold -= clickedItem.getDropValue();
+        if (inv.pickedUpItem==null) {
           currVendor.itemGrid.remove(clickedItem);
-          RpgGame.inst.localPlayer.inv.pickupItem(clickedItem);
+          inv.pickupItem(clickedItem);
         }
-        }
+      }
     }
-
-  }
-
-  public class BackgroundLabel extends AbstractLabel {
-    public BackgroundLabel() {
-      pos = new Vector(0.00f, 0.00f) ;
-      size = new Vector(700.00f, 700.00f) ;
-      img = 229;
-      displayText = "";
-    }
-  }
-
-  public class CloseButton extends AbstractButton {
-
-    public CloseButton() {
-      pos = new Vector(0.94f, 0.01f) ;
-      size = new Vector(35.00f, 35.00f) ;
-      img = 242;
-      imgPressed = 243;
-    }
-
-    @Override
-    public void execAction() {
-      PhilonGame.gForms.removeForm( AbstractVendorForm.this );
-    }
-
   }
 
 }

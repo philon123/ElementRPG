@@ -1,5 +1,8 @@
 package com.philon.rpg.mos.player;
 
+import com.philon.rpg.mos.item.ItemData;
+import com.philon.rpg.mos.item.items.ItemShortBow;
+import com.philon.rpg.mos.player.inventory.Inventory.Equip;
 import com.philon.rpg.stat.effect.EffectsObj;
 import com.philon.rpg.stat.effect.EffectsObj.EffectAddAttackRate;
 import com.philon.rpg.stat.effect.EffectsObj.EffectAddCastRate;
@@ -11,6 +14,13 @@ import com.philon.rpg.stat.effect.EffectsObj.EffectAddStrength;
 import com.philon.rpg.stat.effect.EffectsObj.EffectAddVitality;
 
 public class CharAmazon extends AbstractChar {
+
+  public CharAmazon() {
+    super();
+
+    inv.pickupItem( ItemData.createItem(ItemShortBow.class) );
+    inv.addPickupToEquip( Equip.INV_WEAPON );
+  }
 
   @Override
   public String getCharText() {

@@ -1,11 +1,11 @@
 package com.philon.rpg.spells;
 
 import com.philon.engine.util.Vector;
-import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.mos.shot.ShotFire;
 import com.philon.rpg.spell.AbstractSpell;
+import com.philon.rpg.util.RpgUtil;
 
 public class SpellFireWall extends AbstractSpell {
 
@@ -19,11 +19,11 @@ public class SpellFireWall extends AbstractSpell {
 
     newOffset = new Vector();
     newPos = tarPos.copy();
-    if( ! RpgGame.inst.gMap.getIsRectCollidingWithMap( newPos, newCollRadius ) ) {
+    if( !RpgUtil.getIsRectCollidingWithMap( newPos, newCollRadius ) ) {
       for( int i = -4; i <= 4; i++ ) {
         newOffset = newShotSize.mulScalarInst(i);
         newPos = Vector.add( tarPos, newOffset );
-        if( ! RpgGame.inst.gMap.getIsRectCollidingWithMap( newPos, newCollRadius ) ) {
+        if( !RpgUtil.getIsRectCollidingWithMap( newPos, newCollRadius ) ) {
           createSimpleShot( ShotFire.class, pos.copy() );
         } else {
           break;

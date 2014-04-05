@@ -1,9 +1,9 @@
 package com.philon.rpg.map.mo;
 
+import com.philon.engine.Data;
 import com.philon.engine.FrameAnimation;
 import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.ImageData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.state.AbstractMapObjState;
 
@@ -24,7 +24,7 @@ public abstract class ToggleMapObj extends UpdateMapObj {
   }
 
   public int getToggleTime() {
-    return (int)PhilonGame.fps/3;
+    return (int)PhilonGame.inst.fps/3;
   }
 
   @Override
@@ -100,8 +100,8 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 
 	  @Override
 	  public void execOnChange() {
-	    setAnimation(new FrameAnimation(ImageData.images[getToggleImage()]));
-	    RpgGame.playSoundFX( getSouClosed() );
+	    setAnimation(new FrameAnimation(Data.textures.get(getToggleImage())));
+	    RpgGame.inst.playSoundFX( getSouClosed() );
 	  }
 
 	  @Override
@@ -114,8 +114,8 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 
 	  @Override
 	  public void execOnChange() {
-	    setAnimation(new FrameAnimation(ImageData.images[getToggleImage()], getToggleTime(), true));
-	    RpgGame.playSoundFX( getSouClosing() );
+	    setAnimation(new FrameAnimation(Data.textures.get(getToggleImage()), getToggleTime(), true));
+	    RpgGame.inst.playSoundFX( getSouClosing() );
 	    openCloseCooldown = getToggleTime();
 	  }
 
@@ -129,8 +129,8 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 
 	  @Override
 	  public void execOnChange() {
-	    setAnimation(new FrameAnimation(ImageData.images[getToggleImage()], 0, true));
-	    RpgGame.playSoundFX( getSouOpened() );
+	    setAnimation(new FrameAnimation(Data.textures.get(getToggleImage()), 0, true));
+	    RpgGame.inst.playSoundFX( getSouOpened() );
 	  }
 
 	  @Override
@@ -143,9 +143,9 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 
 	  @Override
 	  public void execOnChange() {
-	    setAnimation(new FrameAnimation(ImageData.images[getToggleImage()], getToggleTime(), false));
+	    setAnimation(new FrameAnimation(Data.textures.get(getToggleImage()), getToggleTime(), false));
 	    openCloseCooldown = getToggleTime();
-	    RpgGame.playSoundFX( getSouOpening() );
+	    RpgGame.inst.playSoundFX( getSouOpening() );
 	  }
 
 	  @Override

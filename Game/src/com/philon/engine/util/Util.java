@@ -1,26 +1,34 @@
 package com.philon.engine.util;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
-
-import javax.management.RuntimeErrorException;
 
 public class Util {
 
-  public @Retention(RetentionPolicy.RUNTIME) @interface Order {
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(value=ElementType.TYPE)
+  public  @interface Order {
     int value();
   }
 
   public static int getOrderForClass(Class<?> clazz) {
-    Order a = clazz.getAnnotation(Order.class);
-    if(a==null) throw new RuntimeErrorException(new Error("Class " + clazz.getClass().getSimpleName() + " doesn't have an Order annotation!"));
-    return a.value();
+    Iterator<Class<?>> descIter = getClassHierarchy(clazz, Object.class).descendingIterator();
+    while(descIter.hasNext()) {
+      Order a = descIter.next().getAnnotation(Order.class);
+      if(a!=null) return a.value();
+    }
+    return -1;
   }
 
-  public static class OrderComperator implements Comparator<Class<?>> {
+  public static class OrderComparator implements Comparator<Class<?>> {
     public int compare(Class<?> o1, Class<?> o2) {
       int order1 = getOrderForClass(o1);
       int order2 = getOrderForClass(o2);
@@ -239,6 +247,9 @@ public class Util {
     return sign + valueString;
   }
 
+	/**
+	 * Be careful: Make sure newClass has only ONE constructor. In either case, the first constructor is called.
+	 */
 	@SuppressWarnings("unchecked")
   public static <T> T instantiateClass(Class<T> newClass, Object... args) {
 	  try {
@@ -257,15 +268,71 @@ public class Util {
     return null;
 	}
 
-  @SuppressWarnings("unchecked")
-  public static <T> LinkedList<Class<? extends T>> getClassHierarchy(Class<?> forClass, Class<T> boundClass) {
+	/**
+	 * Be careful: This will fail horribly if newClass doesn't have a default contructor...
+	 */
+	public static <T> T instantiateClass(Class<T> newClass) {
+	  return instantiateClass(newClass, new Object[]{});
+	}
+
+	/**
+	 * Get Hierarchy for any class. The order of elements is from top to bottom; classes closer to Object will come first. If you don't want the full hierarchy down to Object, pass a boundClass.
+	 * @param forClass Topmost class to include, usually getClass()
+	 * @param boundClass If set, boundClass and all superclasses of boundClass will be ignored.
+	 * @return List of superclasses of forClass
+	 */
+  public static <T> LinkedList<Class<? extends T>> getClassHierarchy(Class<? extends T> forClass, Class<T> boundClass) {
     LinkedList<Class<? extends T>> result = new LinkedList<Class<? extends T>>();
 
     Class<?> currClass = forClass;
     do {
-      if(boundClass.isAssignableFrom(currClass) && currClass!=boundClass) result.addFirst((Class<? extends T>)currClass);
+      if(currClass==boundClass) break;
+      Class<? extends T> tmpClass = currClass.asSubclass(boundClass);
+      result.addFirst(tmpClass);
       currClass = currClass.getSuperclass();
     } while(currClass!=null);
+
+    return result;
+  }
+
+  public static <MEMBER> LinkedList<Class<? extends MEMBER>> getInnerClassesOfType( Class<?> containerClass, Class<MEMBER> memberClass ) {
+    LinkedList<Class<? extends MEMBER>> result = new LinkedList<Class<? extends MEMBER>>();
+
+    for (Class<?> newClass : containerClass.getDeclaredClasses()) {
+      if(newClass.isInterface() || Modifier.isAbstract(newClass.getModifiers())) continue;
+      Class<? extends MEMBER> tmpMemberClass = newClass.asSubclass(memberClass);
+      result.addLast( tmpMemberClass );
+    }
+
+    return result;
+  }
+
+  /**
+   * Get all superclasses of memberClass that appear as inner classes within the class hierarchy from hierarchyThreshold (exclusive) to containerClass (inclusive).
+   * Ignores abstract classes.
+   * @param hierarchyThreshold - usually the class you call this with; the "bottom most" class in the hierarchy you wish to EXCLUDE from the search
+   * @param containerClass - usually getClass(), returning the "upper most" class in the hierarchy. Search will end here (inclusive).
+   * @param memberClass - the type of inner class you want to find.
+   * @param args - the arguments passed to the instantiation function
+   * @return HashMap< class of member, instance of member >
+   */
+  public static <CONTAINER, MEMBER> LinkedHashMap<Class<? extends MEMBER>, MEMBER> createInnerClasses(
+      Class<CONTAINER> hierarchyThreshold,
+      Class<? extends CONTAINER> containerClass,
+      Class<MEMBER> memberClass,
+      Object[] args
+  ) {
+    LinkedHashMap<Class<? extends MEMBER>, MEMBER> result
+    = new LinkedHashMap<Class<? extends MEMBER>, MEMBER>();
+
+    for (Class<? extends CONTAINER> currClass : getClassHierarchy(containerClass, hierarchyThreshold) ) {
+      for(Class<? extends MEMBER> currMemberClass : getInnerClassesOfType(currClass, memberClass)) {
+        MEMBER newMember = instantiateClass(currMemberClass, args);
+        for(Class<? extends MEMBER> currMemberHierarchyClass : Util.getClassHierarchy(currMemberClass, memberClass)) {
+          result.put( currMemberHierarchyClass, newMember );
+        }
+      }
+    }
 
     return result;
   }

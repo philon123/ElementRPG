@@ -205,7 +205,7 @@ public class ItemData {
     if (Math.random()<0.3) randomItemClass=ItemScrollOfIdentify.class;
 
     it = createItem(randomItemClass);
-    targetValue -= it.dropValue;
+    targetValue -= it.getDropValue();
     if (!(it instanceof ConsumableItem)) {
       //add prefix/suffix
       it.prefix = PrefixSuffixData.createRandomPrefix( (int) (targetValue*0.75f) );

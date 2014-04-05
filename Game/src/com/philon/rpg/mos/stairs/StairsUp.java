@@ -1,7 +1,7 @@
 package com.philon.rpg.mos.stairs;
 
-import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.RpgMapObj;
+import com.philon.rpg.util.RpgUtil;
 
 public class StairsUp extends AbstractStairs {
 
@@ -11,7 +11,7 @@ public class StairsUp extends AbstractStairs {
 
   @Override
   public void interactTrigger(RpgMapObj objInteracting) {
-    RpgGame.inst.changeLevel( RpgGame.inst.currLevel-1 );
+    RpgUtil.changeLevel(-1);
   }
 
 }

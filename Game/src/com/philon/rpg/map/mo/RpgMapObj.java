@@ -3,9 +3,8 @@ import java.util.LinkedList;
 
 import com.philon.engine.FrameAnimation;
 import com.philon.engine.MapObject;
+import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.ImageData;
-import com.philon.rpg.RpgGame;
 import com.philon.rpg.util.RenderMapKey;
 import com.philon.rpg.util.RpgUtil;
 
@@ -16,14 +15,12 @@ public abstract class RpgMapObj extends MapObject {
 	public float luminance = 0;
 	public boolean isSelectable = true;
 
-	public Vector imgTileSize;
-
 	public boolean dirty = true; //-> do the following need to be updated by map?
 	public LinkedList<Vector> currOccTiles;
 	public RenderMapKey renderMapKey;
-	public Vector basePixPos;
-	public Vector baseImgPixPos;
-	public Vector baseImgPixSize;
+	public Vector baseScreenPos;
+	public Vector baseImgScreenPos;
+	public Vector baseImgScreenSize;
 
 	public RpgMapObj() {
 	  collRect = getCollRect();
@@ -60,16 +57,10 @@ public abstract class RpgMapObj extends MapObject {
     super.setAnimation(newAnimation);
 
     animation.setDir( direction==null ? 0 : RpgUtil.getDir(direction) );
-    imgTileSize = ImageData.imageSize.get(animation.image).copy();
   }
 
 	public void deleteObject() {
-		RpgGame.inst.gMap.removeMapObj(this);
-	}
-
-	public void setImgScale(Vector newScale) {
-	  imgTileSize.mulInst(newScale);
-	  dirty = true;
+	  RpgUtil.removeMapObj(this);
 	}
 
 	public void setLuminance( float newLuminance ) {
@@ -117,7 +108,7 @@ public abstract class RpgMapObj extends MapObject {
 	   * Load this SaveData to recieve an RpgMapObj. Override to make sure all your data is loaded
 	   */
 	  public RpgMapObj load() {
-	    RpgMapObj result = RpgUtil.instantiateClass(objClass);
+	    RpgMapObj result = Util.instantiateClass(objClass);
 
 	    result.setPosition(pos.copy());
 	    result.turnToDirection(direction);
