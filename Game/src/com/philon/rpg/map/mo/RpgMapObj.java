@@ -15,12 +15,9 @@ public abstract class RpgMapObj extends MapObject {
 	public float luminance = 0;
 	public boolean isSelectable = true;
 
-	public boolean dirty = true; //-> do the following need to be updated by map?
 	public LinkedList<Vector> currOccTiles;
 	public RenderMapKey renderMapKey;
 	public Vector baseScreenPos;
-	public Vector baseImgScreenPos;
-	public Vector baseImgScreenSize;
 
 	public RpgMapObj() {
 	  collRect = getCollRect();
@@ -28,27 +25,11 @@ public abstract class RpgMapObj extends MapObject {
 
 	public abstract Vector getCollRect();
 
-	@Override
-	public void setPosition(Vector newPosition) {
-    super.setPosition(newPosition);
-
-    dirty = true;
-  }
-
   @Override
   public void turnToDirection( Vector targetDir ) {
-    int oldDir = direction==null ? 0 : RpgUtil.getDir( direction );
-
     super.turnToDirection(targetDir);
 
     int newDir = RpgUtil.getDir( direction );
-    int oldOrientation = RpgUtil.getOrientation(oldDir);
-    int newOrientation = RpgUtil.getOrientation(newDir);
-    if (oldOrientation!=newOrientation) { //turn collRect
-      float tmp = collRect.y;
-      collRect.x = collRect.y;
-      collRect.y = tmp;
-    }
     animation.setDir(newDir);
   }
 
@@ -60,12 +41,11 @@ public abstract class RpgMapObj extends MapObject {
   }
 
 	public void deleteObject() {
-	  RpgUtil.removeMapObj(this);
+//	  RpgUtil.removeMapObj(this);
 	}
 
 	public void setLuminance( float newLuminance ) {
 		luminance = newLuminance;
-		dirty = true;
 	}
 
 	public void interactTrigger(RpgMapObj objInteracting) {

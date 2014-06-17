@@ -11,6 +11,7 @@ public class RpgUser extends User {
   public CharacterSaveData charSaveData;
 
   public RpgMapObj selectedMO = null;
+  public boolean isIdentifying = false;
 
   public RpgUser(Controller newController) {
     super(newController);

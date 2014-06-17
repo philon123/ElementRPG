@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import javax.management.RuntimeErrorException;
 
 import com.philon.engine.util.Vector;
+import com.philon.rpg.map.mo.state.StateParam;
 import com.philon.rpg.mos.item.AbstractItem;
 
 public abstract class AbstractItemGrid {
@@ -65,7 +66,7 @@ public abstract class AbstractItemGrid {
     }
     itemList.add( newItem );
     newItem.pos = newCell.copy();
-    newItem.changeState( AbstractItem.StateInv.class );
+    newItem.changeState(AbstractItem.StateInv.class, new StateParam());
   }
 
   /**

@@ -28,7 +28,7 @@ public class FrameAnimation {
 
   private void setImage( AnimImage newAnimTexture ) {
     image = newAnimTexture;
-    animLengthInFrames = (int)(newAnimTexture.dimensions.x);
+    animLengthInFrames = newAnimTexture.getFramesInAnimation();
     currAnimFrame = 0;
     durationInFrames = 0;
     startFrame = -1;
@@ -37,7 +37,7 @@ public class FrameAnimation {
   }
 
   public void setDir(int newDir) {
-    if (newDir > image.dimensions.y-1) {
+    if (newDir > image.getDirectionsInAnimation()-1) {
       newDir = 0;
     }
     dir = newDir;

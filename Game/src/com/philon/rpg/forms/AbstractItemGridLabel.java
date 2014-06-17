@@ -14,13 +14,9 @@ import com.philon.engine.input.Controller.MouseButton2;
 import com.philon.engine.input.Controller.MouseCursor;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.map.mo.CombatMapObj;
-import com.philon.rpg.map.mo.CombatMapObj.StateCasting;
-import com.philon.rpg.map.mo.UpdateMapObj;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.item.category.ConsumableItem;
 import com.philon.rpg.mos.player.AbstractChar;
-import com.philon.rpg.spell.SpellData;
 
 /**
  * Needs to implement getConfiguredScale()
@@ -74,9 +70,10 @@ public abstract class AbstractItemGridLabel extends GuiElement {
         AbstractChar character = RpgGame.inst.getExclusiveUser().character;
         if( character.inv.pickedUpItem!=null ) {
           dropPickupToCell(mouseOverCell);
-        } else if( hoveredOverItem!=null ) {
-          if( character.preparedSpell == SpellData.IDENTIFY ) {
-            character.castPreparedSpell( null, hoveredOverItem );
+        } else if(hoveredOverItem!=null) {
+          if(RpgGame.inst.getExclusiveUser().isIdentifying) {
+            RpgGame.inst.getExclusiveUser().character.inv.identifyItem(hoveredOverItem);
+            RpgGame.inst.getExclusiveUser().isIdentifying = false;
             popupForm.setItem(hoveredOverItem); //refresh form
           } else {
             handleClickItemLeft(hoveredOverItem);
@@ -90,13 +87,10 @@ public abstract class AbstractItemGridLabel extends GuiElement {
       @Override
       protected boolean execDown() {
         AbstractItem itemAtMouse = getItemByCell(mouseOverCell);
-        UpdateMapObj character = RpgGame.inst.getExclusiveUser().character;
-        if( character.currState instanceof StateCasting ) {
-          character.changeState( CombatMapObj.StateIdle.class );
+        if(itemAtMouse!=null) {
+          handleClickItemRight(itemAtMouse);
         } else {
-          if( itemAtMouse!=null ) {
-            handleClickItemRight(itemAtMouse);
-          }
+          RpgGame.inst.getExclusiveUser().isIdentifying = false;
         }
         return true;
       }
@@ -151,8 +145,8 @@ public abstract class AbstractItemGridLabel extends GuiElement {
   protected void drawInvItem( SpriteBatch batch, AbstractItem it, Vector cellPos ) {
     Vector itemRelPos = Vector.div( cellPos, getConfiguredGridSize() );
     Vector itemRelSize = Vector.div( it.getInvSize(), getConfiguredGridSize() );
-    Vector itemAbsPos = Vector.add( absPos, Vector.mul(absSize, itemRelPos) );
-    Vector itemAbsSize = Vector.mul(absSize, itemRelSize);
+//    Vector itemAbsPos = Vector.add( absPos, Vector.mul(absSize, itemRelPos) );
+//    Vector itemAbsSize = Vector.mul(absSize, itemRelSize);
 
     Color tmpColor;
     if( it.reqMetFlag ) {
@@ -166,11 +160,9 @@ public abstract class AbstractItemGridLabel extends GuiElement {
     }
 
     batch.setColor(tmpColor);
-    batch.draw(Data.textures.get(230).frames[0],
-        itemAbsPos.x, itemAbsPos.y, itemAbsSize.x, itemAbsSize.y);
+    drawRelative(batch, Data.textures.get(230), itemRelPos, itemRelSize, 0);
     batch.setColor(Color.WHITE);
-    batch.draw(Data.textures.get(it.getImgInv()).frames[0],
-        itemAbsPos.x, itemAbsPos.y, itemAbsSize.x, itemAbsSize.y);
+    drawRelative(batch, Data.textures.get(it.getImgInv()), itemRelPos, itemRelSize, 0);
   }
 
   protected void drawGrid(SpriteBatch batch) {

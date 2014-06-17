@@ -4,22 +4,18 @@ import java.util.LinkedList;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.map.mo.RpgMapObj;
-import com.philon.rpg.map.mo.state.AbstractMapObjState;
 import com.philon.rpg.spell.AbstractSpell;
 import com.philon.rpg.util.RpgUtil;
 
 public abstract class AbstractShot extends CombatMapObj {
 	public AbstractSpell ownerSpell;
+	public float tilesPerSecond=0;
 
 	public AbstractShot() {
 	  super();
 
 	  isSelectable = false;
-	}
-
-	@Override
-	public Class<? extends AbstractMapObjState> getDefaultState() {
-	  return StateMovingStraight.class;
+	  tilesPerSecond = getTilesPerSecond();
 	}
 
 	@Override
@@ -29,7 +25,6 @@ public abstract class AbstractShot extends CombatMapObj {
     potentialColls = getPotentialCollisions( targetOffset );
     if( !(potentialColls==null || potentialColls.isEmpty()) ) {
       collisionTrigger( (RpgMapObj)(potentialColls.getFirst()) );
-      if (currState instanceof StateDying) return null;
     }
 
     return targetOffset.copy();
@@ -50,11 +45,6 @@ public abstract class AbstractShot extends CombatMapObj {
     ownerSpell.shotImpactTrigger( this, otherMO );
   }
 
-  public void changeDirection( float newRelRotation ) {
-    direction = currTargetPos.copy().subInst(pos).normalizeInst().rotateDegInst(newRelRotation);
-    setTarget( currTarget, pos.copy().addInst(currTargetPos.copy().subInst(pos).normalizeInst().rotateDegInst(newRelRotation)) );
-  }
-
   @Override
   public Vector getCollRect() {
     return new Vector(0.25f);
@@ -63,11 +53,6 @@ public abstract class AbstractShot extends CombatMapObj {
   @Override
   public int getDieCooldown() {
     return 10;
-  }
-
-  @Override
-  public float getTilesPerSecond() {
-    return 0;
   }
 
 	@Override

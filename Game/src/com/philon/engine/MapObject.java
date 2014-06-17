@@ -23,4 +23,8 @@ public class MapObject {
   public void turnToTarget( Vector targetPos ) {
     turnToDirection( Vector.sub(targetPos, pos) );
   }
+
+  public void turn(float degrees) {
+    turnToDirection(direction.copy().rotateDegInst(degrees));
+  }
 }

@@ -6,6 +6,7 @@ import com.philon.engine.input.Controller;
 import com.philon.engine.input.User;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.forms.MapScreen;
+import com.philon.rpg.mos.player.AbstractChar.ControllerAI;
 
 public class RpgGame extends PhilonGame<MapScreen> {
 	public static RpgGame inst; //holds current instance
@@ -49,7 +50,7 @@ public class RpgGame extends PhilonGame<MapScreen> {
     super.startExclusiveSession(forUser, newExclusiveElements);
 
     for(User currUser : users) {
-      ((RpgUser)currUser).character.setKeyMovement(new Vector());
+      ((ControllerAI)((RpgUser)currUser).character.getAI()).setMovementDir(new Vector());
     }
   }
 

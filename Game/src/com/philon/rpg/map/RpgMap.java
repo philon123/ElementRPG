@@ -8,7 +8,6 @@ import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.map.mo.RpgMapObj.RpgMapObjSaveData;
 import com.philon.rpg.map.mo.UpdateMapObj;
 import com.philon.rpg.mos.door.AbstractDoor;
-import com.philon.rpg.mos.shot.AbstractShot;
 import com.philon.rpg.mos.stairs.AbstractStairs;
 import com.philon.rpg.mos.stairs.StairsDown;
 import com.philon.rpg.mos.stairs.StairsUp;
@@ -33,8 +32,6 @@ public class RpgMap {
 
   public Vector spawnComingDown;
   public Vector spawnComingUp;
-
-  private boolean staticLightGridDirty = true;
 
 //	public AStarMap aStarMap; //TODO astar
 
@@ -76,8 +73,10 @@ public class RpgMap {
 	public void insertMapObj( RpgMapObj obj ) {
 	  if (obj instanceof UpdateMapObj) {
 	    dynamicMapObjs.add((UpdateMapObj)obj);
+      if (obj.luminance>0) dynamicLightSources.add(obj);
 	  } else {
 	    staticMapObjs.add(obj);
+      if (obj.luminance>0) staticLightSources.add(obj);
 	  }
 
 	  cleanMapObj(obj);
@@ -92,90 +91,37 @@ public class RpgMap {
       staticMapObjs.remove(obj);
     }
 
-	  removeFromGrid(obj, obj.currOccTiles);
+	  removeFromGrid(obj);
 	}
 
-  private void removeFromGrid( RpgMapObj obj, LinkedList<Vector> occTiles ) {
-    if( occTiles!=null ) {
-      for( Vector currTile : occTiles ) {
-        grid[(int) currTile.y][(int) currTile.x].collList.remove(obj);
-        //if( isTileFree(currTile.copy(), true, true, true) ) { //TODO astar
-        //  aStarMap.setvalue(currTile.x, currTile.y, 0, 0);
-        //}
-      }
-    }
-  }
-
-  private void insertToGrid( RpgMapObj obj ) {
-    if( obj.currOccTiles!=null ) {
-      for( Vector currTile : obj.currOccTiles ) {
-        grid[(int) currTile.y][(int) currTile.x].collList.addLast(obj);
-      }
-      //aStarMap.setvalue(Math.round(mo.pos.x), Math.round(mo.pos.y), 0, 1);
-    }
-  }
-
-  public void updateMapObjs() {
-    for (int i=0; i<dynamicMapObjs.size(); i++) {
-      UpdateMapObj currMO = dynamicMapObjs.get(i);
-      if( RpgUtil.isTileOnScreen( currMO.pos.copy().roundAllInst() ) || currMO instanceof AbstractShot ) {
-        currMO.update();
-        if( currMO.dirty ) {
-          cleanMapObj(currMO);
-        }
-      }
-    }
-
-    if(staticLightGridDirty) updateStaticLightGrid();
-  }
-
-  private void cleanMapObj( RpgMapObj obj ) {
+  public void cleanMapObj( RpgMapObj obj ) {
     updateOccTiles(obj);
-    bakeBaseScreenDimensions(obj);
-    updateLuminance(obj);
-  }
-
-  private void updateLuminance(RpgMapObj obj) { //TODO optimize, maybe use new luminanceDirty flag
-    if (obj instanceof UpdateMapObj) {
-      if( dynamicLightSources.contains(obj) ) {
-        if( obj.luminance==0 ) {
-          dynamicLightSources.remove(obj);
-        }
-      } else {
-        if( obj.luminance!=0 ) {
-          dynamicLightSources.add(obj);
-        }
-      }
-    } else {
-      if( staticLightSources.contains(obj) ) {
-        if( obj.luminance==0 ) {
-          staticLightSources.remove(obj);
-        }
-      } else {
-        if( obj.luminance!=0 ) {
-          staticLightSources.add(obj);
-        }
-      }
-      staticLightGridDirty = true;
-    }
+    obj.baseScreenPos = RpgUtil.getBaseScreenPosByTilePos( obj.pos );
   }
 
   private void updateOccTiles( RpgMapObj mo ) {
-	  LinkedList<Vector> oldOccTiles = null;
-
-	  //update data on mo
-	  LinkedList<Vector> newOccTiles = RpgUtil.getOccTilesByRect( mo.pos, mo.collRect, gridSize );
-    if( mo.currOccTiles==null ) {
-      mo.currOccTiles = newOccTiles;
-    } else if( !mo.currOccTiles.equals(newOccTiles) ) {
-      oldOccTiles = mo.currOccTiles;
-      mo.currOccTiles = newOccTiles;
-    } else {
-      return;
-    }
-
-    removeFromGrid(mo, oldOccTiles);
+    removeFromGrid(mo);
     insertToGrid(mo);
+  }
+
+  private void insertToGrid(RpgMapObj obj) {
+    LinkedList<Vector> newOccTiles = null;
+    if( obj.pos!=null ) {
+      newOccTiles = RpgUtil.getOccTilesByRect(obj.pos, obj.getCollRect(), gridSize);
+      for(Vector currTile : newOccTiles) {
+        grid[(int)currTile.y][(int)currTile.x].collList.addLast(obj);
+      }
+    }
+    obj.currOccTiles = newOccTiles;
+  }
+
+  private void removeFromGrid(RpgMapObj obj) {
+    if( obj.currOccTiles!=null ) {
+      for( Vector currTile :  obj.currOccTiles ) {
+        grid[(int) currTile.y][(int) currTile.x].collList.remove(obj);
+      }
+      obj.currOccTiles = null;
+    }
   }
 
   private void updateStaticSeeThroughObjects() {
@@ -252,8 +198,6 @@ public class RpgMap {
         grid[y][x].staticBrightness = tmpLightGrid[y][x];
       }
     }
-
-    staticLightGridDirty = false;
   }
 
   public void updateLightGrid(Vector minTile, Vector maxTile) {
@@ -265,9 +209,9 @@ public class RpgMap {
     }
 
     //create light grid for screen
-    Vector intdelta = Vector.sub( maxTile, minTile ).floorAllInst();
-    float[][] tmpLightGrid = new float[(int) (intdelta.y + 1)][];
-    for (int y=0; y<tmpLightGrid.length; y++) {
+    Vector intdelta = Vector.sub(maxTile, minTile).floorAllInst();
+    float[][] tmpLightGrid = new float[(int)(intdelta.y + 1)][];
+    for(int y=0; y<tmpLightGrid.length; y++) {
       tmpLightGrid[y] = new float[(int) (intdelta.x + 1)];
     }
 
@@ -298,17 +242,6 @@ public class RpgMap {
         grid[y][x].currBrightness = grid[y][x].staticBrightness + tmpLightGrid[y-minY][x-minX];
       }
     }
-  }
-
-  private void bakeBaseScreenDimensions( RpgMapObj obj ) {
-    obj.baseScreenPos = RpgUtil.getBaseScreenPosByTilePos( obj.pos );
-
-    if(obj.animation==null) {
-      obj.baseImgScreenSize = new Vector();
-      return;
-    }
-    obj.baseImgScreenSize = RpgUtil.getImageScreenSize(obj.animation.image.xyRatio).mulScalarInst(obj.animation.image.scaleByX);
-    obj.baseImgScreenPos = Vector.add( obj.baseScreenPos, RpgUtil.getScreenOffsetForImageSize(obj.baseImgScreenSize) );
   }
 
   public TreeMap<RenderMapKey, RpgMapObj> generateRenderMap(Vector minTile, Vector maxTile) {

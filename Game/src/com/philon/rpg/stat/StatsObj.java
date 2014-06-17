@@ -307,7 +307,7 @@ public class StatsObj {
     }
     @Override
     public void addValue(Integer newValue) {
-      setValue(newValue);
+      setValue(getValue() + newValue);
       addOrCreateStat( StatMulNorDmgReduce.class, newValue/200f );
     }
   }

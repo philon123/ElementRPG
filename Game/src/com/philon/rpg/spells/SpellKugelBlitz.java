@@ -8,7 +8,6 @@ import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.mos.shot.AbstractShot;
 import com.philon.rpg.mos.shot.ShotChargedBolt;
-import com.philon.rpg.mos.shot.ShotData;
 import com.philon.rpg.spell.AbstractSpell;
 
 public class SpellKugelBlitz extends AbstractSpell {
@@ -24,12 +23,12 @@ public class SpellKugelBlitz extends AbstractSpell {
     LinkedList<AbstractShot> newShots = new LinkedList<AbstractShot>();
     for (AbstractShot currShot : shots) {
       if (Math.random()<0.05) { //change direction
-        shots.getFirst().changeDirection(Util.random(-30, 30));
+        shots.getFirst().turn(Util.random(-30, 30));
       } else if (Math.random()<0.02) { //split
-        AbstractShot newShot = ShotData.cloneShot(currShot);
+        AbstractShot newShot = cloneShot(currShot);
 
-        newShot.changeDirection(Util.random(-45, 45));
-        currShot.changeDirection(Util.random(-45, 45));
+        newShot.turn(Util.random(-45, 45));
+        currShot.turn(Util.random(-45, 45));
 
         newShots.add(newShot);
       }
@@ -37,6 +36,14 @@ public class SpellKugelBlitz extends AbstractSpell {
     shots.addAll(newShots);
 
     super.update();
+  }
+
+  private static AbstractShot cloneShot(AbstractShot fromShot) {
+    AbstractShot newShot = Util.instantiateClass(fromShot.getClass());
+    newShot.tilesPerSecond = fromShot.getTilesPerSecond();
+    newShot.setPosition(fromShot.pos);
+
+    return newShot;
   }
 
 }

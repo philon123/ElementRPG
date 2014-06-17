@@ -233,6 +233,12 @@ public class Vector {
 
 	//----------
 
+	public boolean isZeroVector() {
+	  return isAllEqual(new Vector());
+	}
+
+	//----------
+
 	public boolean isAllSmaller( Vector otherVec ) {
 		if (x<otherVec.x && y<otherVec.y) return true;
 		return false;

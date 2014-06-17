@@ -32,7 +32,7 @@ public class MarbleData extends Data {
     for(int i=0; i<texturesForLoad.length; i++) {
       String tmpPath = "assets/marble/" + texturesForLoad[i];
       Texture newTexture = new Texture(Gdx.files.internal(tmpPath));
-      result.add( new AnimImage(i, newTexture, new Vector(), 1) );
+      result.add( new AnimImage(i, newTexture, new Vector(), 1, new Vector()) );
     }
 
     return result;

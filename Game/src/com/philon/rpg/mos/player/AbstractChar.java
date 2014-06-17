@@ -1,14 +1,15 @@
 package com.philon.rpg.mos.player;
 
 import com.badlogic.gdx.Gdx;
+import com.philon.engine.PhilonGame;
 import com.philon.engine.input.User;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.RpgUser;
-import com.philon.rpg.SkillData;
 import com.philon.rpg.forms.InventoryForm;
 import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.map.mo.RpgMapObj;
+import com.philon.rpg.map.mo.state.StateParam;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.item.category.ConsumableItem;
 import com.philon.rpg.mos.player.inventory.Inventory;
@@ -21,8 +22,8 @@ import com.philon.rpg.stat.StatsObj.StatM1Stype;
 import com.philon.rpg.stat.StatsObj.StatM2Stype;
 import com.philon.rpg.stat.StatsObj.StatMana;
 import com.philon.rpg.stat.StatsObj.StatMaxHealth;
+import com.philon.rpg.stat.StatsObj.StatMaxMana;
 import com.philon.rpg.stat.effect.EffectsObj;
-import com.philon.rpg.util.RpgUtil;
 
 public abstract class AbstractChar extends CombatMapObj {
 	public int xp;
@@ -32,14 +33,10 @@ public abstract class AbstractChar extends CombatMapObj {
 	public Inventory inv;
 	public int skills[];
 
-  public int souNoMana;
-
 	public AbstractChar() {
 	  super();
 
 	  setLuminance(0.5f);
-
-    souNoMana = getSouNoMana();
     inv = new Inventory(this);
     skills = new int[getNumSkills()];
 
@@ -59,7 +56,7 @@ public abstract class AbstractChar extends CombatMapObj {
   }
   @Override
   public int getSouFootstep() {
-    return 0;
+    return 6;
   }
   @Override
   public Vector getCollRect() {
@@ -68,18 +65,20 @@ public abstract class AbstractChar extends CombatMapObj {
 
   @Override
   public boolean useMana(int amount) {
-    if( amount > (Integer)stats.getStatValue(StatMana.class) ) {
-      if (souNoMana>0) RpgGame.inst.playSoundFX( souNoMana );
+    if(!super.useMana(amount)) {
+      RpgGame.inst.playSoundFX( getSouNoMana() );
       return false;
     }
-
-    return super.useMana(amount);
+    return true;
   }
 
   @Override
-  public void deathTrigger(CombatMapObj killedBy) {
-    super.deathTrigger(killedBy);
+  public void deleteObject() {
+    super.deleteObject();
 
+    if(RpgGame.inst.getExclusiveUser()!=null && RpgGame.inst.getExclusiveUser().character==this) {
+      RpgGame.inst.endExclusiveSession();
+    }
     User thisUser = null;
     for(User currUser : RpgGame.inst.users) {
       if(((RpgUser)currUser).character==this) {
@@ -87,55 +86,8 @@ public abstract class AbstractChar extends CombatMapObj {
         break;
       }
     }
-    if(RpgGame.inst.getExclusiveUser()!=null && RpgGame.inst.getExclusiveUser().character==this) {
-      RpgGame.inst.endExclusiveSession();
-    }
     RpgGame.inst.users.remove(thisUser);
     if(RpgGame.inst.users.isEmpty()) Gdx.app.exit();
-  }
-
-  public void setKeyMovement(Vector newDirection) {
-    if(newDirection.isAllEqual(new Vector())) {
-      stopKeyMovement();
-      return;
-    }
-    if( !(currState instanceof StateHit || currState instanceof StateDying || currState instanceof StateCasting) ) {
-      direction = newDirection.copy();
-      currPath = null;
-      pathfindCooldown = 0;
-      setTarget(null, pos.copy().addInst(newDirection));
-      currTarget = null;
-      currTargetPos = null;
-
-      if(!(currState instanceof StateMovingStraight)) changeState(StateMovingStraight.class);
-    }
-  }
-
-  private void stopKeyMovement() {
-    currPath = null;
-    pathfindCooldown = 0;
-    currTarget = null;
-    currTargetPos = null;
-
-    if( !(currState instanceof StateHit || currState instanceof StateDying || currState instanceof StateCasting) ) {
-      changeState(StateIdle.class);
-    }
-  }
-
-  public void setAttackingDir(Vector newDirection) {
-    if(newDirection.isAllEqual(new Vector())) return;
-
-    if( !(currState instanceof StateHit || currState instanceof StateDying || currState instanceof StateCasting) ) {
-      Vector newMapDir = RpgUtil.getTilePosByBaseScreenPos(newDirection);
-      Vector newTargetPos = Vector.add(pos, newMapDir);
-      prepareSpell((Integer)stats.getStatValue(StatM1Stype.class), false, newTargetPos, null);
-    }
-  }
-
-  public void stopAttackingDir() {
-    if( !(currState instanceof StateHit || currState instanceof StateDying || currState instanceof StateCasting) ) {
-      changeState(StateIdle.class);
-    }
   }
 
   @Override
@@ -176,27 +128,6 @@ public abstract class AbstractChar extends CombatMapObj {
 	  return inv==null ? new EffectsObj() : inv.effects;
 	}
 
-	public void setSkill( int newSkill, int newSkillLvl ) {
-		int prevGen = getSkillGeneration(skills[newSkill]);
-		int currGen = getSkillGeneration(newSkillLvl);
-		if( prevGen!=currGen ) {
-			stats.spells[SkillData.spellsForSkill[newSkill][prevGen]] = 0;
-			stats.spells[SkillData.spellsForSkill[newSkill][currGen]] = newSkillLvl;
-		} else {
-			skills[newSkill] = newSkillLvl;
-		}
-	}
-
-	public int getSkillGeneration( int newSkillLevel ) {
-		int skillGeneration = (int) Math.floor(newSkillLevel / 5);
-		if (skillGeneration>3) skillGeneration=3; //would be 4 is reached skill lvl 2;
-		return skillGeneration;
-	}
-
-	public void improveSkill( int newSkill ) {
-		setSkill( newSkill, skills[newSkill]+1 );
-	}
-
 	public void addXP( int newXP ) {
 	  xp += newXP;
 	  int newLevel = CharData.getLevelForXP(xp);
@@ -209,6 +140,7 @@ public abstract class AbstractChar extends CombatMapObj {
 	  currLevel++;
 	  freeStatPoints += 5;
 	  stats.addOrCreateStat(StatHealth.class, stats.getStatValue(StatMaxHealth.class));
+	  stats.addOrCreateStat(StatMana.class, stats.getStatValue(StatMaxMana.class));
 
 	  RpgGame.inst.playSoundFX(14);
 	}
@@ -235,10 +167,63 @@ public abstract class AbstractChar extends CombatMapObj {
     return new CharacterSaveData(this);
   }
 
+  @Override
+  protected AIState getDefaultAI() {
+    return new ControllerAI();
+  }
+
+  public class StateMovingWithFootsteps extends StateMovingStraight {
+    int footstepCooldown;
+    public StateMovingWithFootsteps(StateMovingParam param) {
+      super(param);
+    }
+    @Override
+    public boolean execUpdate() {
+      if(!super.execUpdate()) return false;
+
+      if( footstepCooldown>0 ) {
+        footstepCooldown -= 1;
+      } else {
+        footstepCooldown = (int)(PhilonGame.inst.fps/4f);
+        RpgGame.inst.playSoundFX(getSouFootstep());
+      }
+      return true;
+    }
+  }
+
+  public class ControllerAI extends DefaultAI {
+    private Vector m_movementDir = new Vector();
+    private Vector m_castingDir = new Vector();
+    @Override
+    public void updateTimed() {
+      if(!m_castingDir.isZeroVector()) {
+        int currSpell = (Integer)stats.getStatValue(StatM1Stype.class);
+        changeState(StateCasting.class, new StateCastingParam(currSpell, Vector.add(pos, m_castingDir), null));
+      } else if(!m_movementDir.isZeroVector() && !(currState instanceof StateCasting)) {
+        if(currState instanceof StateMovingStraight) {
+          ((StateMovingStraight)currState).changeDirection(m_movementDir);
+        } else {
+          changeState(StateMovingStraight.class, new StateMovingParam(m_movementDir));
+        }
+      } else {
+        if(currState instanceof StateMovingStraight) changeState(StateIdle.class, new StateParam());
+      }
+    }
+    @Override
+    protected float getConfiguredAIUpdatesPerSecond() {
+      return 30f;
+    }
+    public void setMovementDir(Vector newDir) {
+      m_movementDir = newDir.copy();
+    }
+    public void setCastingDir(Vector newDir) {
+      m_castingDir = newDir.copy();
+    }
+  }
+
   public static class CharacterSaveData extends RpgMapObjSaveData {
     public int xp;
     public InventorySaveData inv = new InventorySaveData();
-    public int[] skills = new int[SkillData.numSkills];
 
     public CharacterSaveData(Class<? extends RpgMapObj> newObjClass, Vector newPos, Vector newDirection, int newXp) {
       super(newObjClass, newPos, newDirection);
@@ -249,7 +234,6 @@ public abstract class AbstractChar extends CombatMapObj {
     public CharacterSaveData(AbstractChar obj) {
       this(obj.getClass(), obj.pos, obj.direction, obj.xp);
 
-      skills = obj.skills;
       inv = obj.inv.save();
     }
 
@@ -259,9 +243,6 @@ public abstract class AbstractChar extends CombatMapObj {
 
       result.xp = xp;
       result.inv = new Inventory(result, inv);
-      for( int i = 0; i < skills.length-1; i++ ) {
-        result.setSkill( i, skills[i] );
-      }
 
       result.updateStats();
 

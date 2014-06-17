@@ -17,4 +17,9 @@ public class SmithyVendor extends AbstractVendor {
     return SmithyForm.class;
   }
 
+  @Override
+  public int getImgIdle() {
+    return 300;
+  }
+
 }

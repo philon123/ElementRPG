@@ -2,8 +2,8 @@ package com.philon.rpg.forms;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.philon.engine.Data;
 import com.philon.engine.event.ButtonInputListener;
 import com.philon.engine.event.JoystickInputListener;
@@ -17,21 +17,24 @@ import com.philon.engine.input.Controller.SelectButton;
 import com.philon.engine.input.Controller.StartButton;
 import com.philon.engine.input.User;
 import com.philon.engine.input.XBox360Controller.RealButton1;
+import com.philon.engine.util.AnimImage;
 import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgData;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.RpgGraphics;
 import com.philon.rpg.RpgUser;
 import com.philon.rpg.map.RpgMap;
 import com.philon.rpg.map.RpgMapSaveData;
 import com.philon.rpg.map.generator.MapGenerator;
 import com.philon.rpg.map.mo.RpgMapObj;
+import com.philon.rpg.map.mo.UpdateMapObj;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.player.AbstractChar;
 import com.philon.rpg.mos.player.CharAmazon;
 import com.philon.rpg.mos.player.CharBarbarian;
 import com.philon.rpg.mos.player.CharSorcerer;
+import com.philon.rpg.mos.player.AbstractChar.ControllerAI;
+import com.philon.rpg.mos.shot.AbstractShot;
 import com.philon.rpg.mos.wall.CellarMapStylye;
 import com.philon.rpg.util.RpgUtil;
 
@@ -40,7 +43,6 @@ import com.philon.rpg.util.RpgUtil;
  */
 public class MapScreen extends GuiElement {
   public RpgMap gMap;
-  public RpgGraphics gGraphics;
   public RpgUtil gUtil;
 
   public RpgMapSaveData levelData[];
@@ -87,7 +89,7 @@ public class MapScreen extends GuiElement {
       protected boolean execChanged(Joystick source) {
         if(RpgGame.inst.exclusiveUser==null) {
           Vector newDir = Vector.rotateDeg(source.pos, -45);
-          RpgGame.inst.getActiveUser().character.setKeyMovement(newDir);
+          ((ControllerAI)RpgGame.inst.getActiveUser().character.getAI()).setMovementDir(newDir);
         }
         return true;
       }
@@ -97,7 +99,7 @@ public class MapScreen extends GuiElement {
       @Override
       protected boolean execChanged(Joystick source) {
         Vector newDir = source.pos.copy();
-        RpgGame.inst.getActiveUser().character.setAttackingDir(newDir);
+        ((ControllerAI)RpgGame.inst.getActiveUser().character.getAI()).setCastingDir(newDir);
         return true;
       }
     });
@@ -108,7 +110,7 @@ public class MapScreen extends GuiElement {
         if(RpgGame.inst.getExclusiveUser()==null) {
           RpgUser activeUser = RpgGame.inst.getActiveUser();
           Vector searchPos = Vector.add( activeUser.character.pos, Vector.mulScalar(activeUser.character.direction, 0.5f) );
-          
+
           activeUser.character.interact(
               RpgUtil.selectObjectByTilePos( searchPos, new Vector(0.6f), activeUser.character)
               );
@@ -124,7 +126,7 @@ public class MapScreen extends GuiElement {
       protected boolean execDown() {
         RpgUser activeUser = RpgGame.inst.getActiveUser();
         Vector mouseAbsPos = activeUser.controller.getElementByClass(MouseCursor.class).pos;
-        Vector mouseTilePos = RpgUtil.getTilePosByScreenPos( Vector.sub(mouseAbsPos, absPos) );
+        Vector mouseTilePos = RpgUtil.getTilePosByScreenPos(Vector.sub(mouseAbsPos, absPos));
 
         if(activeUser.character.inv.pickedUpItem==null) {
           RpgMapObj currObj = RpgUtil.selectObjectByTilePos(mouseTilePos, new Vector(0.1f), activeUser.character);
@@ -144,16 +146,18 @@ public class MapScreen extends GuiElement {
         if(isMouseActionPerformed) return true;
 
         RpgUser activeUser = RpgGame.inst.getActiveUser();
-        Vector cursorPos = activeUser.controller.getElementByClass(MouseCursor.class).pos;
-        Vector charPos = RpgUtil.getScreenPosByTilePos( activeUser.character.pos );
+        Vector mouseAbsPos = activeUser.controller.getElementByClass(MouseCursor.class).pos;
+        Vector mouseTilePos = RpgUtil.getTilePosByScreenPos( Vector.sub(mouseAbsPos, absPos) );
+        if(mouseTilePos==null) mouseTilePos = activeUser.character.pos.copy();
 
-        Vector newDir = Vector.sub(cursorPos, charPos).normalizeInst();
-        activeUser.character.setAttackingDir(newDir);
+        Vector newDir = Vector.sub(mouseTilePos, activeUser.character.pos).normalizeInst();
+        ((ControllerAI)activeUser.character.getAI()).setCastingDir(newDir);
         return true;
       }
       @Override
       protected boolean execUp() {
         isMouseActionPerformed = false;
+        ((ControllerAI)RpgGame.inst.getActiveUser().character.getAI()).setCastingDir(new Vector());
         return true;
       }
     });
@@ -216,11 +220,24 @@ public class MapScreen extends GuiElement {
 
     updateMinMaxTilesOnScreen();
     updateOffset();
-    gMap.updateMapObjs();
+    updateMapObjs();
     gMap.updateSeeThroughObjects();
     gMap.updateLightGrid(minTileOnScreen, maxTileOnScreen);
     drawFloor(batch);
     drawMapObjects(batch);
+  }
+
+  private void updateMapObjs() {
+    for (int i=0; i<gMap.dynamicMapObjs.size(); i++) {
+      UpdateMapObj currMO = gMap.dynamicMapObjs.get(i);
+      if( RpgUtil.isTileOnScreen( currMO.pos.copy().roundAllInst() ) || currMO instanceof AbstractShot ) {
+        if(!currMO.update()) RpgUtil.removeMapObj(currMO);
+      }
+    }
+  }
+
+  private void drawMapImage(Batch batch, AnimImage newImage, Vector newPos, int newFrame) {
+    newImage.draw(batch, newPos, tileScreenSize.x, newFrame);
   }
 
   @Override
@@ -230,13 +247,13 @@ public class MapScreen extends GuiElement {
     if(exclusiveUser!=null) {
       if(exclusiveUser.character.inv.pickedUpItem==null) {
         Vector mousePos = exclusiveUser.controller.getElementByClass(MouseCursor.class).pos;
-        drawNormalized(batch, Data.textures.get(344).frames[0], mousePos, new Vector(0.05f));
+        drawNormalized(batch, Data.textures.get(344), mousePos, new Vector(0.05f), 0);
       } else {
         AbstractItem pickedUpItem = exclusiveUser.character.inv.pickedUpItem;
         Vector itSize = Vector.mul( pickedUpItem.getInvSize(), new Vector(0.05f) );
         itSize.x = itSize.x;
         Vector mousePos = exclusiveUser.controller.getElementByClass(MouseCursor.class).pos;
-        drawNormalized(batch, Data.textures.get(pickedUpItem.getImgInv()).frames[0], mousePos, itSize);
+        drawNormalized(batch, Data.textures.get(pickedUpItem.getImgInv()), mousePos, itSize, 0);
       }
     }
   }
@@ -245,7 +262,7 @@ public class MapScreen extends GuiElement {
     for( RpgMapObj mo : gMap.generateRenderMap(minTileOnScreen, maxTileOnScreen).values() ) {
       Vector moTile = mo.pos.copy().roundAllInst();
       if( RpgUtil.isTileOnScreen( moTile ) ) {
-        Vector newScreenPos = Vector.sub( mo.baseImgScreenPos, currOffset );
+        Vector newScreenPos = Vector.sub( mo.baseScreenPos, currOffset );
 
         Color tmpColor = null;
         for(User currUser : RpgGame.inst.users) {
@@ -273,30 +290,20 @@ public class MapScreen extends GuiElement {
           tmpColor.a = 0.75f;
         }
         batch.setColor(tmpColor);
-        drawNormalized(batch, mo.animation.image.frames[mo.animation.getCurrFrame()], newScreenPos, mo.baseImgScreenSize);
+        drawMapImage(batch, mo.animation.image, newScreenPos, mo.animation.getCurrFrame());
       }
     }
     batch.setColor(Color.WHITE);
   }
 
   private void drawFloor(SpriteBatch batch) {
-    Vector tmpScreenSize;
-    Vector tmpScreenOffset;
-    Vector tmpScreenPos;
-    float tmpBrightness;
-    tmpScreenSize = RpgUtil.getImageScreenSize( Data.textures.get(298).xyRatio );
-    tmpScreenOffset = RpgUtil.getScreenOffsetForImageSize(tmpScreenSize);
-    tmpScreenOffset.subInst( currOffset );
-    TextureRegion floorImg = Data.textures.get(298).frames[0];
     for( int x = (int) minTileOnScreen.x; x <= maxTileOnScreen.x; x++ ) {
       for( int y = (int) minTileOnScreen.y; y <= maxTileOnScreen.y; y++ ) {
-        tmpScreenPos = Vector.add( gMap.grid[y][x].baseScreenPos, tmpScreenOffset );
-        if( isRectVisible( tmpScreenPos, tmpScreenSize ) ) {
-          tmpBrightness = gMap.grid[y][x].currBrightness;
-          Color tmpColor = new Color(tmpBrightness, tmpBrightness, tmpBrightness, 1);
-          batch.setColor(tmpColor);
-          drawNormalized(batch, floorImg, tmpScreenPos, tmpScreenSize);
-        }
+        Vector tmpScreenPos = Vector.sub( gMap.grid[y][x].baseScreenPos, currOffset );
+        float tmpBrightness = gMap.grid[y][x].currBrightness;
+        Color tmpColor = new Color(tmpBrightness, tmpBrightness, tmpBrightness, 1);
+        batch.setColor(tmpColor);
+        drawMapImage(batch, Data.textures.get(298), tmpScreenPos, 0);
       }
     }
     batch.setColor(Color.WHITE);

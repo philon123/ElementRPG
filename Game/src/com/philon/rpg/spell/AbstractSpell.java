@@ -2,6 +2,7 @@ package com.philon.rpg.spell;
 import java.util.LinkedList;
 
 import com.philon.engine.PhilonGame;
+import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.BreakableMapObj;
@@ -9,9 +10,11 @@ import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.map.mo.StaticMapObj;
 import com.philon.rpg.map.mo.UpdateMapObj.StateDying;
+import com.philon.rpg.map.mo.UpdateMapObj.StateDyingParam;
+import com.philon.rpg.map.mo.UpdateMapObj.StateMovingParam;
+import com.philon.rpg.map.mo.UpdateMapObj.StateMovingStraight;
 import com.philon.rpg.mos.door.AbstractDoor;
 import com.philon.rpg.mos.shot.AbstractShot;
-import com.philon.rpg.mos.shot.ShotData;
 import com.philon.rpg.mos.wall.AbstractWall;
 import com.philon.rpg.stat.StatsObj;
 import com.philon.rpg.util.RpgUtil;
@@ -71,12 +74,10 @@ public abstract class AbstractSpell {
 		}
 		hitObjects.removeAll(forDelete);
 
-		if( lifeTime>0 ) {
+		if(lifeTime>0) {
 			lifeTime -= 1;
-			if (lifeTime==0) isDying=true;
+			if(lifeTime==0) deleteObject();
 		}
-
-		if (isDying) deleteObject();
 	}
 
 	//----------
@@ -93,7 +94,7 @@ public abstract class AbstractSpell {
 		  shotCollidedTrigger( shotObj, false );
 		} else if (mo instanceof BreakableMapObj) {
       ((BreakableMapObj)mo).destroy();
-      shotCollidedTrigger( shotObj, false );
+      shotCollidedTrigger( shotObj, true );
 		} else if (mo instanceof CombatMapObj) {
 		  ownerMO.attack((CombatMapObj)mo, this);
 		  shotCollidedTrigger( shotObj, true );
@@ -102,10 +103,10 @@ public abstract class AbstractSpell {
 
 	//----------
 
-	private void shotCollidedTrigger( AbstractShot shotObj, boolean allowPassthrough ) {
+	private void shotCollidedTrigger(AbstractShot shotObj, boolean allowPassthrough ) {
 		if( passthrough==false || allowPassthrough ) {
 			shots.remove( shotObj );
-			shotObj.changeState( AbstractShot.StateDying.class );
+			shotObj.changeState(StateDying.class, new StateDyingParam(null));
 			if( shots.isEmpty() ) {
 				deleteObject();
 			}
@@ -116,7 +117,7 @@ public abstract class AbstractSpell {
 
 	public void deleteObject() {
 		for( AbstractShot s : shots ) {
-			s.changeState( StateDying.class );
+			s.changeState(StateDying.class, new StateDyingParam(null));
 		}
 		isDying=true;
 	}
@@ -125,12 +126,12 @@ public abstract class AbstractSpell {
 
 	public void createSimpleShot( Class<? extends AbstractShot> clazz, Vector newShotPos ) {
 		float newShotSpeed=SpellData.speed[id];
-		AbstractShot sh = ShotData.createShot(clazz);
+		AbstractShot sh = Util.instantiateClass(clazz);
 		sh.ownerSpell = this;
 		sh.setPosition(newShotPos);
 		sh.tilesPerSecond = newShotSpeed;
-		sh.setTarget( target, tarPos );
-		sh.turnToDirection(Vector.sub(pos, ownerMO.pos));
+//		sh.setTarget(target, tarPos);
+    sh.changeState(StateMovingStraight.class, new StateMovingParam(Vector.sub(pos, ownerMO.pos)));
 		shots.addLast(sh);
 		RpgUtil.insertMapObj(sh);
 	}

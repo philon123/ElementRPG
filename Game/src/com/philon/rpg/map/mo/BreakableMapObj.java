@@ -3,7 +3,9 @@ package com.philon.rpg.map.mo;
 import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
+import com.philon.rpg.map.mo.state.StateParam;
 import com.philon.rpg.mos.item.AbstractItem;
+import com.philon.rpg.mos.item.AbstractItem.StateMap;
 import com.philon.rpg.mos.item.ItemData;
 import com.philon.rpg.util.RpgUtil;
 
@@ -17,7 +19,7 @@ public abstract class BreakableMapObj extends ToggleMapObj {
   @Override
   public void toggle() {
     if( currState instanceof StateClosed ) {
-      changeState( StateOpening.class );
+      changeState(StateOpening.class, new StateParam());
       hasBeenToggled = true;
     }
   }
@@ -71,12 +73,15 @@ public abstract class BreakableMapObj extends ToggleMapObj {
   }
 
   public void destroy() {
-    changeState(StateBreaking.class);
+    changeState(StateBreaking.class, new StateParam());
     isCollObj = false;
     isSelectable = false;
   }
 
   public class StateBreaking extends StateOpening {
+    public StateBreaking(StateParam param) {
+      super(param);
+    }
     @Override
     public void execOnChange() {
       super.execOnChange();
@@ -87,7 +92,7 @@ public abstract class BreakableMapObj extends ToggleMapObj {
       Vector newItemPos = RpgUtil.getNextFreeTile(pos, false, false, true, true);
       if( newItemPos!=null ) {
         it.setPosition(newItemPos);
-        it.changeState( AbstractItem.StateMap.class );
+        it.changeState(StateMap.class, new StateParam());
       }
 
       RpgGame.inst.playSoundFX(getSouBreak());
@@ -97,13 +102,16 @@ public abstract class BreakableMapObj extends ToggleMapObj {
     public boolean execUpdate() {
       breakTimer -= 1;
       if (breakTimer==0) {
-        changeState(StateOpen.class);
+        changeState(StateOpen.class, new StateParam());
       }
       return true;
     }
   }
 
   public class StateBroken extends StateOpen {
+    public StateBroken(StateParam param) {
+      super(param);
+    }
     @Override
     public void execOnChange() {
       super.execOnChange();

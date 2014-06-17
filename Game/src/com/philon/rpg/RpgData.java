@@ -36,7 +36,6 @@ public class RpgData extends Data {
     SpellData.loadMedia();
 
     //without db
-    SkillData.loadMedia();
     ItemData.loadMedia();
     PrefixSuffixData.loadMedia();
     EnemyData.loadMedia();
@@ -57,9 +56,10 @@ public class RpgData extends Data {
       }
       Vector tmpFrameSize = new Vector( (Integer)currRow[3], (Integer)currRow[4] );
       float scaleByX = new Float((Double)currRow[5]);
+      Vector origin = new Vector((Integer)currRow[6], (Integer)currRow[7]);
 
       Texture tmpTexture = new Texture(Gdx.files.internal("assets/" + tmpPath));
-      result.add(index, new AnimImage(index, tmpTexture, tmpFrameSize, scaleByX));
+      result.add(index, new AnimImage(index, tmpTexture, tmpFrameSize, scaleByX, origin));
     }
 
     return result;

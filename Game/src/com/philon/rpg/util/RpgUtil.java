@@ -103,6 +103,10 @@ public class RpgUtil {
     inst.screen.gMap.removeMapObj(obj);
   }
 
+  public static void cleanMapObj( RpgMapObj obj ) {
+    inst.screen.gMap.cleanMapObj(obj);
+  }
+
 	public static int getDir( Vector newV ) { //returns 0-7, zero is 'down', 45degree increments, clockwise
 		if (newV.isAllEqual(new Vector())) return 0;
 		float rot = (newV.getRotationDegInst()+45) % 360;

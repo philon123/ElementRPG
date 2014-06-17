@@ -9,7 +9,6 @@ import com.philon.engine.input.Controller.Button1;
 import com.philon.engine.input.Controller.MouseCursor;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.SkillData;
 import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.mos.player.AbstractChar;
 import com.philon.rpg.spell.SpellData;
@@ -88,7 +87,7 @@ public class SpellSelectForm extends GuiElement {
         tmpColor = Color.WHITE;
       }
       batch.setColor(tmpColor);
-      batch.draw(Data.textures.get(SpellData.iconImg[currSpell]).frames[0], tmpPos.x, tmpPos.y, tileRelSize.x, tileRelSize.y);
+      drawRelative(batch, Data.textures.get(SpellData.iconImg[currSpell]), tmpPos, tileRelSize, 0);
       batch.setColor(Color.WHITE);
     }
   }
@@ -101,7 +100,7 @@ public class SpellSelectForm extends GuiElement {
     if (clickedTile==0) {
       return (Integer)character.stats.getStatValue(StatDefaultSpell.class);
     } else {
-      return SkillData.spellsForSkill[clickedTile][ character.getSkillGeneration(character.skills[clickedTile]) ];
+      return 0;
     }
   }
 

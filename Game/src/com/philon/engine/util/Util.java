@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 public class Util {
 
@@ -276,11 +277,11 @@ public class Util {
 	}
 
 	/**
-	 * Get Hierarchy for any class. The order of elements is from top to bottom; classes closer to Object will come first. If you don't want the full hierarchy down to Object, pass a boundClass.
-	 * @param forClass Topmost class to include, usually getClass()
-	 * @param boundClass If set, boundClass and all superclasses of boundClass will be ignored.
-	 * @return List of superclasses of forClass
-	 */
+   * Get Hierarchy for any class. The order of elements is from top to bottom; classes closer to Object will come first. If you don't want the full hierarchy down to Object, pass a boundClass.
+   * @param forClass Topmost class to include, usually getClass()
+   * @param boundClass If set, boundClass and all superclasses of boundClass will be ignored.
+   * @return List of superclasses of forClass
+   */
   public static <T> LinkedList<Class<? extends T>> getClassHierarchy(Class<? extends T> forClass, Class<T> boundClass) {
     LinkedList<Class<? extends T>> result = new LinkedList<Class<? extends T>>();
 
@@ -295,13 +296,21 @@ public class Util {
     return result;
   }
 
-  public static <MEMBER> LinkedList<Class<? extends MEMBER>> getInnerClassesOfType( Class<?> containerClass, Class<MEMBER> memberClass ) {
-    LinkedList<Class<? extends MEMBER>> result = new LinkedList<Class<? extends MEMBER>>();
+  public static <MEMBER> List<Class<? extends MEMBER>> getInnerClassesOfType(Class<MEMBER> memberClass, Class<?> containerClass) {
+    return getInnerClassesOfType(memberClass, containerClass, Object.class);
+  }
 
-    for (Class<?> newClass : containerClass.getDeclaredClasses()) {
-      if(newClass.isInterface() || Modifier.isAbstract(newClass.getModifiers())) continue;
-      Class<? extends MEMBER> tmpMemberClass = newClass.asSubclass(memberClass);
-      result.addLast( tmpMemberClass );
+  public static <CONTAINER, MEMBER> List<Class<? extends MEMBER>> getInnerClassesOfType(Class<MEMBER> memberClass, Class<? extends CONTAINER> containerClass, Class<CONTAINER> boundClass) {
+    LinkedList<Class<? extends MEMBER>> result = new LinkedList<Class<? extends MEMBER>>();
+    List<Class<? extends CONTAINER>> hierarchy = getClassHierarchy(containerClass, boundClass);
+
+    for(Class<? extends CONTAINER> currHierarchyClass : hierarchy) {
+      for (Class<?> newClass : currHierarchyClass.getDeclaredClasses()) {
+        if(!memberClass.isAssignableFrom(newClass) ||
+            newClass.isInterface() ||
+            Modifier.isAbstract(newClass.getModifiers())) continue;
+        result.addLast(newClass.asSubclass(memberClass));
+      }
     }
 
     return result;
@@ -326,7 +335,7 @@ public class Util {
     = new LinkedHashMap<Class<? extends MEMBER>, MEMBER>();
 
     for (Class<? extends CONTAINER> currClass : getClassHierarchy(containerClass, hierarchyThreshold) ) {
-      for(Class<? extends MEMBER> currMemberClass : getInnerClassesOfType(currClass, memberClass)) {
+      for(Class<? extends MEMBER> currMemberClass : getInnerClassesOfType(memberClass, currClass)) {
         MEMBER newMember = instantiateClass(currMemberClass, args);
         for(Class<? extends MEMBER> currMemberHierarchyClass : Util.getClassHierarchy(currMemberClass, memberClass)) {
           result.put( currMemberHierarchyClass, newMember );
@@ -334,6 +343,36 @@ public class Util {
       }
     }
 
+    return result;
+  }
+
+  public static List<Object> filterListByKeepClass(List<Object> inputList, Class<?>... keepClasses) {
+    LinkedList<Object> result = new LinkedList<Object>();
+    for(Object o : inputList) {
+      boolean match = false;
+      for(Class<?> currClass : keepClasses) {
+        if(currClass.isAssignableFrom(o.getClass())) {
+          match = true;
+          break;
+        }
+      }
+      if(match) result.add(o);
+    }
+    return result;
+  }
+
+  public static List<Object> filterListByRemoveClass(List<Object> inputList, Class<?>... removeClasses) {
+    LinkedList<Object> result = new LinkedList<Object>();
+    for(Object o : inputList) {
+      boolean match = false;
+      for(Class<?> currClass : removeClasses) {
+        if(currClass.isAssignableFrom(o.getClass())) {
+          match = true;
+          break;
+        }
+      }
+      if(!match) result.add(o);
+    }
     return result;
   }
 

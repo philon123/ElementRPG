@@ -1,13 +1,12 @@
 package com.philon.rpg.mos.shot;
 
 import com.philon.engine.util.Vector;
-import com.philon.rpg.map.mo.state.AbstractMapObjState;
 
 public class ShotMelee extends AbstractShot {
 
   @Override
-  public Class<? extends AbstractMapObjState> getDefaultState() {
-    return StateMovingStraight.class; //collision ony checked while moving
+  public float getTilesPerSecond() {
+    return 0;
   }
 
   @Override
@@ -39,5 +38,4 @@ public class ShotMelee extends AbstractShot {
   public Vector getCollRect() {
     return new Vector(0.5f);
   }
-
 }

@@ -7,7 +7,8 @@ import com.philon.rpg.RpgData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.map.mo.UpdateMapObj;
-import com.philon.rpg.map.mo.state.AbstractMapObjState;
+import com.philon.rpg.map.mo.state.MapObjState;
+import com.philon.rpg.map.mo.state.StateParam;
 import com.philon.rpg.stat.StatsObj;
 import com.philon.rpg.stat.effect.EffectsObj;
 import com.philon.rpg.stat.presuf.AbstractPrefix;
@@ -148,25 +149,30 @@ public abstract class AbstractItem extends UpdateMapObj {
 		return dt;
 	}
 
-	public class StatePickedUp extends AbstractMapObjState {
-	  @Override
+	public class StatePickedUp extends MapObjState<StateParam> {
+	  public StatePickedUp(StateParam param) {
+      super(param);
+    }
+    @Override
 	  public void execOnChange() {
 	    if( currState instanceof StateMap ) {
-	      deleteObject();
+	      RpgUtil.removeMapObj(AbstractItem.this);
 	    }
 
       isCollObj = false;
 	    setAnimation(new FrameAnimation(Data.textures.get(getImgInv())));
 	    RpgGame.inst.playSoundFX(RpgData.SOU_PICKUP);
 	  }
-
     @Override
     public boolean execUpdate() {
       return true;
     }
 	}
 
-	public class StateMap extends AbstractMapObjState {
+	public class StateMap extends MapObjState<StateParam> {
+    public StateMap(StateParam param) {
+      super(param);
+    }
     @Override
     public void execOnChange() {
       setAnimation(new FrameAnimation(Data.textures.get(getImgMap())));
@@ -175,22 +181,22 @@ public abstract class AbstractItem extends UpdateMapObj {
       setPosition(pos);
       isCollObj = true;
       RpgUtil.insertMapObj(AbstractItem.this);
-
       RpgGame.inst.playSoundFX( getSouFlip() );
     }
-
     @Override
     public boolean execUpdate() {
       return true;
     }
   }
 
-	public class StateInv extends AbstractMapObjState {
+	public class StateInv extends MapObjState<StateParam> {
+    public StateInv(StateParam param) {
+      super(param);
+    }
     @Override
     public void execOnChange() {
       RpgGame.inst.playSoundFX(getSouDrop());
     }
-
     @Override
     public boolean execUpdate() {
       return true;
@@ -235,7 +241,7 @@ public abstract class AbstractItem extends UpdateMapObj {
 
       result.updateEffects();
 
-      result.changeState( StatePickedUp.class );
+      result.changeState(StatePickedUp.class, new StateParam());
       result.pos = pos.copy();
 
       return result;

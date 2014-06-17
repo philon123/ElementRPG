@@ -6,40 +6,26 @@ import java.util.LinkedList;
 import com.philon.engine.Data;
 import com.philon.engine.FrameAnimation;
 import com.philon.engine.PhilonGame;
-import com.philon.engine.util.Path;
 import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.map.mo.state.AbstractMapObjState;
+import com.philon.rpg.map.mo.state.MapObjState;
+import com.philon.rpg.map.mo.state.StateParam;
 import com.philon.rpg.util.RpgUtil;
 
 public abstract class UpdateMapObj extends RpgMapObj {
-  HashMap<Class<? extends AbstractMapObjState>, Class<? extends AbstractMapObjState>> stateMap =
-      new HashMap<Class<? extends AbstractMapObjState>, Class<? extends AbstractMapObjState>>();
+  @SuppressWarnings("rawtypes")
+  HashMap<Class<? extends MapObjState>, Class<? extends MapObjState>> stateMap =
+      new HashMap<Class<? extends MapObjState>, Class<? extends MapObjState>>();
 
-	public AbstractMapObjState currState = null;
-
-	public float v=0;
-	public float tilesPerSecond=0;
-	public Vector lastOffset=new Vector();
-
-	public RpgMapObj currTarget;
-	public Vector currTargetPos;
-	public Vector currTargetDelta;
-	public float currTargetDist;
-	public Path currPath;
-	public int currPathNode;
-
-	public int pathfindCooldown;
-
-	public CombatMapObj killedBy=null;
+	public MapObjState<?> currState = null;
+	public AIState currAIState = null;
 
 	public UpdateMapObj() {
 	  super();
 		loadStates();
 
-		tilesPerSecond = getTilesPerSecond();
-		changeState(getDefaultState());
+		changeState(StateIdle.class, new StateParam());
 	}
 
 	public abstract float getTilesPerSecond();
@@ -48,92 +34,67 @@ public abstract class UpdateMapObj extends RpgMapObj {
   public abstract int getImgDying();
   public abstract int getSouDie();
 
-  public Class<? extends AbstractMapObjState> getDefaultState() {
-    return StateIdle.class;
+  public AIState getAI() {
+    if(currAIState==null) currAIState = getDefaultAI();
+    return currAIState;
+  }
+
+  protected AIState getDefaultAI() {
+    return new DefaultAI();
   }
 
   public int getDieCooldown() {
     return (int) (PhilonGame.inst.fps/3);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public void loadStates() {
-    for (Class<? extends RpgMapObj> currentClass : Util.getClassHierarchy(getClass(), RpgMapObj.class) ) {
-      for (Class<?> newClass : currentClass.getDeclaredClasses()) {
-        if(!AbstractMapObjState.class.isAssignableFrom(newClass)) continue;
-        Class<? extends AbstractMapObjState> newClassCasted = newClass.asSubclass(AbstractMapObjState.class);
-        for(Class<? extends AbstractMapObjState> currClass : Util.getClassHierarchy(newClassCasted, AbstractMapObjState.class)) {
-          stateMap.put(currClass, (Class<? extends AbstractMapObjState>)newClass);
-        }
+    for (Class<? extends MapObjState> currStateClass : Util.getInnerClassesOfType(MapObjState.class, getClass(), RpgMapObj.class)) {
+      for(Class<? extends MapObjState> currStateSuperClass : Util.getClassHierarchy(currStateClass, MapObjState.class)) {
+        stateMap.put(currStateSuperClass, currStateClass);
       }
     }
   }
 
-	public void changeState( Class<? extends AbstractMapObjState> newStateClass ) {
-	  AbstractMapObjState newState = createState(newStateClass);
-
-	  if (currState!=null && newStateClass==currState.getClass()) return;
-	  newState.execOnChange();
-	  currState = newState;
-	}
-
-	@SuppressWarnings("unchecked")
-  public <T> T createState(Class<? extends T> newStateClass) {
-	  return (T) Util.instantiateClass(stateMap.get(newStateClass), this);
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+  public void changeState(Class<? extends MapObjState<?>> newStateClass, StateParam param) {
+	  Class<? extends MapObjState> instClass = stateMap.get(newStateClass);
+//	  if (currState!=null && instClass==currState.getClass()) return;
+	  if(currState==null || currState.isStateChangeAllowed((Class<? extends MapObjState<?>>) instClass)) {
+      MapObjState<?> newState = Util.instantiateClass(instClass, this, param);
+  	  newState.execOnChange();
+  	  currState = newState;
+	  }
 	}
 
 	public void deathTrigger(CombatMapObj killedBy) {
 		RpgGame.inst.playSoundFX( getSouDie() );
 	}
 
-	public void update() {
-		//cooldowns
-		updateCooldowns();
+	/**
+	 * @returns false if object is to be deleted
+	 */
+	public boolean update() {
+	  getAI().update();
 
-		//target
-		updateTarget();
-
-		//state update callback
-		if (currState == null) new IllegalArgumentException("currState is not initialized at obj: " + getClass().getSimpleName());
-		if( !currState.execUpdate() ) { //update failed, revert to default state
-		  if( !(currState instanceof StateDying) ) {
-		    changeState(StateIdle.class);
-		  }
+		if(!currState.execUpdate()) { //update failed, revert to default state
+		  if(currState instanceof StateDying) return false;
+		  currState = null;
+		  changeState(StateIdle.class, new StateParam());
 		}
-	}
-
-	//----------
-
-	public void updateTarget() {
-		if( currTargetPos!=null ) {
-			currTargetDelta = Vector.sub( currTargetPos, pos );
-			currTargetDist = currTargetDelta.getLength();
-		}
-	}
-
-	//----------
-
-	public void updateCooldowns() {
-		//pathfind cooldown
-		if( pathfindCooldown>0 ) {
-			pathfindCooldown -= 1;
-		}
+		return true;
 	}
 
 	public void interact( RpgMapObj newTargetGO ) {
     newTargetGO.interactTrigger(this);
   }
 
-  public boolean changePosition( Vector newOffset ) {
-    if(        newOffset.x==0 && lastOffset.x==0 && Math.signum(newOffset.y) == -Math.signum(lastOffset.y) ) {
-      return false; //180 degree turns forbidden
-    } else if( newOffset.y==0 && lastOffset.y==0 && Math.signum(newOffset.x) == -Math.signum(lastOffset.x) ) {
-      return false; //180 degree turns forbidden
+	protected boolean changePosition(Vector newOffset) {
+    if(!newOffset.equals(new Vector())) {
+      turnToDirection(newOffset);
+      setPosition(Vector.add(pos, newOffset));
+      RpgUtil.cleanMapObj(this);
     }
-
-    lastOffset=newOffset.copy();
-    turnToDirection(newOffset);
-    setPosition(Vector.add(pos, newOffset));
 
     return true;
   }
@@ -145,7 +106,8 @@ public abstract class UpdateMapObj extends RpgMapObj {
 		if (potentialColls!=null) { //collision occured!
 			//determine main movement axis and attempt to move in that direction instead
 			Vector absDir = Vector.absolute(direction);
-			Vector unitDirection = new Vector(Math.signum(direction.x)*v, Math.signum(direction.y)*v);
+			float newOffsetLength = getTilesPerSecond() / PhilonGame.inst.fps;
+			Vector unitDirection = new Vector(Math.signum(direction.x), Math.signum(direction.y)).mulScalarInst(newOffsetLength);
 
 			boolean xIsLarger=false;
 			boolean yIsLarger=false;
@@ -197,165 +159,127 @@ public abstract class UpdateMapObj extends RpgMapObj {
 		return result;
 	}
 
-	//----------
-
-	public void setTarget( RpgMapObj newTarget, Vector newTargetPos ) {
-		currTarget = newTarget;
-		currTargetPos = newTargetPos;
-
-		if(currTarget!=null && currTargetPos==null) {
-			currTargetPos = currTarget.pos.copy();
-		}
-		if(currTargetPos!=null) turnToTarget( currTargetPos );
-		updateTarget();
-	}
-
-	//----------
-
-	public void setTarget( RpgMapObj newTarget) {
-		setTarget(newTarget, null);
-	}
-
 	//####################################
 
-	public class StateIdle extends AbstractMapObjState {
-
-	  @Override
+	public class StateIdle extends MapObjState<StateParam> {
+	  public StateIdle(StateParam param) {
+      super(param);
+    }
+    @Override
 	  public void execOnChange() {
 	    setAnimation(new FrameAnimation(Data.textures.get(getImgIdle()), (int)(PhilonGame.inst.fps/3), false));
-	    v=0;
 	  }
-
 	  @Override
 	  public boolean execUpdate() {
 	    return true;
 	  }
-
 	}
 
-	//----------
-
-	public class StateDying extends AbstractMapObjState {
-	  public int dieCooldown;
-
+	public class StateDying extends MapObjState<StateDyingParam> {
+    private int dieCooldown;
+    private CombatMapObj killedBy;
+	  public StateDying(StateDyingParam param) {
+	    super(param);
+	    killedBy = param.killedBy;
+	  }
 	  @Override
 	  public void execOnChange() {
 	    setAnimation(new FrameAnimation(Data.textures.get(getImgDying()), getDieCooldown(), false));
 	    dieCooldown = getDieCooldown();
-	    v=0;
 	    deathTrigger(killedBy);
 	  }
-
 	  @Override
 	  public boolean execUpdate() {
       if (dieCooldown==0) {
         deleteObject();
+        return false;
       } else {
         dieCooldown--;
       }
 	    return true;
 	  }
-
-	}
-
-	//----------
-
-	public class StateMovingStraight extends AbstractMapObjState {
-
 	  @Override
+	  public boolean isStateChangeAllowed(Class<? extends MapObjState<?>> newStateClazz) {
+	    return false;
+	  }
+	}
+  public static class StateDyingParam extends StateParam {
+    public CombatMapObj killedBy;
+    public StateDyingParam(CombatMapObj newKilledBy) {
+      killedBy = newKilledBy;
+    }
+  }
+
+	public class StateMovingStraight extends MapObjState<StateMovingParam> {
+	  private Vector direction;
+	  public StateMovingStraight(StateMovingParam param) {
+      super(param);
+      direction = param.direction;
+    }
+    @Override
 	  public void execOnChange() {
+      changeDirection(direction);
 	    setAnimation(new FrameAnimation(Data.textures.get(getImgMoving()), (int)(PhilonGame.inst.fps/3), false));
 	  }
-
 	  @Override
 	  public boolean execUpdate() {
-	    v = tilesPerSecond / PhilonGame.inst.fps;
-	    Vector newOffset = Vector.mulScalar(direction, v);
+	    float tilesThisFrame = getTilesPerSecond() / PhilonGame.inst.fps;
+	    Vector newOffset = Vector.mulScalar(direction, tilesThisFrame);
 	    newOffset = getNewPositionOffset(newOffset);
 	    if (newOffset==null) return false;
 
-	    return changePosition( newOffset );
+	    return changePosition(newOffset);
 	  }
-
+	  public void changeDirection(Vector newDirection) {
+	    direction = newDirection.copy().normalizeInst();
+	    turnToDirection(direction);
+	  }
 	}
-
-	//----------
-
-	public class StateMovingTarget extends AbstractMapObjState {
-	  StateMovingStraight m_movingStraight;
-
-    protected StateMovingStraight getStateMovingStraight() {
-      return m_movingStraight!=null ? m_movingStraight : createState(StateMovingStraight.class);
+  public static class StateMovingParam extends StateParam {
+    public Vector direction;
+    public StateMovingParam(Vector newDirection) {
+      direction = newDirection.copy();
     }
-
-    @Override
-    public void execOnChange() {
-      getStateMovingStraight().execOnChange();
-    }
-
-    @Override
-    public boolean execUpdate() {
-      float tmpDist = Vector.getDistance(pos, currTargetPos);
-      float maxDist = collRect.x/2f + 0.2f;
-      if (tmpDist<maxDist) return false;
-      direction = Vector.sub(currTargetPos, pos).normalizeInst();
-
-      return getStateMovingStraight().execUpdate();
-    }
-
   }
 
-  //----------
+  public static interface AIState {
+    void update();
+  }
 
-	public class StateMovingSmart extends AbstractMapObjState {
-    StateMovingStraight m_movingStraight;
-
-    protected StateMovingStraight getStateMovingStraight() {
-      return m_movingStraight!=null ? m_movingStraight : createState(StateMovingStraight.class);
+  public class DefaultAI implements AIState {
+    protected int aiUpdateCooldown = Util.rand(0, (int)(PhilonGame.inst.fps/getConfiguredAIUpdatesPerSecond()));
+    @Override
+    public void update() {
+      if(aiUpdateCooldown>0) {
+        aiUpdateCooldown--;
+      } else {
+        updateTimed();
+        aiUpdateCooldown = (int)(PhilonGame.inst.fps/getConfiguredAIUpdatesPerSecond());
+      }
     }
+    protected void updateTimed() {
+    }
+    protected float getConfiguredAIUpdatesPerSecond() {
+      return 2f;
+    }
+  }
 
-	  @Override
-	  public void execOnChange() {
-	    getStateMovingStraight().execOnChange();
-	    pathfindCooldown=0;
-	  }
-
-	  @Override
-	  public boolean execUpdate() {
-	  //get/update path
-	    if( (currPath==null && pathfindCooldown==0) || pathfindCooldown==0 ) {
-	      currPath = RpgUtil.getAStarPath( pos, currTargetPos );
-	      currPathNode=0;
-	      pathfindCooldown=60;
-	    }
-	    if( currPath==null ) {
-	      return false; //failed to find path
-	    }
-
-	    //move along path
-	    Vector nextNodeDelta = currPath.nodes[currPathNode].pos.copy().subInst(pos);
-
-	    direction = nextNodeDelta.copy().normalizeInst();
-	    if (!getStateMovingStraight().execUpdate()) {
-	      return false; //obstacle on the way
-	    }
-
-	    if (nextNodeDelta.getLength() < 0.1) { //reached next node
-	      if( currPathNode==currPath.nodes.length-1 ) {
-	        currPath=null;
-	        pathfindCooldown=0;
-	        return false; //reached last pathNode
-	      } else { //go to next pathNode
-	        currPathNode += 1;
-	      }
-	    }
-
-	    return true;
-	  }
-
-	}
-
-	//----------
-
+  public class MoveToTargetAI extends DefaultAI {
+    private Vector m_targetPos;
+    public MoveToTargetAI(Vector newTargetPos) {
+      setTargetPos(newTargetPos);
+    }
+    @Override
+    public void updateTimed() {
+      if(currState instanceof StateMovingStraight) {
+        ((StateMovingStraight)currState).changeDirection(Vector.sub(m_targetPos, pos));
+      } else {
+        changeState(StateMovingStraight.class, new StateMovingParam(Vector.sub(m_targetPos, pos)));
+      }
+    }
+    public void setTargetPos(Vector newTargetPos) {
+      m_targetPos = newTargetPos.copy();
+    }
+  }
 
 }

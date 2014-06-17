@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.philon.engine.util.Vector;
+import com.philon.rpg.map.mo.state.StateParam;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.item.AbstractItem.ItemSaveData;
 import com.philon.rpg.mos.item.category.AmuletItem;
@@ -142,7 +143,7 @@ public class Inventory {
     }
 
     pickedUpItem = it;
-    it.changeState( AbstractItem.StatePickedUp.class );
+    it.changeState(AbstractItem.StatePickedUp.class, new StateParam());
     updateReqMetFlag(it);
   }
 
@@ -184,7 +185,7 @@ public class Inventory {
     Vector newTile = RpgUtil.getNextFreeTile( ownerPlayer.pos, false, false, true, true );
     if( newTile != null ) {
       pickedUpItem.setPosition(newTile);
-      pickedUpItem.changeState( AbstractItem.StateMap.class );
+      pickedUpItem.changeState(AbstractItem.StateMap.class, new StateParam());
       pickedUpItem = null;
     }
   }
@@ -237,7 +238,7 @@ public class Inventory {
 
 		equip.items[targetSlot] = it;
 		it.pos = new Vector( targetSlot, 0 );
-		it.changeState( AbstractItem.StateInv.class );
+		it.changeState(AbstractItem.StateInv.class, new StateParam());
 
 		equipChangedTrigger();
 		return displacedItem!=null ? displacedItem : it;
@@ -280,6 +281,7 @@ public class Inventory {
 
 	public void identifyItem( AbstractItem newItem ) {
 		newItem.identify();
+//		RpgGame.inst.playSoundFX(sound); //TODO sound for identify
 		if (equip.contains(newItem)) {
 		  equipChangedTrigger();
 		}

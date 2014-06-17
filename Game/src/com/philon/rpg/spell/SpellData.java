@@ -11,7 +11,6 @@ import com.philon.rpg.spells.SpellArrow;
 import com.philon.rpg.spells.SpellFireBolt;
 import com.philon.rpg.spells.SpellFireWall;
 import com.philon.rpg.spells.SpellHealing;
-import com.philon.rpg.spells.SpellIdentify;
 import com.philon.rpg.spells.SpellKugelBlitz;
 import com.philon.rpg.spells.SpellMelee;
 import com.philon.rpg.spells.SpellNone;
@@ -119,7 +118,7 @@ public class SpellData {
     spellClasses[EMPTY] = SpellNone.class;
     spellClasses[MELEE] = SpellMelee.class;
     spellClasses[ARROW] = SpellArrow.class;
-    spellClasses[IDENTIFY] = SpellIdentify.class;
+//    spellClasses[IDENTIFY] = SpellIdentify.class;
     spellClasses[HEALING] = SpellHealing.class;
     spellClasses[FIRE_BOLT] = SpellFireBolt.class;
 //    spellClasses[FIRE_BOLT_SEEKING] = .class;

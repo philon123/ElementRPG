@@ -5,22 +5,23 @@ import com.philon.engine.FrameAnimation;
 import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
-import com.philon.rpg.map.mo.state.AbstractMapObjState;
+import com.philon.rpg.map.mo.state.MapObjState;
+import com.philon.rpg.map.mo.state.StateParam;
 
 public abstract class ToggleMapObj extends UpdateMapObj {
-	public int openCloseCooldown;
 	public boolean hasBeenToggled = false;
+
+	public ToggleMapObj() {
+	  super();
+
+	  changeState(StateClosed.class, new StateParam());
+	}
 
 	public abstract int getToggleImage();
 
   @Override
   public int getImgIdle() {
     return getToggleImage();
-  }
-
-  @Override
-  public Class<? extends AbstractMapObjState> getDefaultState() {
-    return StateClosed.class;
   }
 
   public int getToggleTime() {
@@ -63,28 +64,11 @@ public abstract class ToggleMapObj extends UpdateMapObj {
     return 0;
   }
 
-	public void updateCooldowns() {
-		super.updateCooldowns();
-
-		//open/close
-		if( openCloseCooldown>0 ) {
-			openCloseCooldown -= 1;
-			if( openCloseCooldown==0 ) {
-				if( currState instanceof StateOpening ) {
-					changeState( StateOpen.class );
-				} else if( currState instanceof StateClosing ) {
-					changeState( StateClosed.class );
-				}
-			}
-		}
-
-	}
-
 	public void toggle() {
 		if( currState instanceof StateClosed ) {
-			changeState( StateOpening.class );
+			changeState(StateOpening.class, new StateParam());
 		} else if( currState instanceof StateOpen ) {
-			changeState( StateClosing.class );
+			changeState(StateClosing.class, new StateParam());
 		}
 		hasBeenToggled = true;
 	}
@@ -96,60 +80,76 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 	  toggle();
 	}
 
-	public class StateClosed extends AbstractMapObjState {
-
-	  @Override
+	public class StateClosed extends MapObjState<StateParam> {
+	  public StateClosed(StateParam param) {
+      super(param);
+    }
+    @Override
 	  public void execOnChange() {
 	    setAnimation(new FrameAnimation(Data.textures.get(getToggleImage())));
 	    RpgGame.inst.playSoundFX( getSouClosed() );
 	  }
-
 	  @Override
 	  public boolean execUpdate() {
 	    return true;
 	  }
 	}
 
-	public class StateClosing extends AbstractMapObjState {
-
+	public class StateClosing extends MapObjState<StateParam> {
+    private int closeCooldown;
+    public StateClosing(StateParam param) {
+      super(param);
+    }
 	  @Override
 	  public void execOnChange() {
 	    setAnimation(new FrameAnimation(Data.textures.get(getToggleImage()), getToggleTime(), true));
 	    RpgGame.inst.playSoundFX( getSouClosing() );
-	    openCloseCooldown = getToggleTime();
+	    closeCooldown = getToggleTime();
 	  }
-
 	  @Override
 	  public boolean execUpdate() {
+	    if(closeCooldown>0) {
+	      closeCooldown--;
+	    } else {
+	      changeState(StateClosed.class, new StateParam());
+	    }
 	    return true;
 	  }
 	}
 
-	public class StateOpen extends AbstractMapObjState {
-
-	  @Override
+	public class StateOpen extends MapObjState<StateParam> {
+	  public StateOpen(StateParam param) {
+      super(param);
+    }
+    @Override
 	  public void execOnChange() {
 	    setAnimation(new FrameAnimation(Data.textures.get(getToggleImage()), 0, true));
 	    RpgGame.inst.playSoundFX( getSouOpened() );
 	  }
-
 	  @Override
 	  public boolean execUpdate() {
 	    return true;
 	  }
 	}
 
-	public class StateOpening extends AbstractMapObjState {
-
+	public class StateOpening extends MapObjState<StateParam> {
+	  private int openCooldown;
+    public StateOpening(StateParam param) {
+      super(param);
+    }
 	  @Override
 	  public void execOnChange() {
 	    setAnimation(new FrameAnimation(Data.textures.get(getToggleImage()), getToggleTime(), false));
-	    openCloseCooldown = getToggleTime();
+	    openCooldown = getToggleTime();
 	    RpgGame.inst.playSoundFX( getSouOpening() );
 	  }
-
 	  @Override
 	  public boolean execUpdate() {
+      if(openCooldown>0) {
+        openCooldown--;
+      } else {
+        changeState(StateOpen.class, new StateParam());
+      }
 	    return true;
 	  }
 	}
@@ -160,10 +160,10 @@ public abstract class ToggleMapObj extends UpdateMapObj {
   }
 
   public static class ToggleMOSaveData extends RpgMapObjSaveData {
-    public Class<? extends AbstractMapObjState> state;
+    public Class<? extends MapObjState<?>> state;
     public boolean hasBeenToggled;
 
-    public ToggleMOSaveData(Class<? extends ToggleMapObj> newObjClass, Vector newPos, Vector newDirection, Class<? extends AbstractMapObjState> newStateClass, boolean newHasBeenToggled) {
+    public ToggleMOSaveData(Class<? extends ToggleMapObj> newObjClass, Vector newPos, Vector newDirection, Class<? extends MapObjState<?>> newStateClass, boolean newHasBeenToggled) {
       super(newObjClass, newPos, newDirection);
 
       hasBeenToggled = newHasBeenToggled;
@@ -173,8 +173,9 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 
     }
 
+    @SuppressWarnings("unchecked")
     public ToggleMOSaveData(ToggleMapObj obj) {
-      this( obj.getClass(), obj.pos, obj.direction, obj.currState.getClass(), obj.hasBeenToggled );
+      this( obj.getClass(), obj.pos, obj.direction, (Class<? extends MapObjState<?>>)obj.currState.getClass(), obj.hasBeenToggled );
     }
 
     @Override
@@ -182,7 +183,7 @@ public abstract class ToggleMapObj extends UpdateMapObj {
       ToggleMapObj result = (ToggleMapObj)super.load();
 
       result.hasBeenToggled = hasBeenToggled;
-      result.changeState(state);
+      result.changeState(state, new StateParam());
 
       return result;
     }

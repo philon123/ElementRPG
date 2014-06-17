@@ -1,25 +1,29 @@
 package com.philon.rpg.mos.enemy;
 
-import com.philon.engine.PhilonGame;
+import java.util.Comparator;
+import java.util.TreeMap;
+
 import com.philon.engine.input.User;
-import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.RpgUser;
 import com.philon.rpg.map.mo.CombatMapObj;
 import com.philon.rpg.map.mo.RpgMapObj;
 import com.philon.rpg.map.mo.UpdateMapObj;
+import com.philon.rpg.map.mo.state.StateParam;
 import com.philon.rpg.mos.item.AbstractItem;
+import com.philon.rpg.mos.item.AbstractItem.StateMap;
 import com.philon.rpg.mos.item.ItemData;
 import com.philon.rpg.mos.player.AbstractChar;
 import com.philon.rpg.spell.AbstractSpell;
+import com.philon.rpg.spell.SpellData;
 import com.philon.rpg.stat.StatsObj.StatHealth;
 import com.philon.rpg.stat.StatsObj.StatM1Stype;
 import com.philon.rpg.stat.StatsObj.StatMaxHealth;
 import com.philon.rpg.util.RpgUtil;
 
 public abstract class AbstractEnemy extends CombatMapObj {
-  int targetUpdateCooldown = Util.rand(0, (int)(PhilonGame.inst.fps/3f));
+  private Vector lastOffset=new Vector();
 
 	public abstract String getName();
 	public abstract int getDropValue();
@@ -36,6 +40,18 @@ public abstract class AbstractEnemy extends CombatMapObj {
     return new Vector(0.6f);
   }
 
+  @Override
+  protected boolean changePosition(Vector newOffset) {
+    if(        newOffset.x==0 && lastOffset.x==0 && Math.signum(newOffset.y) == -Math.signum(lastOffset.y) ) {
+      return false; //180 degree turns forbidden
+    } else if( newOffset.y==0 && lastOffset.y==0 && Math.signum(newOffset.x) == -Math.signum(lastOffset.x) ) {
+      return false; //180 degree turns forbidden
+    }
+    lastOffset = newOffset.copy();
+
+    return super.changePosition(newOffset);
+  }
+
 	@Override
 	public boolean getCanSeeMO( RpgMapObj newTarget ) {
     Vector tile1 = pos.copy().roundAllInst();
@@ -45,36 +61,6 @@ public abstract class AbstractEnemy extends CombatMapObj {
 
     return RpgUtil.tilesInSight( tile1, tile2 );
   }
-
-	@Override
-	public void update() {
-	  if (!(currState instanceof StateHit || currState instanceof StateDying)) {
-	    if(currTargetPos!=null) {
-	      currSelectedSpell = (Integer)stats.getStatValue(StatM1Stype.class);
-	      changeState(StateAttackingSmart.class);
-	    }
-	  }
-
-		super.update();
-	}
-
-	@Override
-	public void updateCooldowns() {
-	  super.updateCooldowns();
-
-	  //target update cooldown
-    if( targetUpdateCooldown==0 ) {
-      CombatMapObj newTarget = findNewTarget();
-      if(newTarget==null && currTargetPos!=null) {
-        currTarget = null; //remember target pos
-      } else {
-        setTarget(newTarget);
-      }
-      targetUpdateCooldown = (int)(PhilonGame.inst.fps/3f);
-    } else {
-      targetUpdateCooldown -= 1;
-    }
-	}
 
 	@Override
 	public void attack(CombatMapObj mo, AbstractSpell spell) {
@@ -89,7 +75,7 @@ public abstract class AbstractEnemy extends CombatMapObj {
 		Vector newItemPos = RpgUtil.getNextFreeTile(pos, false, false, true, true);
 		if( newItemPos!=null ) {
 			it.setPosition(newItemPos);
-			it.changeState( AbstractItem.StateMap.class );
+			it.changeState(StateMap.class, new StateParam());
 		}
 
 		if (killedBy instanceof AbstractChar) {
@@ -102,24 +88,56 @@ public abstract class AbstractEnemy extends CombatMapObj {
 	public void interactTrigger(UpdateMapObj objInteracting) {
   }
 
-  private CombatMapObj findNewTarget() {
-    CombatMapObj newTarget = null;
-    float minDist = Float.MAX_VALUE;
-    for(User currUser : RpgGame.inst.users) {
-      float tmpDist = Vector.getDistance(pos, ((RpgUser)currUser).character.pos);
-      if(tmpDist<minDist) {
-        minDist = tmpDist;
-        newTarget = ((RpgUser)currUser).character;
-      }
-    }
-    if(!getCanSeeMO(newTarget)) newTarget = null;
-    return newTarget;
-  }
-
 	public String getDisplayText() {
 		String dt = getName() + "\n";
 		dt += " Health" + (Integer)stats.getStatValue(StatHealth.class) + "/" + (Integer)stats.getStatValue(StatMaxHealth.class);
 		return dt;
 	}
+
+  @Override
+  protected AIState getDefaultAI() {
+    return new BasicAggressiveEnemyAI();
+  }
+
+  public class BasicAggressiveEnemyAI extends DefaultAI {
+    private MoveToTargetAI stateMoving;
+    private UpdateMapObj m_target;
+    private Vector m_targetPos;
+    public BasicAggressiveEnemyAI() {
+      stateMoving = new MoveToTargetAI(new Vector());
+    }
+    @Override
+    public void updateTimed() {
+      m_target = findNewTarget();
+      if(m_target!=null) m_targetPos = m_target.pos;
+      if(m_targetPos==null) return;
+
+      float targetDist = Vector.getDistance(pos, m_targetPos);
+      int currSpell = (Integer)stats.getStatValue(StatM1Stype.class);
+      if(m_target==null || (currSpell==SpellData.MELEE && targetDist>getMaxMeleeRange())) {
+        stateMoving.setTargetPos(m_targetPos);
+        stateMoving.updateTimed();
+      } else {
+        changeState(StateCasting.class, new StateCastingParam(currSpell, m_targetPos, m_target));
+      }
+    }
+    private CombatMapObj findNewTarget() {
+      TreeMap<Float, User> sortedUsers = new TreeMap<Float, User>(new Comparator<Float>(){
+        @Override
+        public int compare(Float paramT1, Float paramT2) {
+          return (int) Math.signum(paramT2-paramT1); //reverse order
+        }
+      });
+      for(User currUser : RpgGame.inst.users) {
+        float tmpDist = Vector.getDistance(pos, ((RpgUser)currUser).character.pos);
+        sortedUsers.put(tmpDist, currUser);
+      }
+      for(User currUser : sortedUsers.values()) {
+        CombatMapObj currChar = ((RpgUser)currUser).character;
+        if(getCanSeeMO(currChar)) return currChar;
+      }
+      return null;
+    }
+  }
 
 }

@@ -8,11 +8,11 @@ import java.util.TreeMap;
 import javax.management.RuntimeErrorException;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.philon.engine.Data;
 import com.philon.engine.event.InputEvent;
 import com.philon.engine.event.InputListener;
 import com.philon.engine.input.AbstractController.ControllerElement;
+import com.philon.engine.util.AnimImage;
 import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 
@@ -76,7 +76,7 @@ public abstract class GuiElement {
   protected void execDraw(SpriteBatch batch) {
     int tmpImage = getConfiguredBackground();
     if(tmpImage!=0) {
-      drawRelative(batch, Data.textures.get(tmpImage).frames[0], new Vector(), new Vector(1));
+      drawRelative(batch, Data.textures.get(tmpImage), new Vector(), new Vector(1), 0);
     }
   }
   protected void execDrawOverChildren(SpriteBatch batch) {
@@ -206,25 +206,32 @@ public abstract class GuiElement {
   /**
    * params may assume a square coordinate system. ( (1, 1) will be the full size )
    */
-  protected void drawRelative(SpriteBatch batch, TextureRegion image, Vector newPos, Vector newSize) {
+  protected void drawRelative(SpriteBatch batch, AnimImage image, Vector newPos, Vector newSize, int newFrame) {
     Vector newAbsPos = Vector.mul(newPos, absSize).addInst(absPos);
     Vector newAbsSize = Vector.mul(newSize, absSize);
-    batch.draw(image, newAbsPos.x, newAbsPos.y, newAbsSize.x, newAbsSize.y);
+    image.draw(batch, newAbsPos, newAbsSize, newFrame);
   }
 
   /**
    * params may assume a uniform coordinate system. ( (1, 1) will be a square )
    */
-  protected void drawNormalized(SpriteBatch batch, TextureRegion image, Vector newPos, Vector newSize) {
+  protected void drawNormalized(SpriteBatch batch, AnimImage image, Vector newPos, Vector newSize, int newFrame) {
     Vector newAbsPos = Vector.mul(new Vector(newPos.x/xyRatio, newPos.y), absSize).addInst(absPos);
-    batch.draw(image, newAbsPos.x, newAbsPos.y, newSize.x, newSize.y);
+    image.draw(batch, newAbsPos, newSize, newFrame);
   }
 
   protected Vector getRelPosByAbsPos(Vector newAbsPos) {
     return Vector.sub(newAbsPos, absPos).divInst(absSize);
   }
 
-  protected boolean isRectVisible( Vector newPos, Vector newSize ) {
+  protected boolean isPointVisible(Vector newPos) {
+    if( newPos.isAllSmaller(new Vector(xyRatio, 1)) && newPos.isAllLarger(new Vector()) ) {
+      return true;
+    }
+    return false;
+  }
+
+  protected boolean isRectVisible(Vector newPos, Vector newSize) {
     if( newPos.isAllSmaller(new Vector(xyRatio, 1)) && Vector.add(newPos, newSize).isAllLarger(new Vector()) ) {
       return true;
     }

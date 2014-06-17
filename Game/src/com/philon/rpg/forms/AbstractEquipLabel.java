@@ -16,7 +16,7 @@ public abstract class AbstractEquipLabel extends AbstractItemGridLabel {
   public void execDraw(SpriteBatch batch) {
     int tmpImage = getConfiguredBackground();
     if(tmpImage!=0) {
-      batch.draw(Data.textures.get(tmpImage).frames[0], absPos.x, absPos.y, absSize.x, absSize.y);
+      drawRelative(batch, Data.textures.get(tmpImage), new Vector(), new Vector(1), 0);
     }
 
     AbstractItem it = getItem();

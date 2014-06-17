@@ -68,7 +68,7 @@ public class MarbleMapScreen extends GuiElement {
 
     for(CollisionObject currObj : objects) {
       Vector newPos = Vector.sub(currObj.getPos(), Vector.mulScalar(currObj.getSize(), 0.5f));
-      drawNormalized(batch, currObj.animation.image.frames[0], newPos, currObj.getSize());
+      drawNormalized(batch, currObj.animation.image, newPos, currObj.getSize(), 0);
     }
   }
 
