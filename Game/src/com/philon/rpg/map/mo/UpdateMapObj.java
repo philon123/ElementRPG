@@ -105,9 +105,9 @@ public abstract class UpdateMapObj extends RpgMapObj {
 		LinkedList<RpgMapObj> potentialColls = getPotentialCollisions( result );
 		if (potentialColls!=null) { //collision occured!
 			//determine main movement axis and attempt to move in that direction instead
-			Vector absDir = Vector.absolute(direction);
+			Vector absDir = Vector.absolute(orientation);
 			float newOffsetLength = getTilesPerSecond() / PhilonGame.inst.fps;
-			Vector unitDirection = new Vector(Math.signum(direction.x), Math.signum(direction.y)).mulScalarInst(newOffsetLength);
+			Vector unitDirection = new Vector(Math.signum(orientation.x), Math.signum(orientation.y)).mulScalarInst(newOffsetLength);
 
 			boolean xIsLarger=false;
 			boolean yIsLarger=false;
@@ -233,6 +233,9 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	  public void changeDirection(Vector newDirection) {
 	    direction = newDirection.copy().normalizeInst();
 	    turnToDirection(direction);
+	  }
+	  public void turn(float degrees) {
+	    changeDirection(direction.copy().rotateDegInst(degrees));
 	  }
 	}
   public static class StateMovingParam extends StateParam {

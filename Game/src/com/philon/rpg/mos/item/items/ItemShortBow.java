@@ -19,7 +19,7 @@ public class ItemShortBow extends BowItem {
   public Vector getBaseDamage() {
     return new Vector(1, 4);
   }
-  
+
   @Override
   public int getBaseDurability() {
     return 10;
@@ -34,5 +34,5 @@ public class ItemShortBow extends BowItem {
   public int getImgInv() {
     return 119;
   }
-  
+
 }

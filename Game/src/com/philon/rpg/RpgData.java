@@ -13,7 +13,6 @@ import com.philon.engine.util.Vector;
 import com.philon.rpg.mos.enemy.EnemyData;
 import com.philon.rpg.mos.item.ItemData;
 import com.philon.rpg.mos.player.CharData;
-import com.philon.rpg.spell.SpellData;
 import com.philon.rpg.stat.presuf.PrefixSuffixData;
 
 public class RpgData extends Data {
@@ -33,7 +32,6 @@ public class RpgData extends Data {
     souMusic.setLooping(true);
 
     //with db
-    SpellData.loadMedia();
 
     //without db
     ItemData.loadMedia();

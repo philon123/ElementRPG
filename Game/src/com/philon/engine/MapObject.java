@@ -3,7 +3,7 @@ import com.philon.engine.util.Vector;
 
 public class MapObject {
   public Vector pos;
-  public Vector direction = new Vector();
+  public Vector orientation = new Vector();
   public Vector speed;
 
   public FrameAnimation animation;
@@ -17,7 +17,7 @@ public class MapObject {
   }
 
   public void turnToDirection( Vector targetDir ) {
-    direction = targetDir.copy().normalizeInst();
+    orientation = targetDir.copy().normalizeInst();
   }
 
   public void turnToTarget( Vector targetPos ) {
@@ -25,6 +25,6 @@ public class MapObject {
   }
 
   public void turn(float degrees) {
-    turnToDirection(direction.copy().rotateDegInst(degrees));
+    turnToDirection(orientation.copy().rotateDegInst(degrees));
   }
 }

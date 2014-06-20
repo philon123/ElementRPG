@@ -14,19 +14,19 @@ import com.philon.rpg.stat.effect.EffectsObj.EffectAddStrength;
 import com.philon.rpg.stat.effect.EffectsObj.EffectAddVitality;
 
 public class CharBarbarian extends AbstractChar {
-  
+
   public CharBarbarian() {
     super();
-    
+
     inv.pickupItem( ItemData.createItem(ItemShortSword.class) );
     inv.addPickupToEquip( Equip.INV_WEAPON );
   }
-  
+
   @Override
   public String getCharText() {
     return "Barbarian";
   }
-  
+
   @Override
   public EffectsObj getBaseEffects() {
     EffectsObj result = new EffectsObj();
@@ -40,55 +40,50 @@ public class CharBarbarian extends AbstractChar {
     result.addOrCreateEffect( EffectAddCastRate.class, 3f );
     return result;
   }
-  
-  @Override
-  public int getNumSkills() {
-    return 10;
-  }
-  
+
   @Override
   public int getImgIdle() {
     return 300;
   }
-  
+
   @Override
   public int getImgMoving() {
     return 302;
   }
-  
+
   @Override
   public int getImgCasting() {
     return 300;
   }
-  
+
   @Override
   public int getImgHit() {
     return 326;
   }
-  
+
   @Override
   public int getImgDying() {
     return 303;
   }
-  
+
   @Override
   public int getSouAttack() {
     return 0;
   }
-  
+
   @Override
   public int getSouHit() {
     return 8;
   }
-  
+
   @Override
   public int getSouDie() {
     return 9;
   }
-  
+
   @Override
   public int getSouNoMana() {
     return 49;
   }
-  
+
 }

@@ -29,7 +29,7 @@ public abstract class RpgMapObj extends MapObject {
   public void turnToDirection( Vector targetDir ) {
     super.turnToDirection(targetDir);
 
-    int newDir = RpgUtil.getDir( direction );
+    int newDir = RpgUtil.getDir( orientation );
     animation.setDir(newDir);
   }
 
@@ -37,7 +37,7 @@ public abstract class RpgMapObj extends MapObject {
   public void setAnimation(FrameAnimation newAnimation) {
     super.setAnimation(newAnimation);
 
-    animation.setDir( direction==null ? 0 : RpgUtil.getDir(direction) );
+    animation.setDir( orientation==null ? 0 : RpgUtil.getDir(orientation) );
   }
 
 	public void deleteObject() {
@@ -81,7 +81,7 @@ public abstract class RpgMapObj extends MapObject {
 	   * Constructor for saving existing MapObjs
 	   */
 	  public RpgMapObjSaveData(RpgMapObj obj) {
-	    this(obj.getClass(), obj.pos, obj.direction);
+	    this(obj.getClass(), obj.pos, obj.orientation);
 	  }
 
 	  /*

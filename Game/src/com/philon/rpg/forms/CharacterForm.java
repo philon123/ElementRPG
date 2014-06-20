@@ -10,7 +10,7 @@ import com.philon.engine.util.Util.Order;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.mos.player.AbstractChar;
-import com.philon.rpg.spell.SpellData;
+import com.philon.rpg.spell.AbstractSpell;
 import com.philon.rpg.stat.StatsObj.StatArmor;
 import com.philon.rpg.stat.StatsObj.StatDexterity;
 import com.philon.rpg.stat.StatsObj.StatHealth;
@@ -486,11 +486,12 @@ public class CharacterForm extends GuiElement {
       return 244;
     }
     @Override
+    @SuppressWarnings("unchecked")
     public String getDisplayText() {
       AbstractChar character = RpgGame.inst.getExclusiveUser().character;
-      int tmpSpellID = (Integer)character.stats.getStatValue(StatM1Stype.class);
-      int tmpSpellLevel = character.stats.spells[tmpSpellID];
-      Vector dispDmg = SpellData.getTotalDmg( character, tmpSpellID, tmpSpellLevel );
+      Class<? extends AbstractSpell> tmpSpellClass = (Class<? extends AbstractSpell>)character.stats.getStatValue(StatM1Stype.class);
+      int tmpSpellLevel = Util.nvl(character.stats.spells.get(tmpSpellClass), 0);
+      Vector dispDmg = AbstractSpell.getDescriptor(tmpSpellClass).getDamageForLevel(tmpSpellLevel).getTotalDamage();
 
       return (int)dispDmg.x + "-" + (int)dispDmg.y;
     }
@@ -518,11 +519,12 @@ public class CharacterForm extends GuiElement {
       return 244;
     }
     @Override
+    @SuppressWarnings("unchecked")
     public String getDisplayText() {
       AbstractChar character = RpgGame.inst.getExclusiveUser().character;
-      int tmpSpellID = (Integer)character.stats.getStatValue(StatM2Stype.class);
-      int tmpSpellLevel = character.stats.spells[tmpSpellID];
-      Vector dispDmg = SpellData.getTotalDmg( character, tmpSpellID, tmpSpellLevel );
+      Class<? extends AbstractSpell> tmpSpellClass = (Class<? extends AbstractSpell>)character.stats.getStatValue(StatM2Stype.class);
+      int tmpSpellLevel = Util.nvl(character.stats.spells.get(tmpSpellClass), 0);
+      Vector dispDmg = AbstractSpell.getDescriptor(tmpSpellClass).getDamageForLevel(tmpSpellLevel).getTotalDamage();
 
       return (int)dispDmg.x + "-" + (int)dispDmg.y;
     }

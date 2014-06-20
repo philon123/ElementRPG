@@ -42,11 +42,6 @@ public class CharAmazon extends AbstractChar {
   }
 
   @Override
-  public int getNumSkills() {
-    return 10;
-  }
-
-  @Override
   public int getImgIdle() {
     return 300;
   }

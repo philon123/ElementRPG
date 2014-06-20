@@ -175,7 +175,7 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 
     @SuppressWarnings("unchecked")
     public ToggleMOSaveData(ToggleMapObj obj) {
-      this( obj.getClass(), obj.pos, obj.direction, (Class<? extends MapObjState<?>>)obj.currState.getClass(), obj.hasBeenToggled );
+      this( obj.getClass(), obj.pos, obj.orientation, (Class<? extends MapObjState<?>>)obj.currState.getClass(), obj.hasBeenToggled );
     }
 
     @Override

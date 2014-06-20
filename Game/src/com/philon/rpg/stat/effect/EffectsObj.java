@@ -9,7 +9,7 @@ import com.philon.engine.util.Util;
 import com.philon.engine.util.Util.Order;
 import com.philon.engine.util.Util.OrderComparator;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.spell.SpellData;
+import com.philon.rpg.spell.AbstractSpell;
 import com.philon.rpg.stat.StatsObj;
 import com.philon.rpg.stat.StatsObj.AbstractStat;
 import com.philon.rpg.stat.StatsObj.StatArmor;
@@ -292,11 +292,11 @@ public class EffectsObj {
   //########################################################################################################
 
   @Order(10)
-  public class EffectSetDefaultSpell extends IntegerEffect {
+  public class EffectSetDefaultSpell extends AbstractEffect {
     @Override
     public void effect(StatsObj targetStats) {
       super.effect(targetStats);
-      targetStats.addOrCreateStat(StatM1Stype.class, getIntValue());
+      targetStats.addOrCreateStat(StatM1Stype.class, getSpellClass());
     }
     @Override
     public Class<? extends AbstractStat<?>> getStatClass() {
@@ -308,7 +308,20 @@ public class EffectsObj {
     }
     @Override
     public String getValueText() {
-      return getIntValue()==SpellData.MELEE ? "Melee" : getIntValue()==SpellData.ARROW ? "Ranged" : "Spell";
+      return AbstractSpell.getDescriptor(getSpellClass()).getName();
+    }
+    @Override
+    public void addValue(Object newValue) {
+      setValue(newValue);
+    }
+    @SuppressWarnings("unchecked")
+    @Override
+    public void setValue(Object newValue) {
+      super.setValue((Class<? extends AbstractSpell>)newValue);
+    }
+    @SuppressWarnings("unchecked")
+    public Class<? extends AbstractSpell> getSpellClass() {
+      return (Class<? extends AbstractSpell>)getValue();
     }
   }
 

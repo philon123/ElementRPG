@@ -1,12 +1,14 @@
 package com.philon.rpg.stat;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
 import com.philon.engine.util.Vector;
-import com.philon.rpg.spell.SpellData;
+import com.philon.rpg.spell.AbstractSpell;
+import com.philon.rpg.spell.SpellNone;
 
 public class StatsObj {
-	public int[] spells = new int[SpellData.numSpells];
+  public HashMap<Class<? extends AbstractSpell>, Integer> spells = new HashMap<Class<? extends AbstractSpell>, Integer>();
 
 	@SuppressWarnings("rawtypes")
   public LinkedHashMap<Class<? extends AbstractStat>, AbstractStat> statMap
@@ -315,43 +317,33 @@ public class StatsObj {
   public class StatFireDamage extends VectorStat {}
   public class StatLightningDamage extends VectorStat {}
   public class StatIceDamage extends VectorStat {}
-  public class StatM1Stype extends IntegerStat {
+  public class StatM1Stype extends AbstractStat<Class<? extends AbstractSpell>> {
     @Override
-    public Integer getDefaultValue() {
-      return SpellData.EMPTY;
+    public Class<? extends AbstractSpell> getDefaultValue() {
+      return SpellNone.class;
     }
     @Override
-    public void addValue(Integer newValue) {
-      if (getValue()==SpellData.EMPTY || (getValue()==SpellData.MELEE || getValue()==SpellData.ARROW)) {
-        setValue(newValue);
-      }
+    public void addValue(Class<? extends AbstractSpell> newValue) {
+      setValue(newValue);
     }
-//    @Override
-//    public void addValue(Object newValue) {
-//      if (newValue instanceof Class<?> &&  AbstractSpell.class.isAssignableFrom((Class<?>)newValue)) {
-//        setValue(newValue);
-//      }
-//    }
   }
-  public class StatM2Stype extends IntegerStat {
+  public class StatM2Stype extends AbstractStat<Class<? extends AbstractSpell>> {
     @Override
-    public Integer getDefaultValue() {
-      return SpellData.EMPTY;
+    public Class<? extends AbstractSpell> getDefaultValue() {
+      return SpellNone.class;
     }
-//    @Override
-//    public void addValue(Object newValue) {
-//      if (newValue instanceof Class<?> &&  AbstractSpell.class.isAssignableFrom((Class<?>)newValue)) {
-//        setValue(newValue);
-//      }
-//    }
+    @Override
+    public void addValue(Class<? extends AbstractSpell> newValue) {
+      setValue(newValue);
+    }
   }
-  public class StatDefaultSpell extends IntegerStat {
+  public class StatDefaultSpell extends AbstractStat<Class<? extends AbstractSpell>> {
     @Override
-    public Integer getDefaultValue() {
-      return SpellData.EMPTY;
+    public Class<? extends AbstractSpell> getDefaultValue() {
+      return SpellNone.class;
     }
     @Override
-    public void addValue(Integer newValue) {
+    public void addValue(Class<? extends AbstractSpell> newValue) {
       setValue(newValue);
     }
   }

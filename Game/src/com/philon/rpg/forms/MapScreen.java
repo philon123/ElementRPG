@@ -109,7 +109,7 @@ public class MapScreen extends GuiElement {
       protected boolean execDown() {
         if(RpgGame.inst.getExclusiveUser()==null) {
           RpgUser activeUser = RpgGame.inst.getActiveUser();
-          Vector searchPos = Vector.add( activeUser.character.pos, Vector.mulScalar(activeUser.character.direction, 0.5f) );
+          Vector searchPos = Vector.add( activeUser.character.pos, Vector.mulScalar(activeUser.character.orientation, 0.5f) );
 
           activeUser.character.interact(
               RpgUtil.selectObjectByTilePos( searchPos, new Vector(0.6f), activeUser.character)

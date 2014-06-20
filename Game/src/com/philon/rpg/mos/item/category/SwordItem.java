@@ -1,10 +1,11 @@
 package com.philon.rpg.mos.item.category;
 
-import com.philon.rpg.spell.SpellData;
+import com.philon.rpg.spell.AbstractSpell;
+import com.philon.rpg.spell.SpellMelee;
 
 
 public abstract class SwordItem extends WeaponItem {
-  
+
   @Override
   public int getSouDrop() {
     return 45;
@@ -19,10 +20,10 @@ public abstract class SwordItem extends WeaponItem {
   public int getImgMap() {
     return 322;
   }
-  
+
   @Override
-  public int getDefaultSpellType() {
-    return SpellData.MELEE;
+  public Class<? extends AbstractSpell> getDefaultSpellType() {
+    return SpellMelee.class;
   }
-  
+
 }

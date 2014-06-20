@@ -4,7 +4,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -255,18 +254,14 @@ public class Util {
   public static <T> T instantiateClass(Class<T> newClass, Object... args) {
 	  try {
       return (T)newClass.getConstructors()[0].newInstance(args);
-    } catch (InstantiationException e) {
-      e.printStackTrace();
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-    } catch (IllegalArgumentException e) {
-      e.printStackTrace();
-    } catch (InvocationTargetException e) {
-      e.printStackTrace();
-    } catch (SecurityException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return null;
+	}
+
+	public static <T> T nvl(T value, T defaultValue) {
+	  return value!=null ? value : defaultValue;
 	}
 
 	/**
@@ -346,7 +341,7 @@ public class Util {
     return result;
   }
 
-  public static List<Object> filterListByKeepClass(List<Object> inputList, Class<?>... keepClasses) {
+  public static List<Object> filterListByKeepClass(List<?> inputList, Class<?>... keepClasses) {
     LinkedList<Object> result = new LinkedList<Object>();
     for(Object o : inputList) {
       boolean match = false;

@@ -20,49 +20,51 @@ import com.philon.rpg.stat.StatsObj;
 import com.philon.rpg.util.RpgUtil;
 import com.philon.rpg.util.TimerListObject;
 
+/**
+ * Every spell must have following method: <p>
+ *   public static SpellDescriptor getDescriptor() {}
+ */
 public abstract class AbstractSpell {
-	public int id;
+  protected final SpellDescriptor descriptor;
 	public int sLvl;
-	public CombatMapObj ownerMO;
 	public Vector pos;
-
 	public StatsObj stats;
-	public Vector tarPos;
-	public RpgMapObj target;
 	public boolean isDying=false;
-	public boolean passthrough=false;
-	public LinkedList<AbstractShot> shots = new LinkedList<AbstractShot>();
-	public int lifeTime;
-	public LinkedList<TimerListObject> hitObjects = new LinkedList<TimerListObject>();
 
-	//----------
+	protected CombatMapObj ownerMO;
+	protected Vector tarPos;
+	protected RpgMapObj target;
+	protected LinkedList<AbstractShot> shots = new LinkedList<AbstractShot>();
+	protected int lifeTimeCooldown;
+	protected LinkedList<TimerListObject> hitObjects = new LinkedList<TimerListObject>();
 
-	public void init( CombatMapObj newOwnerMO, int newSType, int newSLvl, Vector newTarPos, RpgMapObj newTarget ) {
-	  id            = newSType;
-	  sLvl          = newSLvl;
-	  target        = newTarget;
-	  lifeTime      = SpellData.lifeTime[id];
-	  passthrough   = SpellData.passthrough[id];
+	public AbstractSpell(CombatMapObj newOwnerMO, int newSLvl, Vector newTarPos, RpgMapObj newTarget) {
+	  descriptor = getDescriptor(getClass());
+	  sLvl = newSLvl;
+	  target = newTarget;
+	  lifeTimeCooldown = (int)Math.ceil(descriptor.getLifeTime() * PhilonGame.inst.fps);
 
 	  ownerMO = newOwnerMO;
+	  tarPos = newTarPos;
 	  if( newTarget!=null ) {
 	    tarPos = ((RpgMapObj)newTarget).pos.copy();
-	  } else {
-	    tarPos = newTarPos;
 	  }
 
 	  float newCastRange = 0.5f;
 	  pos = newOwnerMO.pos.copy().addInst( Vector.sub( tarPos, newOwnerMO.pos ).normalizeInst().mulScalarInst(newCastRange) );
 
-	  stats = getBaseStats();
-	  RpgGame.inst.playSoundFX( SpellData.souCast[id] );
+	  stats = descriptor.getDamageForLevel(sLvl);
+	  RpgGame.inst.playSoundFX(descriptor.getSouCast());
 	}
 
-	public StatsObj getBaseStats() {
-	  return SpellData.stats[id][sLvl];
+	public static SpellDescriptor getDescriptor(Class<? extends AbstractSpell> spellClass) {
+	  try {
+      return (SpellDescriptor) spellClass.getDeclaredMethod("getDescriptor").invoke(null);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+	  return null;
 	}
-
-	//----------
 
 	public void update() {
 	  LinkedList<TimerListObject> forDelete = new LinkedList<TimerListObject>();
@@ -74,13 +76,11 @@ public abstract class AbstractSpell {
 		}
 		hitObjects.removeAll(forDelete);
 
-		if(lifeTime>0) {
-			lifeTime -= 1;
-			if(lifeTime==0) deleteObject();
+		if(lifeTimeCooldown>0) {
+			lifeTimeCooldown -= 1;
+			if(lifeTimeCooldown==0) deleteObject();
 		}
 	}
-
-	//----------
 
 	public void shotImpactTrigger( AbstractShot shotObj, RpgMapObj mo ) {
 		for( TimerListObject tlo : hitObjects ) {
@@ -101,10 +101,8 @@ public abstract class AbstractSpell {
 		}
 	}
 
-	//----------
-
 	private void shotCollidedTrigger(AbstractShot shotObj, boolean allowPassthrough ) {
-		if( passthrough==false || allowPassthrough ) {
+		if( descriptor.getIsPassthrough()==false || allowPassthrough ) {
 			shots.remove( shotObj );
 			shotObj.changeState(StateDying.class, new StateDyingParam(null));
 			if( shots.isEmpty() ) {
@@ -113,8 +111,6 @@ public abstract class AbstractSpell {
 		}
 	}
 
-	//----------
-
 	public void deleteObject() {
 		for( AbstractShot s : shots ) {
 			s.changeState(StateDying.class, new StateDyingParam(null));
@@ -122,20 +118,26 @@ public abstract class AbstractSpell {
 		isDying=true;
 	}
 
-	//----------
-
-	public void createSimpleShot( Class<? extends AbstractShot> clazz, Vector newShotPos ) {
-		float newShotSpeed=SpellData.speed[id];
+	public void createSimpleShot(Class<? extends AbstractShot> clazz, Vector newShotPos) {
 		AbstractShot sh = Util.instantiateClass(clazz);
 		sh.ownerSpell = this;
 		sh.setPosition(newShotPos);
-		sh.tilesPerSecond = newShotSpeed;
-//		sh.setTarget(target, tarPos);
-    sh.changeState(StateMovingStraight.class, new StateMovingParam(Vector.sub(pos, ownerMO.pos)));
+		sh.tilesPerSecond = descriptor.getShotSpeed();
+    sh.changeState(StateMovingStraight.class, new StateMovingParam(Vector.sub(tarPos, newShotPos)));
 		shots.addLast(sh);
 		RpgUtil.insertMapObj(sh);
 	}
 
-	//----------
+  public static abstract class SpellDescriptor {
+    public abstract String getName();
+    public abstract StatsObj getDamageForLevel(int level);
+    public abstract int getManacostForLevel(int level);
+    protected boolean getIsPassthrough() { return false; }
+    protected abstract float getLifeTime(); //in seconds
+    protected abstract float getShotSpeed();
+    public abstract int getImgIcon();
+    public abstract int getSouPrepare();
+    public abstract int getSouCast();
+  }
 
 }

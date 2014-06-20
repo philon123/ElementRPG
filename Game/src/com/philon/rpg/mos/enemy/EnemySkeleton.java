@@ -1,7 +1,7 @@
 package com.philon.rpg.mos.enemy;
 
 import com.philon.engine.util.Vector;
-import com.philon.rpg.spell.SpellData;
+import com.philon.rpg.spell.SpellMelee;
 import com.philon.rpg.stat.effect.EffectsObj;
 import com.philon.rpg.stat.effect.EffectsObj.EffectAddArmor;
 import com.philon.rpg.stat.effect.EffectsObj.EffectAddAttackRate;
@@ -42,7 +42,7 @@ public class EnemySkeleton extends AbstractEnemy {
     result.addOrCreateEffect( EffectAddNormalDamage.class, new Vector(2, 5) );
     result.addOrCreateEffect( EffectAddAttackRate.class,  2f );
     result.addOrCreateEffect( EffectAddCastRate.class,  2f );
-    result.addOrCreateEffect( EffectSetDefaultSpell.class, SpellData.MELEE );
+    result.addOrCreateEffect( EffectSetDefaultSpell.class, SpellMelee.class );
     return result;
   }
 

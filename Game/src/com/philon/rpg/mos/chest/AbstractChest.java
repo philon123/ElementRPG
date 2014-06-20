@@ -21,7 +21,7 @@ public abstract class AbstractChest extends ToggleMapObj {
 
       if( !hasBeenToggled ) {
         AbstractItem it = ItemData.createRandomItem( getDropValue() );
-        Vector newItemPos = RpgUtil.getNextFreeTile(Vector.add(pos, direction), false, false, true, true);
+        Vector newItemPos = RpgUtil.getNextFreeTile(Vector.add(pos, orientation), false, false, true, true);
         if( newItemPos!=null ) {
           it.setPosition(newItemPos);
           it.changeState(AbstractItem.StateMap.class, new StateParam());

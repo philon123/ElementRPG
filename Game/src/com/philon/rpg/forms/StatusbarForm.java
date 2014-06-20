@@ -10,7 +10,7 @@ import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.mos.item.AbstractItem;
 import com.philon.rpg.mos.player.AbstractChar;
-import com.philon.rpg.spell.SpellData;
+import com.philon.rpg.spell.AbstractSpell;
 import com.philon.rpg.stat.StatsObj.StatM1Stype;
 import com.philon.rpg.stat.StatsObj.StatM2Stype;
 
@@ -161,9 +161,10 @@ public class StatusbarForm extends GuiElement {
         return GuiElement.ALIGN_TOP_LEFT;
       }
       @Override
+      @SuppressWarnings("unchecked")
       protected int getConfiguredBackground() {
-        int tmpSpell = (Integer)RpgGame.inst.getExclusiveUser().character.stats.getStatValue(StatM1Stype.class);
-        return SpellData.iconImg[tmpSpell];
+        Class<? extends AbstractSpell> tmpSpell = (Class<? extends AbstractSpell>)RpgGame.inst.getExclusiveUser().character.stats.getStatValue(StatM1Stype.class);
+        return AbstractSpell.getDescriptor(tmpSpell).getImgIcon();
       }
       @Override
       protected int getConfiguredImgPressed() {
@@ -200,9 +201,10 @@ public class StatusbarForm extends GuiElement {
         return GuiElement.ALIGN_TOP_RIGHT;
       }
       @Override
+      @SuppressWarnings("unchecked")
       protected int getConfiguredBackground() {
-        int tmpSpell = (Integer)RpgGame.inst.getExclusiveUser().character.stats.getStatValue(StatM2Stype.class);
-        return SpellData.iconImg[tmpSpell];
+        Class<? extends AbstractSpell> tmpSpell = (Class<? extends AbstractSpell>)RpgGame.inst.getExclusiveUser().character.stats.getStatValue(StatM2Stype.class);
+        return AbstractSpell.getDescriptor(tmpSpell).getImgIcon();
       }
       @Override
       protected int getConfiguredImgPressed() {

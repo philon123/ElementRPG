@@ -11,7 +11,10 @@ import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.state.MapObjState;
 import com.philon.rpg.map.mo.state.StateParam;
 import com.philon.rpg.spell.AbstractSpell;
-import com.philon.rpg.spell.SpellData;
+import com.philon.rpg.spell.SpellArrow;
+import com.philon.rpg.spell.SpellMelee;
+import com.philon.rpg.spell.SpellNone;
+import com.philon.rpg.spell.AbstractSpell.SpellDescriptor;
 import com.philon.rpg.stat.StatsObj;
 import com.philon.rpg.stat.StatsObj.StatAttackRate;
 import com.philon.rpg.stat.StatsObj.StatCastRate;
@@ -132,8 +135,8 @@ public abstract class CombatMapObj extends UpdateMapObj {
     } else {
       lifeLoss = norDmg * (1 - (Float)mo.stats.getStatValue(StatMulNorDmgReduce.class));
     }
-    spell.stats.addOrCreateStat( StatHealth.class, (int)(lifeLoss * (Float)spell.stats.getStatValue(StatLifeLeech.class) ));
-    spell.stats.addOrCreateStat( StatMana.class,   (int)(lifeLoss * (Float)spell.stats.getStatValue(StatManaLeech.class) ));
+    stats.addOrCreateStat( StatHealth.class, (int)(lifeLoss * (Float)spell.stats.getStatValue(StatLifeLeech.class) ));
+    stats.addOrCreateStat( StatMana.class,   (int)(lifeLoss * (Float)spell.stats.getStatValue(StatManaLeech.class) ));
 
     lifeLoss += ((Vector)spell.stats.getStatValue(StatFireDamage.class)).getRandomIntValue()     *
         (1-(Float)mo.stats.getStatValue(StatResistFire.class));
@@ -193,33 +196,35 @@ public abstract class CombatMapObj extends UpdateMapObj {
   }
 
   public class StateCasting extends MapObjState<StateCastingParam> {
-    private int spellID;
+    private Class<? extends AbstractSpell> spellClass;
     private Vector targetPos;
     private RpgMapObj target;
     private int castCooldown;
     public StateCasting(StateCastingParam param) {
       super(param);
-      spellID = param.spellID;
+      spellClass = param.spellClass;
       targetPos = param.targetPos;
       target = param.target;
       if(target!=null) targetPos = target.pos.copy();
       if (targetPos!=null && !targetPos.isAllEqual(new Vector())) turnToTarget(targetPos);
-      if (target==null && targetPos.isAllEqual(pos)) spellID = SpellData.EMPTY; //targeted outside game field;
+      if (target==null && targetPos.isAllEqual(pos)) spellClass = SpellNone.class; //targeted outside game field;
     }
     @Override
     public void execOnChange() {
-      if(spellID==SpellData.EMPTY) return;
-      if ( !(spellID==SpellData.MELEE || spellID==SpellData.ARROW)
-          && !useMana(SpellData.manaCost[spellID][stats.spells[spellID]]) ) {
+      if(spellClass==SpellNone.class) return;
+      SpellDescriptor descriptor = AbstractSpell.getDescriptor(spellClass);
+      if ( !(spellClass==SpellMelee.class || spellClass==SpellArrow.class)
+          && !useMana(descriptor.getManacostForLevel(stats.spells.get(spellClass))) ) {
         return;
       }
-      if(spellID==SpellData.MELEE || spellID==SpellData.ARROW) {
+      if(spellClass==SpellMelee.class || spellClass==SpellArrow.class) {
         castCooldown = (int) (PhilonGame.inst.fps / (Float)stats.getStatValue(StatAttackRate.class));
       } else {
         castCooldown = (int) (PhilonGame.inst.fps / (Float)stats.getStatValue(StatCastRate.class));
       }
-      RpgGame.inst.playSoundFX( SpellData.souPrepare[spellID] );
-      RpgGame.inst.playSoundFX( getSouAttack() );
+      if(descriptor.getSouPrepare()!=0) RpgGame.inst.playSoundFX(descriptor.getSouPrepare());
+      else RpgGame.inst.playSoundFX(getSouAttack());
+
       turnToTarget(targetPos);
       setAnimation(new FrameAnimation(Data.textures.get(getImgCasting()), castCooldown, false));
     }
@@ -229,8 +234,8 @@ public abstract class CombatMapObj extends UpdateMapObj {
         castCooldown--;
         return true;
       }
-      castSpell(spellID, targetPos, target);
-      spellID = 0;
+      castPreparedSpell();
+      spellClass = null;
       targetPos = null;
       target = null;
       return false;
@@ -240,17 +245,17 @@ public abstract class CombatMapObj extends UpdateMapObj {
       if(castCooldown!=0 && StateCasting.class.isAssignableFrom(newStateClass)) return false;
       return true;
     }
-    public void castSpell( int newSpellID, Vector newTarPos, RpgMapObj newTarget ) {
-      AbstractSpell s = SpellData.createSpell(CombatMapObj.this, spellID, stats.spells[spellID], newTarPos, newTarget);
+    private void castPreparedSpell() {
+      AbstractSpell s = Util.instantiateClass(spellClass, CombatMapObj.this, Util.nvl(stats.spells.get(spellClass), 0), targetPos, target);
       if (s!=null) activeSpells.addLast(s);
     }
   }
   public static class StateCastingParam extends StateParam {
-    public int spellID;
+    public Class<? extends AbstractSpell> spellClass;
     public Vector targetPos;
     public RpgMapObj target;
-    public StateCastingParam(int newSpellID, Vector newTargetPos, RpgMapObj newTarget) {
-      spellID = newSpellID;
+    public StateCastingParam(Class<? extends AbstractSpell> newSpellClass, Vector newTargetPos, RpgMapObj newTarget) {
+      spellClass = newSpellClass;
       targetPos = newTargetPos.copy();
       target = newTarget;
     }

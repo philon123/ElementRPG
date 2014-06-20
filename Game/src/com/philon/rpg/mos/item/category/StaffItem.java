@@ -1,10 +1,11 @@
 package com.philon.rpg.mos.item.category;
 
-import com.philon.rpg.spell.SpellData;
+import com.philon.rpg.spell.AbstractSpell;
+import com.philon.rpg.spell.SpellMelee;
 
 
 public abstract class StaffItem extends WeaponItem {
-  
+
   @Override
   public int getSouDrop() {
     return 44;
@@ -24,10 +25,10 @@ public abstract class StaffItem extends WeaponItem {
   public boolean isTwoHanded() {
     return true;
   }
-  
+
   @Override
-  public int getDefaultSpellType() {
-    return SpellData.MELEE;
+  public Class<? extends AbstractSpell> getDefaultSpellType() {
+    return SpellMelee.class;
   }
-  
+
 }

@@ -16,7 +16,7 @@ import com.philon.rpg.mos.item.AbstractItem.StateMap;
 import com.philon.rpg.mos.item.ItemData;
 import com.philon.rpg.mos.player.AbstractChar;
 import com.philon.rpg.spell.AbstractSpell;
-import com.philon.rpg.spell.SpellData;
+import com.philon.rpg.spell.SpellMelee;
 import com.philon.rpg.stat.StatsObj.StatHealth;
 import com.philon.rpg.stat.StatsObj.StatM1Stype;
 import com.philon.rpg.stat.StatsObj.StatMaxHealth;
@@ -107,18 +107,19 @@ public abstract class AbstractEnemy extends CombatMapObj {
       stateMoving = new MoveToTargetAI(new Vector());
     }
     @Override
+    @SuppressWarnings("unchecked")
     public void updateTimed() {
       m_target = findNewTarget();
       if(m_target!=null) m_targetPos = m_target.pos;
       if(m_targetPos==null) return;
 
       float targetDist = Vector.getDistance(pos, m_targetPos);
-      int currSpell = (Integer)stats.getStatValue(StatM1Stype.class);
-      if(m_target==null || (currSpell==SpellData.MELEE && targetDist>getMaxMeleeRange())) {
+      Class<? extends AbstractSpell> currSpellClass = (Class<? extends AbstractSpell>)stats.getStatValue(StatM1Stype.class);
+      if(m_target==null || (currSpellClass==SpellMelee.class && targetDist>getMaxMeleeRange())) {
         stateMoving.setTargetPos(m_targetPos);
         stateMoving.updateTimed();
       } else {
-        changeState(StateCasting.class, new StateCastingParam(currSpell, m_targetPos, m_target));
+        changeState(StateCasting.class, new StateCastingParam(currSpellClass, m_targetPos, m_target));
       }
     }
     private CombatMapObj findNewTarget() {

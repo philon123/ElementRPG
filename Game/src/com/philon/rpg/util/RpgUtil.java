@@ -1,5 +1,6 @@
 package com.philon.rpg.util;
 import java.util.LinkedList;
+import java.util.List;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -12,6 +13,7 @@ import com.philon.engine.util.Vector;
 import com.philon.rpg.forms.MapScreen;
 import com.philon.rpg.map.mo.BreakableMapObj;
 import com.philon.rpg.map.mo.RpgMapObj;
+import com.philon.rpg.map.mo.StaticMapObj;
 import com.philon.rpg.mos.chest.AbstractChest;
 import com.philon.rpg.mos.door.AbstractDoor;
 import com.philon.rpg.mos.enemy.AbstractEnemy;
@@ -227,8 +229,8 @@ public class RpgUtil {
   }
 
   public static boolean getIsRectCollidingWithMap( Vector newPos, Vector newSize ) {
-    LinkedList<RpgMapObj> colls = getRectColls( newPos, newSize );
-    colls = RpgUtil.filterList( colls, false, false, false, false, false, false );
+    List<?> colls = getRectColls( newPos, newSize );
+    colls = Util.filterListByKeepClass(colls, StaticMapObj.class, AbstractWall.class);
     return !colls.isEmpty();
   }
 

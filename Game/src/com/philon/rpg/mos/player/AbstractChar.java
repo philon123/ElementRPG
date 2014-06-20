@@ -15,7 +15,12 @@ import com.philon.rpg.mos.item.category.ConsumableItem;
 import com.philon.rpg.mos.player.inventory.Inventory;
 import com.philon.rpg.mos.player.inventory.InventorySaveData;
 import com.philon.rpg.spell.AbstractSpell;
-import com.philon.rpg.spell.SpellData;
+import com.philon.rpg.spell.SpellArrow;
+import com.philon.rpg.spell.SpellFireBolt;
+import com.philon.rpg.spell.SpellFireWall;
+import com.philon.rpg.spell.SpellHealing;
+import com.philon.rpg.spell.SpellKugelBlitz;
+import com.philon.rpg.spell.SpellMelee;
 import com.philon.rpg.stat.StatsObj.StatDefaultSpell;
 import com.philon.rpg.stat.StatsObj.StatHealth;
 import com.philon.rpg.stat.StatsObj.StatM1Stype;
@@ -31,24 +36,20 @@ public abstract class AbstractChar extends CombatMapObj {
 	public int freeStatPoints;
 
 	public Inventory inv;
-	public int skills[];
 
 	public AbstractChar() {
 	  super();
 
 	  setLuminance(0.5f);
     inv = new Inventory(this);
-    skills = new int[getNumSkills()];
 
-    stats.addOrCreateStat( StatM2Stype.class, SpellData.FIRE_BOLT );
-    stats.spells[SpellData.FIRE_WALL] += 1; //TODO spells
-    stats.spells[SpellData.FIRE_BOLT] += 1;
-    stats.spells[SpellData.KUGELBLITZ] += 1;
-    stats.spells[SpellData.HEALING] += 1;
+    stats.addOrCreateStat( StatM2Stype.class, SpellFireBolt.class );
+    stats.spells.put(SpellFireWall.class, 1);
+    stats.spells.put(SpellKugelBlitz.class, 1);
+    stats.spells.put(SpellHealing.class, 1);
 	}
 
 	public abstract int getSouNoMana();
-	public abstract int getNumSkills();
 	public abstract String getCharText();
   @Override
   public float getTilesPerSecond() {
@@ -110,16 +111,16 @@ public abstract class AbstractChar extends CombatMapObj {
     super.attack(mo, spell);
   }
 
-	@Override
+  @Override
+  @SuppressWarnings("unchecked")
 	public void updateStats() {
 	  super.updateStats();
 
 	  if (inv!=null){
 	    inv.updateReqMetFlags();
-	    stats.spells[SpellData.MELEE]=0;
-      stats.spells[SpellData.ARROW]=0;
-      int newDefaultSpell = (Integer)stats.getStatValue(StatDefaultSpell.class);
-      if (newDefaultSpell!=SpellData.EMPTY) stats.spells[newDefaultSpell]=1;
+	    stats.spells.put(SpellMelee.class, 0);
+	    stats.spells.put(SpellArrow.class, 0);
+      stats.spells.put((Class<? extends AbstractSpell>)stats.getStatValue(StatDefaultSpell.class), 1);
 	  }
 	}
 
@@ -195,9 +196,10 @@ public abstract class AbstractChar extends CombatMapObj {
     private Vector m_movementDir = new Vector();
     private Vector m_castingDir = new Vector();
     @Override
+    @SuppressWarnings("unchecked")
     public void updateTimed() {
       if(!m_castingDir.isZeroVector()) {
-        int currSpell = (Integer)stats.getStatValue(StatM1Stype.class);
+        Class<? extends AbstractSpell> currSpell = (Class<? extends AbstractSpell>)stats.getStatValue(StatM1Stype.class);
         changeState(StateCasting.class, new StateCastingParam(currSpell, Vector.add(pos, m_castingDir), null));
       } else if(!m_movementDir.isZeroVector() && !(currState instanceof StateCasting)) {
         if(currState instanceof StateMovingStraight) {
@@ -232,7 +234,7 @@ public abstract class AbstractChar extends CombatMapObj {
     }
 
     public CharacterSaveData(AbstractChar obj) {
-      this(obj.getClass(), obj.pos, obj.direction, obj.xp);
+      this(obj.getClass(), obj.pos, obj.orientation, obj.xp);
 
       inv = obj.inv.save();
     }

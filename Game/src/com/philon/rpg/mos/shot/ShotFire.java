@@ -33,7 +33,7 @@ public class ShotFire extends AbstractShot {
 
   @Override
   public int getImgMoving() {
-    return 0;
+    return 236;
   }
 
   @Override
