@@ -4,17 +4,16 @@ import java.util.LinkedList;
 
 import com.philon.engine.Data;
 import com.philon.engine.FrameAnimation;
-import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.state.MapObjState;
 import com.philon.rpg.map.mo.state.StateParam;
 import com.philon.rpg.spell.AbstractSpell;
+import com.philon.rpg.spell.AbstractSpell.SpellDescriptor;
 import com.philon.rpg.spell.SpellArrow;
 import com.philon.rpg.spell.SpellMelee;
 import com.philon.rpg.spell.SpellNone;
-import com.philon.rpg.spell.AbstractSpell.SpellDescriptor;
 import com.philon.rpg.stat.StatsObj;
 import com.philon.rpg.stat.StatsObj.StatAttackRate;
 import com.philon.rpg.stat.StatsObj.StatCastRate;
@@ -68,10 +67,10 @@ public abstract class CombatMapObj extends UpdateMapObj {
   }
 
   @Override
-	public boolean update() {
-		updateSpells();
+	public boolean update(float deltaTime) {
+		updateSpells(deltaTime);
 
-		return super.update();
+		return super.update(deltaTime);
 	}
 
 	public void updateStats() {
@@ -110,10 +109,10 @@ public abstract class CombatMapObj extends UpdateMapObj {
 		}
 	}
 
-	public void updateSpells() {
+	public void updateSpells(float deltaTime) {
 	  for (int i=0; i<activeSpells.size(); i++) {
 	    AbstractSpell s = activeSpells.get(i);
-	    s.update();
+	    s.update(deltaTime);
 			if (s.isDying) activeSpells.remove(s);
 		}
 	}
@@ -171,21 +170,21 @@ public abstract class CombatMapObj extends UpdateMapObj {
   //##################################################
 
   public class StateHit extends MapObjState<StateParam> {
-    private int hitCooldown;
+    private float hitCooldown;
     public StateHit(StateParam param) {
       super(param);
     }
     @Override
     public void execOnChange() {
-      hitCooldown = (int)( ((Float)stats.getStatValue(StatHitRecovery.class)+1) * (PhilonGame.inst.fps/3) );
+      hitCooldown = 0.25f * ((Float)stats.getStatValue(StatHitRecovery.class)+1);
       setAnimation(new FrameAnimation(Data.textures.get(getImgHit()), hitCooldown, false));
     }
     @Override
-    public boolean execUpdate() {
-      if (hitCooldown==0) {
+    public boolean execUpdate(float deltaTime) {
+      if (hitCooldown<0) {
         return false;
       } else {
-        hitCooldown--;
+        hitCooldown -= deltaTime;
       }
       return true;
     }
@@ -199,7 +198,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
     private Class<? extends AbstractSpell> spellClass;
     private Vector targetPos;
     private RpgMapObj target;
-    private int castCooldown;
+    private float castCooldown;
     public StateCasting(StateCastingParam param) {
       super(param);
       spellClass = param.spellClass;
@@ -218,9 +217,9 @@ public abstract class CombatMapObj extends UpdateMapObj {
         return;
       }
       if(spellClass==SpellMelee.class || spellClass==SpellArrow.class) {
-        castCooldown = (int) (PhilonGame.inst.fps / (Float)stats.getStatValue(StatAttackRate.class));
+        castCooldown = 1 / (Float)stats.getStatValue(StatAttackRate.class);
       } else {
-        castCooldown = (int) (PhilonGame.inst.fps / (Float)stats.getStatValue(StatCastRate.class));
+        castCooldown = 1 / (Float)stats.getStatValue(StatCastRate.class);
       }
       if(descriptor.getSouPrepare()!=0) RpgGame.inst.playSoundFX(descriptor.getSouPrepare());
       else RpgGame.inst.playSoundFX(getSouAttack());
@@ -229,9 +228,9 @@ public abstract class CombatMapObj extends UpdateMapObj {
       setAnimation(new FrameAnimation(Data.textures.get(getImgCasting()), castCooldown, false));
     }
     @Override
-    public boolean execUpdate() {
+    public boolean execUpdate(float deltaTime) {
       if(castCooldown>0) {
-        castCooldown--;
+        castCooldown -= deltaTime;
         return true;
       }
       castPreparedSpell();
@@ -242,7 +241,7 @@ public abstract class CombatMapObj extends UpdateMapObj {
     }
     @Override
     public boolean isStateChangeAllowed(Class<? extends MapObjState<?>> newStateClass) {
-      if(castCooldown!=0 && StateCasting.class.isAssignableFrom(newStateClass)) return false;
+      if(castCooldown>0 && StateCasting.class.isAssignableFrom(newStateClass)) return false;
       return true;
     }
     private void castPreparedSpell() {

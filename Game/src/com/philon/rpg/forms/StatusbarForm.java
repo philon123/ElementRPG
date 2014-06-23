@@ -43,7 +43,7 @@ public class StatusbarForm extends GuiElement {
   }
 
   @Override
-  public void execDraw(SpriteBatch batch) {
+  public void execRender(SpriteBatch batch, float deltaTime) {
 //  if( fID==FormData.STATUSBAR ) { //TODO health orbs
 //  float orbFill;
 //  //draw health orb
@@ -75,7 +75,7 @@ public class StatusbarForm extends GuiElement {
 //  drawRect( tmpPos.x, tmpPos.y, tmpSize.x, tmpSize.y*(1-orbFill) );
 //}
 
-    super.execDraw(batch);
+    super.execRender(batch, deltaTime);
 
   }
 

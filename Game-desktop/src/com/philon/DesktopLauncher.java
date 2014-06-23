@@ -10,7 +10,9 @@ public class DesktopLauncher {
 		cfg.useGL20 = false;
 		cfg.width = 480;
 		cfg.height = 320;
-		cfg.foregroundFPS = 60;
+		cfg.vSyncEnabled = false;
+		cfg.foregroundFPS = 0;
+		cfg.backgroundFPS = 0;
 
 		new LwjglApplication(new com.philon.rpg.RpgGame(), cfg);
 	}

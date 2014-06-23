@@ -417,11 +417,11 @@ public class Vector {
 	//----------
 
 	public float getRandomFloatValue() {
-	  return Util.random(x, y);
+	  return Util.rnd(x, y);
 	}
 
 	public int getRandomIntValue() {
-	  return Util.round( Util.random(x, y) );
+	  return Util.round( Util.rnd(x, y) );
 	}
 
 	public static Vector applyBounds(Vector in, Vector lower, Vector upper) {

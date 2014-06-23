@@ -215,23 +215,23 @@ public class MapScreen extends GuiElement {
 
 
   @Override
-  protected void execDraw(SpriteBatch batch) {
-    super.execDraw(batch);
+  protected void execRender(SpriteBatch batch, float deltaTime) {
+    super.execRender(batch, deltaTime);
 
     updateMinMaxTilesOnScreen();
     updateOffset();
-    updateMapObjs();
+    updateMapObjs(deltaTime);
     gMap.updateSeeThroughObjects();
     gMap.updateLightGrid(minTileOnScreen, maxTileOnScreen);
     drawFloor(batch);
     drawMapObjects(batch);
   }
 
-  private void updateMapObjs() {
+  private void updateMapObjs(float deltaTime) {
     for (int i=0; i<gMap.dynamicMapObjs.size(); i++) {
       UpdateMapObj currMO = gMap.dynamicMapObjs.get(i);
       if( RpgUtil.isTileOnScreen( currMO.pos.copy().roundAllInst() ) || currMO instanceof AbstractShot ) {
-        if(!currMO.update()) RpgUtil.removeMapObj(currMO);
+        if(!currMO.update(deltaTime)) RpgUtil.removeMapObj(currMO);
       }
     }
   }

@@ -2,7 +2,6 @@ package com.philon.rpg.map.mo;
 
 import com.philon.engine.Data;
 import com.philon.engine.FrameAnimation;
-import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.state.MapObjState;
@@ -24,8 +23,8 @@ public abstract class ToggleMapObj extends UpdateMapObj {
     return getToggleImage();
   }
 
-  public int getToggleTime() {
-    return (int)PhilonGame.inst.fps/3;
+  public float getToggleTime() {
+    return 1/2f;
   }
 
   @Override
@@ -90,13 +89,13 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 	    RpgGame.inst.playSoundFX( getSouClosed() );
 	  }
 	  @Override
-	  public boolean execUpdate() {
+	  public boolean execUpdate(float deltaTime) {
 	    return true;
 	  }
 	}
 
 	public class StateClosing extends MapObjState<StateParam> {
-    private int closeCooldown;
+    private float closeCooldown;
     public StateClosing(StateParam param) {
       super(param);
     }
@@ -107,9 +106,9 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 	    closeCooldown = getToggleTime();
 	  }
 	  @Override
-	  public boolean execUpdate() {
+	  public boolean execUpdate(float deltaTime) {
 	    if(closeCooldown>0) {
-	      closeCooldown--;
+	      closeCooldown -= deltaTime;
 	    } else {
 	      changeState(StateClosed.class, new StateParam());
 	    }
@@ -127,13 +126,13 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 	    RpgGame.inst.playSoundFX( getSouOpened() );
 	  }
 	  @Override
-	  public boolean execUpdate() {
+	  public boolean execUpdate(float deltaTime) {
 	    return true;
 	  }
 	}
 
 	public class StateOpening extends MapObjState<StateParam> {
-	  private int openCooldown;
+	  private float openCooldown;
     public StateOpening(StateParam param) {
       super(param);
     }
@@ -144,9 +143,9 @@ public abstract class ToggleMapObj extends UpdateMapObj {
 	    RpgGame.inst.playSoundFX( getSouOpening() );
 	  }
 	  @Override
-	  public boolean execUpdate() {
+	  public boolean execUpdate(float deltaTime) {
       if(openCooldown>0) {
-        openCooldown--;
+        openCooldown -= deltaTime;
       } else {
         changeState(StateOpen.class, new StateParam());
       }

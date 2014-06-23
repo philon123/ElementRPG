@@ -32,7 +32,7 @@ public abstract class AbstractPrefixSuffix {
         break;
       }
     }
-    return (int) Util.random(0, maxLevel);
+    return (int) Util.rnd(0, maxLevel);
   }
 
   public abstract LinkedHashMap<Class<? extends AbstractEffect>, AbstractEffectLevelData> getEffectLevelData();
@@ -70,7 +70,7 @@ public abstract class AbstractPrefixSuffix {
     @Override
     public Object getRandomValueForLevel(int level) {
       Vector range = getNumericValueRangeForLevel(level);
-      return Util.random(range.x, range.y);
+      return Util.rnd(range.x, range.y);
     }
 
     public abstract Vector getNumericValueRangeForLevel(int level);
@@ -88,7 +88,7 @@ public abstract class AbstractPrefixSuffix {
 
     public int getRandomIntValueForLevel(int level) {
       Vector range = getNumericValueRangeForLevel(level);
-      return Util.round( Util.random(range.x, range.y) );
+      return Util.round( Util.rnd(range.x, range.y) );
     }
   }
 

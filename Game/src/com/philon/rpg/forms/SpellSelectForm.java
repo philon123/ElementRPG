@@ -64,8 +64,8 @@ public class SpellSelectForm extends GuiElement {
   }
 
   @Override
-  public void execDraw(SpriteBatch batch) {
-    super.execDraw(batch);
+  public void execRender(SpriteBatch batch, float deltaTime) {
+    super.execRender(batch, deltaTime);
 
 //    AbstractChar character = RpgGame.inst.getExclusiveUser().character;
 //    Vector tileRelSize = new Vector(1/10f, 1/4f);

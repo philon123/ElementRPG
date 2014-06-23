@@ -1,7 +1,6 @@
 package com.philon.rpg.mos.player;
 
 import com.badlogic.gdx.Gdx;
-import com.philon.engine.PhilonGame;
 import com.philon.engine.input.User;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
@@ -174,18 +173,18 @@ public abstract class AbstractChar extends CombatMapObj {
   }
 
   public class StateMovingWithFootsteps extends StateMovingStraight {
-    int footstepCooldown;
+    private float footstepCooldown;
     public StateMovingWithFootsteps(StateMovingParam param) {
       super(param);
     }
     @Override
-    public boolean execUpdate() {
-      if(!super.execUpdate()) return false;
+    public boolean execUpdate(float deltaTime) {
+      if(!super.execUpdate(deltaTime)) return false;
 
       if( footstepCooldown>0 ) {
-        footstepCooldown -= 1;
+        footstepCooldown -= deltaTime;
       } else {
-        footstepCooldown = (int)(PhilonGame.inst.fps/4f);
+        footstepCooldown = 1/4f;
         RpgGame.inst.playSoundFX(getSouFootstep());
       }
       return true;
@@ -212,8 +211,8 @@ public abstract class AbstractChar extends CombatMapObj {
       }
     }
     @Override
-    protected float getConfiguredAIUpdatesPerSecond() {
-      return 30f;
+    protected float getConfiguredAIUpdateCooldown() {
+      return 0.03f;
     }
     public void setMovementDir(Vector newDir) {
       m_movementDir = newDir.copy();

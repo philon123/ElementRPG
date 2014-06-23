@@ -27,22 +27,9 @@ public class RpgGame extends PhilonGame<MapScreen> {
     return new RpgUser(newController);
   }
 
-  public RpgUser getActiveUser() {
-    return (RpgUser)activeUser;
-  }
-
-  public RpgUser getExclusiveUser() {
-    return (RpgUser)exclusiveUser;
-  }
-
 	@Override
   protected MapScreen getMainScreen() {
     return new MapScreen();
-  }
-
-  public void playSoundFX(int sound) {
-    if (sound==0) return;
-    RpgData.sounds.get(sound).play();
   }
 
   @Override
@@ -52,6 +39,14 @@ public class RpgGame extends PhilonGame<MapScreen> {
     for(User currUser : users) {
       ((ControllerAI)((RpgUser)currUser).character.getAI()).setMovementDir(new Vector());
     }
+  }
+
+  public RpgUser getActiveUser() {
+    return (RpgUser)activeUser;
+  }
+
+  public RpgUser getExclusiveUser() {
+    return (RpgUser)exclusiveUser;
   }
 
 }

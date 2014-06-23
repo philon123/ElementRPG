@@ -23,28 +23,28 @@ public class SpellKugelBlitz extends AbstractSpell {
   }
 
   @Override
-  public void update() {
+  public void update(float deltaTime) {
     LinkedList<AbstractShot> newShots = new LinkedList<AbstractShot>();
     for (AbstractShot currShot : shots) {
       if(!(currShot.currState instanceof StateMovingStraight)) continue;
       if (Math.random()<0.1) { //change direction
-        ((StateMovingStraight)currShot.currState).turn(Util.random(-30, 30));
+        ((StateMovingStraight)currShot.currState).turn(Util.rnd(-30, 30));
       } else if (Math.random()<0.03) { //split
         AbstractShot newShot = Util.instantiateClass(currShot.getClass());
         newShot.tilesPerSecond = currShot.getTilesPerSecond();
         newShot.setPosition(currShot.pos);
         newShot.ownerSpell = this;
         RpgUtil.insertMapObj(newShot);
-        newShot.changeState(StateMovingStraight.class, new StateMovingParam(Vector.rotateDeg(currShot.orientation, Util.random(-60, 60))));
+        newShot.changeState(StateMovingStraight.class, new StateMovingParam(Vector.rotateDeg(currShot.orientation, Util.rnd(-60, 60))));
         newShots.add(newShot);
 
-        currShot.turn(Util.random(-60, 60));
+        currShot.turn(Util.rnd(-60, 60));
 
       }
     }
     shots.addAll(newShots);
 
-    super.update();
+    super.update(deltaTime);
   }
 
   public static SpellDescriptor getDescriptor() {

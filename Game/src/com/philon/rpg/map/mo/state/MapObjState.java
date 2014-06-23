@@ -8,7 +8,7 @@ public abstract class MapObjState<T extends StateParam> {
 
   public abstract void execOnChange();
 
-  public abstract boolean execUpdate();
+  public abstract boolean execUpdate(float deltaTime);
 
   public boolean isStateChangeAllowed(Class<? extends MapObjState<?>> newStateClass) {
     return true;

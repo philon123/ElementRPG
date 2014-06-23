@@ -5,7 +5,6 @@ import java.util.LinkedList;
 
 import com.philon.engine.Data;
 import com.philon.engine.FrameAnimation;
-import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
@@ -43,8 +42,8 @@ public abstract class UpdateMapObj extends RpgMapObj {
     return new DefaultAI();
   }
 
-  public int getDieCooldown() {
-    return (int) (PhilonGame.inst.fps/3);
+  public float getDieCooldown() {
+    return 1/3f;
   }
 
   @SuppressWarnings("rawtypes")
@@ -59,7 +58,6 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
   public void changeState(Class<? extends MapObjState<?>> newStateClass, StateParam param) {
 	  Class<? extends MapObjState> instClass = stateMap.get(newStateClass);
-//	  if (currState!=null && instClass==currState.getClass()) return;
 	  if(currState==null || currState.isStateChangeAllowed((Class<? extends MapObjState<?>>) instClass)) {
       MapObjState<?> newState = Util.instantiateClass(instClass, this, param);
   	  newState.execOnChange();
@@ -74,10 +72,10 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	/**
 	 * @returns false if object is to be deleted
 	 */
-	public boolean update() {
-	  getAI().update();
+	public boolean update(float deltaTime) {
+	  getAI().update(deltaTime);
 
-		if(!currState.execUpdate()) { //update failed, revert to default state
+		if(!currState.execUpdate(deltaTime)) { //update failed, revert to default state
 		  if(currState instanceof StateDying) return false;
 		  currState = null;
 		  changeState(StateIdle.class, new StateParam());
@@ -99,14 +97,14 @@ public abstract class UpdateMapObj extends RpgMapObj {
     return true;
   }
 
-	public Vector getNewPositionOffset( Vector targetOffset ) {
+	protected Vector getNewPositionOffset(Vector targetOffset) {
 		Vector result = targetOffset.copy();
 
 		LinkedList<RpgMapObj> potentialColls = getPotentialCollisions( result );
 		if (potentialColls!=null) { //collision occured!
 			//determine main movement axis and attempt to move in that direction instead
 			Vector absDir = Vector.absolute(orientation);
-			float newOffsetLength = getTilesPerSecond() / PhilonGame.inst.fps;
+			float newOffsetLength = targetOffset.getLength();
 			Vector unitDirection = new Vector(Math.signum(orientation.x), Math.signum(orientation.y)).mulScalarInst(newOffsetLength);
 
 			boolean xIsLarger=false;
@@ -167,16 +165,16 @@ public abstract class UpdateMapObj extends RpgMapObj {
     }
     @Override
 	  public void execOnChange() {
-	    setAnimation(new FrameAnimation(Data.textures.get(getImgIdle()), (int)(PhilonGame.inst.fps/3), false));
+	    setAnimation(new FrameAnimation(Data.textures.get(getImgIdle()), 1/2f, false));
 	  }
 	  @Override
-	  public boolean execUpdate() {
+	  public boolean execUpdate(float deltaTime) {
 	    return true;
 	  }
 	}
 
 	public class StateDying extends MapObjState<StateDyingParam> {
-    private int dieCooldown;
+    private float dieCooldown;
     private CombatMapObj killedBy;
 	  public StateDying(StateDyingParam param) {
 	    super(param);
@@ -189,12 +187,12 @@ public abstract class UpdateMapObj extends RpgMapObj {
 	    deathTrigger(killedBy);
 	  }
 	  @Override
-	  public boolean execUpdate() {
-      if (dieCooldown==0) {
+	  public boolean execUpdate(float deltaTime) {
+      if (dieCooldown<0) {
         deleteObject();
         return false;
       } else {
-        dieCooldown--;
+        dieCooldown -= deltaTime;
       }
 	    return true;
 	  }
@@ -219,11 +217,11 @@ public abstract class UpdateMapObj extends RpgMapObj {
     @Override
 	  public void execOnChange() {
       changeDirection(direction);
-	    setAnimation(new FrameAnimation(Data.textures.get(getImgMoving()), (int)(PhilonGame.inst.fps/3), false));
+	    setAnimation(new FrameAnimation(Data.textures.get(getImgMoving()), 1/2f, false));
 	  }
 	  @Override
-	  public boolean execUpdate() {
-	    float tilesThisFrame = getTilesPerSecond() / PhilonGame.inst.fps;
+	  public boolean execUpdate(float deltaTime) {
+	    float tilesThisFrame = getTilesPerSecond() * deltaTime;
 	    Vector newOffset = Vector.mulScalar(direction, tilesThisFrame);
 	    newOffset = getNewPositionOffset(newOffset);
 	    if (newOffset==null) return false;
@@ -246,24 +244,24 @@ public abstract class UpdateMapObj extends RpgMapObj {
   }
 
   public static interface AIState {
-    void update();
+    void update(float deltaTime);
   }
 
   public class DefaultAI implements AIState {
-    protected int aiUpdateCooldown = Util.rand(0, (int)(PhilonGame.inst.fps/getConfiguredAIUpdatesPerSecond()));
+    protected float aiUpdateCooldown = Util.rnd(0, (getConfiguredAIUpdateCooldown()));
     @Override
-    public void update() {
+    public void update(float deltaTime) {
       if(aiUpdateCooldown>0) {
-        aiUpdateCooldown--;
+        aiUpdateCooldown -= deltaTime;
       } else {
         updateTimed();
-        aiUpdateCooldown = (int)(PhilonGame.inst.fps/getConfiguredAIUpdatesPerSecond());
+        aiUpdateCooldown = getConfiguredAIUpdateCooldown();
       }
     }
     protected void updateTimed() {
     }
-    protected float getConfiguredAIUpdatesPerSecond() {
-      return 2f;
+    protected float getConfiguredAIUpdateCooldown() {
+      return 0.5f;
     }
   }
 

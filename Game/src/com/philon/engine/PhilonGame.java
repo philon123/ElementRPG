@@ -27,8 +27,8 @@ public abstract class PhilonGame<GUIROOT extends GuiElement> implements Applicat
   public static PhilonGame<?> inst;
   public Vector screenPixSize = new Vector(1240, 600);
   public float xyRatio;
-  public float fps = 60;
-  public int currFrame;
+  public double lastFrameNanoTime = 0;
+  public float currTime = 0; //units are usually seconds
 
   public OrthographicCamera camera;
   public SpriteBatch batch;
@@ -60,8 +60,6 @@ public abstract class PhilonGame<GUIROOT extends GuiElement> implements Applicat
     guiHierarchy.setContainerTransform(new Vector(), new Vector(xyRatio, 1));
   }
 
-  protected abstract Class<? extends Data> getConfiguredDataClass();
-
   @Override
   public void resize(int width, int height) {
     screenPixSize = new Vector(width, height);
@@ -77,14 +75,19 @@ public abstract class PhilonGame<GUIROOT extends GuiElement> implements Applicat
 
   @Override
   public void render() {
-    currFrame += 1;
+    double newNanoTime = System.nanoTime();
+    if(lastFrameNanoTime==0) lastFrameNanoTime = newNanoTime;
+    double deltaTime = ((newNanoTime-lastFrameNanoTime)/1000000000d) / getSecondsPerTimeUnit();
+    currTime += deltaTime;
+    lastFrameNanoTime = newNanoTime;
+
     if (Gdx.input.isKeyPressed(Keys.ESCAPE)) Gdx.app.exit();
 
     handleInput();
 
     batch.begin();
     clearScreen();
-    execRender(batch);
+    execRender(batch, (float)deltaTime);
     batch.end();
   }
 
@@ -102,14 +105,19 @@ public abstract class PhilonGame<GUIROOT extends GuiElement> implements Applicat
   }
 
   protected abstract GUIROOT getMainScreen();
+  protected abstract Class<? extends Data> getConfiguredDataClass();
+
+  protected float getSecondsPerTimeUnit() {
+    return 1;
+  }
 
   protected void clearScreen() {
     Gdx.gl.glClearColor(0, 0, 0, 1);
     Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
   }
 
-  protected void execRender(SpriteBatch batch) {
-    guiHierarchy.draw(batch);
+  protected void execRender(SpriteBatch batch, float deltaTime) {
+    guiHierarchy.draw(batch, deltaTime);
 //    batch.draw(ImageData.images[231].frames[0], 0, 0, guiHierarchy.xyRatio, 1);
 //    graphics.drawText(batch, RpgUtil.font, "XXX", new Vector(0.5f, 0f));
   }
@@ -162,8 +170,6 @@ public abstract class PhilonGame<GUIROOT extends GuiElement> implements Applicat
             if(currUser.selectedEle!=null) currUser.selectedEle.execDeselected();
             currUser.selectedEle = currUser.hoveredOverEle;
             currUser.selectedEle.execSelected();
-//            currUser.selectedEle.handleEvent(currEvt);
-//            continue;
           }
         }
 
@@ -187,6 +193,11 @@ public abstract class PhilonGame<GUIROOT extends GuiElement> implements Applicat
       guiHierarchy.removeElement(currEle);
     }
     exclusiveUser = null;
+  }
+
+  public void playSoundFX(int sound) {
+    if (sound==0) return;
+    Data.sounds.get(sound).play();
   }
 
 }

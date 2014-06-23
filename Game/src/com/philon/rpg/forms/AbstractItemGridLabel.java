@@ -123,8 +123,8 @@ public abstract class AbstractItemGridLabel extends GuiElement {
   protected abstract void dropPickupToCell(Vector newCell);
 
   @Override
-  protected void execDraw(SpriteBatch batch) {
-    super.execDraw(batch);
+  protected void execRender(SpriteBatch batch, float deltaTime) {
+    super.execRender(batch, deltaTime);
 
     drawGrid(batch);
     for( AbstractItem tmpItem : getItemsForDraw() ) {

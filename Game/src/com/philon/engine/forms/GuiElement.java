@@ -73,7 +73,7 @@ public abstract class GuiElement {
     return 0;
   }
 
-  protected void execDraw(SpriteBatch batch) {
+  protected void execRender(SpriteBatch batch, float deltaTime) {
     int tmpImage = getConfiguredBackground();
     if(tmpImage!=0) {
       drawRelative(batch, Data.textures.get(tmpImage), new Vector(), new Vector(1), 0);
@@ -341,13 +341,13 @@ public abstract class GuiElement {
     return false;
   }
 
-  public void draw(SpriteBatch batch) {
-    execDraw(batch);
+  public void draw(SpriteBatch batch, float deltaTime) {
+    execRender(batch, deltaTime);
 
     Iterator<GuiElement> childrenInOrder = getChildrenInOrder(true);
     while(childrenInOrder.hasNext()) {
       GuiElement currEle = childrenInOrder.next();
-      currEle.draw(batch);
+      currEle.draw(batch, deltaTime);
     }
     execDrawOverChildren(batch);
   }

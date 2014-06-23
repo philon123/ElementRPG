@@ -211,12 +211,12 @@ public class Util {
 
 	//----------
 
-	public static float random(float minValue, float maxValue) {
+	public static float rnd(float minValue, float maxValue) {
 		return (float) (minValue + Math.random()*(maxValue-minValue));
 	}
 
 	public static int rand(int minValue, int maxValue) {
-	  return (int) Math.floor(random(minValue, maxValue) + 0.5f);
+	  return (int) Math.floor(rnd(minValue, maxValue) + 0.5f);
 	}
 
 	//----------

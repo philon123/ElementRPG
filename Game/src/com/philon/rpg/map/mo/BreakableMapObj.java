@@ -1,6 +1,5 @@
 package com.philon.rpg.map.mo;
 
-import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.map.mo.state.StateParam;
@@ -10,7 +9,6 @@ import com.philon.rpg.mos.item.ItemData;
 import com.philon.rpg.util.RpgUtil;
 
 public abstract class BreakableMapObj extends ToggleMapObj {
-  public int breakTimer;
 
   public BreakableMapObj() {
     isSelectable = false;
@@ -39,7 +37,7 @@ public abstract class BreakableMapObj extends ToggleMapObj {
   }
 
   @Override
-  public int getToggleTime() {
+  public float getToggleTime() {
     return getAnimDur();
   }
 
@@ -68,8 +66,8 @@ public abstract class BreakableMapObj extends ToggleMapObj {
     return 0;
   }
 
-  public int getAnimDur() {
-    return (int) PhilonGame.inst.fps/2;
+  public float getAnimDur() {
+    return (int) 1/2f;
   }
 
   public void destroy() {
@@ -79,6 +77,8 @@ public abstract class BreakableMapObj extends ToggleMapObj {
   }
 
   public class StateBreaking extends StateOpening {
+    private float breakTimer;
+
     public StateBreaking(StateParam param) {
       super(param);
     }
@@ -99,9 +99,10 @@ public abstract class BreakableMapObj extends ToggleMapObj {
     }
 
     @Override
-    public boolean execUpdate() {
-      breakTimer -= 1;
-      if (breakTimer==0) {
+    public boolean execUpdate(float deltaTime) {
+      if(breakTimer>0) {
+        breakTimer -= deltaTime;
+      } else {
         changeState(StateOpen.class, new StateParam());
       }
       return true;

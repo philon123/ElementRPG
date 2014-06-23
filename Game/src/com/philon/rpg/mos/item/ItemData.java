@@ -201,7 +201,7 @@ public class ItemData {
     for (Entry<Class<? extends AbstractItem>, Integer> currEntry : itemClassToRarityMap.entrySet()) {
       if (currEntry.getValue() <= maxBaseItemCost) possibleItems.add(currEntry.getKey());
     }
-    Class<? extends AbstractItem> randomItemClass = possibleItems.get((int) Util.random(0, possibleItems.size()-1));
+    Class<? extends AbstractItem> randomItemClass = possibleItems.get((int) Util.rnd(0, possibleItems.size()-1));
     if (Math.random()<0.3) randomItemClass=ItemScrollOfIdentify.class;
 
     it = createItem(randomItemClass);

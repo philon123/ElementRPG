@@ -164,7 +164,7 @@ public abstract class AbstractItem extends UpdateMapObj {
 	    RpgGame.inst.playSoundFX(RpgData.SOU_PICKUP);
 	  }
     @Override
-    public boolean execUpdate() {
+    public boolean execUpdate(float deltaTime) {
       return true;
     }
 	}
@@ -184,7 +184,7 @@ public abstract class AbstractItem extends UpdateMapObj {
       RpgGame.inst.playSoundFX( getSouFlip() );
     }
     @Override
-    public boolean execUpdate() {
+    public boolean execUpdate(float deltaTime) {
       return true;
     }
   }
@@ -198,7 +198,7 @@ public abstract class AbstractItem extends UpdateMapObj {
       RpgGame.inst.playSoundFX(getSouDrop());
     }
     @Override
-    public boolean execUpdate() {
+    public boolean execUpdate(float deltaTime) {
       return true;
     }
   }

@@ -60,8 +60,8 @@ public class MarbleMapScreen extends GuiElement {
     return MarbleData.IMG_BLUE;
   }
   @Override
-  protected void execDraw(SpriteBatch batch) {
-    super.execDraw(batch);
+  protected void execRender(SpriteBatch batch, float deltaTime) {
+    super.execRender(batch, deltaTime);
 
     world.step(0.02f, 2, 2);
     handleCollisions();

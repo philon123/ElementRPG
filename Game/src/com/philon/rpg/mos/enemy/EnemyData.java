@@ -21,7 +21,7 @@ public class EnemyData {
 	}
 
   public static Class<? extends AbstractEnemy> getRandomEnemyClass() {
-    return enemyClasses.get((int) Util.random(0, enemyClasses.size()));
+    return enemyClasses.get((int) Util.rnd(0, enemyClasses.size()));
   }
 
 	public static AbstractEnemy createEnemy(Class<? extends AbstractEnemy> enemyClass) {

@@ -1,7 +1,6 @@
 package com.philon.rpg.spell;
 import java.util.LinkedList;
 
-import com.philon.engine.PhilonGame;
 import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
 import com.philon.rpg.RpgGame;
@@ -35,14 +34,14 @@ public abstract class AbstractSpell {
 	protected Vector tarPos;
 	protected RpgMapObj target;
 	protected LinkedList<AbstractShot> shots = new LinkedList<AbstractShot>();
-	protected int lifeTimeCooldown;
+	protected float lifeTimeCooldown;
 	protected LinkedList<TimerListObject> hitObjects = new LinkedList<TimerListObject>();
 
 	public AbstractSpell(CombatMapObj newOwnerMO, int newSLvl, Vector newTarPos, RpgMapObj newTarget) {
 	  descriptor = getDescriptor(getClass());
 	  sLvl = newSLvl;
 	  target = newTarget;
-	  lifeTimeCooldown = (int)Math.ceil(descriptor.getLifeTime() * PhilonGame.inst.fps);
+	  lifeTimeCooldown = descriptor.getLifeTime();
 
 	  ownerMO = newOwnerMO;
 	  tarPos = newTarPos;
@@ -66,19 +65,19 @@ public abstract class AbstractSpell {
 	  return null;
 	}
 
-	public void update() {
+	public void update(float deltaTime) {
 	  LinkedList<TimerListObject> forDelete = new LinkedList<TimerListObject>();
 		for( TimerListObject tlo : hitObjects ) {
-			tlo.timerValue -= 1;
-			if( tlo.timerValue==0 ) {
+			tlo.timerValue -= deltaTime;
+			if( tlo.timerValue<0 ) {
 			  forDelete.add(tlo);
 			}
 		}
 		hitObjects.removeAll(forDelete);
 
 		if(lifeTimeCooldown>0) {
-			lifeTimeCooldown -= 1;
-			if(lifeTimeCooldown==0) deleteObject();
+			lifeTimeCooldown -= deltaTime;
+			if(lifeTimeCooldown<0) deleteObject();
 		}
 	}
 
@@ -88,7 +87,7 @@ public abstract class AbstractSpell {
 				return;
 			}
 		}
-		hitObjects.addLast( new TimerListObject(mo, (int)(PhilonGame.inst.fps/3)) );
+		hitObjects.addLast( new TimerListObject(mo, 0.25f) );
 
 		if (mo instanceof StaticMapObj || mo instanceof AbstractWall || mo instanceof AbstractDoor) {
 		  shotCollidedTrigger( shotObj, false );

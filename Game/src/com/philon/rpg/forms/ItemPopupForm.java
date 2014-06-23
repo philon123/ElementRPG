@@ -47,12 +47,12 @@ public class ItemPopupForm extends GuiElement {
   }
 
   @Override
-  protected void execDraw(SpriteBatch batch) {
+  protected void execRender(SpriteBatch batch, float deltaTime) {
     Vector screenSize = new Vector(RpgGame.inst.xyRatio, 1);
     if(absPos.x+absSize.x > screenSize.x) absPos.x = screenSize.x-absSize.x;
     if(absPos.y+absSize.y >  screenSize.y) absPos.y =  screenSize.y-absSize.y;
 
-    super.execDraw(batch);
+    super.execRender(batch, deltaTime);
 
     RpgGame.inst.graphics.drawTextMultiline( batch, RpgUtil.font, text, Vector.add(absPos, new Vector(0.03f)) );
   }

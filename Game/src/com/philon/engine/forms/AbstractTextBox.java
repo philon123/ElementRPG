@@ -8,8 +8,8 @@ import com.philon.rpg.util.RpgUtil;
 public abstract class AbstractTextBox extends GuiElement {
 
   @Override
-  protected void execDraw(SpriteBatch batch) {
-    super.execDraw(batch);
+  protected void execRender(SpriteBatch batch, float deltaTime) {
+    super.execRender(batch, deltaTime);
 
     RpgGame.inst.graphics.drawText( batch, RpgUtil.font, getDisplayText(), Vector.add(absPos, new Vector(0.01f)) );
   }

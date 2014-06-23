@@ -4,9 +4,8 @@ import com.philon.engine.util.AnimImage;
 
 public class FrameAnimation {
   public AnimImage image;
-  private int durationInFrames;
-  private int animLengthInFrames;
-  private int startFrame = -1;
+  private float duration;
+  private float startTime = -1;
   private boolean currAnimReversed;
 
   private int currAnimFrame;
@@ -16,22 +15,21 @@ public class FrameAnimation {
     this(newImage, 0, false);
   }
 
-  public FrameAnimation(AnimImage newImage, int newAnimLength, boolean animReversed) {
+  public FrameAnimation(AnimImage newImage, float newAnimLength, boolean animReversed) {
     setImage(newImage);
     if (newAnimLength>0) {
       startAnim(newAnimLength, animReversed);
     } else {
-      int firstFrame = animReversed ? animLengthInFrames-1 : 0;
+      int firstFrame = animReversed ? newImage.getFramesInAnimation()-1 : 0;
       currAnimFrame = firstFrame;
     }
   }
 
-  private void setImage( AnimImage newAnimTexture ) {
+  private void setImage(AnimImage newAnimTexture) {
     image = newAnimTexture;
-    animLengthInFrames = newAnimTexture.getFramesInAnimation();
     currAnimFrame = 0;
-    durationInFrames = 0;
-    startFrame = -1;
+    duration = 0;
+    startTime = -1;
 
     updateAnimFrame();
   }
@@ -43,27 +41,28 @@ public class FrameAnimation {
     dir = newDir;
   }
 
-  public void startAnim( int newAnimLen, boolean reverseAnim ) {
-    durationInFrames = newAnimLen;
-    startFrame = PhilonGame.inst.currFrame;
+  public void startAnim(float newAnimLen, boolean reverseAnim) {
+    duration = newAnimLen;
+    startTime = PhilonGame.inst.currTime;
     currAnimReversed = reverseAnim;
   }
 
-  public void startAnim( float newAnimLen ) {
-    startAnim((int)newAnimLen, false);
+  public void startAnim(float newAnimLen) {
+    startAnim(newAnimLen, false);
   }
 
   public void updateAnimFrame() {
-    if (startFrame<0) return; //no animation -> keep frame frozen
-
-    currAnimFrame = (int) (( ((PhilonGame.inst.currFrame-startFrame) / (durationInFrames*1.0f)) * animLengthInFrames ) % animLengthInFrames);
-    if (currAnimReversed) currAnimFrame=(animLengthInFrames-1)-currAnimFrame;
+    if (startTime<0) return; //no animation -> keep frame frozen
+    float completion = (PhilonGame.inst.currTime - startTime) / duration;
+    completion = (float) (completion - Math.floor(completion));
+    if(currAnimReversed) completion = 1 - completion;
+    currAnimFrame = (int)Math.floor(completion * image.getFramesInAnimation());
   }
 
   public int getCurrFrame() {
     updateAnimFrame();
 
-    return dir*animLengthInFrames + currAnimFrame;
+    return dir*image.getFramesInAnimation() + currAnimFrame;
   }
 
 }

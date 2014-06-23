@@ -51,8 +51,8 @@ public abstract class AbstractShot extends CombatMapObj {
   }
 
   @Override
-  public int getDieCooldown() {
-    return 10;
+  public float getDieCooldown() {
+    return 0;
   }
 
 	@Override

@@ -83,11 +83,11 @@ public class PrefixSuffixData {
   }
 
   public static Class<? extends AbstractPrefixSuffix> getRandomPrefix() {
-    return prefixClasses.get((int) Util.random(0, prefixClasses.size()-1));
+    return prefixClasses.get((int) Util.rnd(0, prefixClasses.size()-1));
   }
 
   public static Class<? extends AbstractPrefixSuffix> getRandomSuffix() {
-    return suffixClasses.get((int) Util.random(0, suffixClasses.size()-1));
+    return suffixClasses.get((int) Util.rnd(0, suffixClasses.size()-1));
   }
 
   public static AbstractPrefixSuffix createPrefixSuffix(Class<? extends AbstractPrefixSuffix> clazz, int newDropValue) {

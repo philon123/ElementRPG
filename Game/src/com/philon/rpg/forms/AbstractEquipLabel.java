@@ -13,7 +13,7 @@ public abstract class AbstractEquipLabel extends AbstractItemGridLabel {
   public int equipSlotNr;
 
   @Override
-  public void execDraw(SpriteBatch batch) {
+  public void execRender(SpriteBatch batch, float deltaTime) {
     int tmpImage = getConfiguredBackground();
     if(tmpImage!=0) {
       drawRelative(batch, Data.textures.get(tmpImage), new Vector(), new Vector(1), 0);
