@@ -1,0 +1,66 @@
+Konzept ElementRPG
+
+1. Idee
+	RPG
+	auf das Nötigste reduziert
+	Kampfstil beliebig anpassbar
+	Fokus auf die 3 Elemente (Feuer, Bliz, Eis)
+	Charakter hat komplexe geometrie, gegner sind simpler
+	Objekte sind kristall-Gebilde, die zerbrechen, wenn sie sterben.
+	Die Objekte leuchten in der Farbe ihrer Kristalle (Feuer-Gegner sind rot). 
+	2. Gems
+	Gems representieren Elemente
+	Es gibt bestimmte Kombinationsmöglichkeiten zwischen Gemsorten
+	Gems haben ein Level von 1-10
+	Wenn Gems ausgerüstet werden, erlauben sie einen für die Sorte charakteristischen Angriff und erhöhen gleichzeitig die Resistenzen des Spielers in den jeweiligen Elementen
+	Gems können gegessen werden um die Masse des Charakters zu erhöhen. 
+2.1. Kombinationsmöglichkeiten
+	4 gleiche Gems -> 1 Gem eine Sufe höher
+	Je 2 pure Gems verschiedener Sorten aber gleichem Level -> ein Mischgem eine Stufe höher
+2.2. Sorten
+	2.2.1.  Feuer
+		Schuss: Fireball, eher langsames Geschoss mit Splash. Flammen brennen ein paar Sekunden am Boden und verbrennen Gegner. Chance auf Lähmen (Stun). 
+		Resistenz: Feuer
+	2.2.2.  Blitz
+		Kettenblitz, Anzahl der Sprünge steigt mit Level, sehr schnelle Geschosse (instant möglich?). Chance auf kritische Treffer. 
+	2.2.3.  Eis
+		Iceball, langsames Geschoss mit Splash. Verlangsamt Gegner. Chance auf erstarren. 
+	2.2.4.  Eisen
+		Massives Geschoss mit Splash. Chance auf Knockback
+	2.2.5.  Feuer/Blitz
+		Blitz-Feuerball ohne Splash, der bei Treffer Blitze auslöst. 
+	2.2.6.  Blitz/Eis
+		Eis-Kettenblitz, der Gegner verlangsamt. 
+	2.2.7.  Eis/Eisen
+		Gefrorener Felsen ohne Splash, verlangsamt Gegner mit Splash. 
+	2.2.8.  Eisen/Feuer
+		Lavaball mit Splash, verbrennt Gegner. 
+	2.2.9.  Eis/Feuer
+		Feuer-Eis-Kugel, verlangsamt Gegner mit Splash
+	2.2.10.  Eisen/Blitz
+		Kettenblitz mit Splash
+
+3. Spieler
+	Kristallwesen
+	Farbe definiert durch die zwei Gems im Equip (default: grau)
+	Farbe dynamisch, je nach Element von Zauber, der gerade vorbereitet wird. 
+3.1. Masse
+	Gibt an, wieviele Gems der Spieler gegessen hat. 
+	Wenn Spieler getroffen wird, verliert er 50% des Schadens in Form von Kristallen, die wieder einsammelbar sind. 
+	Wenn eine bestimmte Anzahl Gems gegessen wurden, levelt der Spieler hoch. Fällt er wieder unter diese Grenze (durch erlittenen Schaden), fällt auch wieder sein Level.  
+3.2. Fertigkeiten
+	Es gibt eine Fertigkeit für jedes Element. 
+	Mit jedem neuen Level kann man einen Fertigkeitspunkt frei verteilen. 
+	Um einen Gem einer bestimmten Stufe herstellen zu können, benötigt man die entsprechende(n) Fertigkeit(en) auf derselben Stufe.  
+3.3. Inventar
+	Grid für gefundene Gems
+	2 Slots für Ausrüstung
+	Grid um Gems zu Kombinieren
+4. Gegner
+	Analog zu Spielern, nur mit KI. 
+	Anhand von Farbe und Schussart der Gegner erkennt man ihre Resistenzen, da gleich wie beim Spieler
+	Wenn Gegner sterben, können sie nur solche Gems droppen, die sie im Equip hatten. 
+5. Karte
+	automatisch generierte Karte
+	dynamisch generiert?
+	vorgebaute special-Level (Bosse etc)?
