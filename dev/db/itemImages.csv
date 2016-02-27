@@ -1,0 +1,229 @@
+ID,URL,desc
+0,,EMPTY
+1,Media/img/items/Data_1.gif,Potion Of Full Mana
+2,Media/img/items/Data_2.gif,White Scroll
+3,Media/img/items/Data_3.gif,Brown Scroll
+4,Media/img/items/Data_4.gif,Blue Scroll
+5,Media/img/items/Data_5.gif,Gold Pile Small
+6,Media/img/items/Data_6.gif,Gold Pile Mediem
+7,Media/img/items/Data_7.gif,Gold Pile Larg
+8,Media/img/items/Data_8.gif,Thick Gold Ring
+9,Media/img/items/Data_9.gif,Big Ruby Ring
+10,Media/img/items/Data_10.gif,Thorny Ring
+11,Media/img/items/Data_11.gif,Sapphire Ring
+12,Media/img/items/Data_12.gif,Skull Ring
+13,Media/img/items/Data_13.gif,Metal Ring
+14,Media/img/items/Data_14.gif,Ebony Gold Ring
+15,Media/img/items/Data_15.gif,Orange Gem Gold Ring
+16,Media/img/items/Data_16.gif,Small Rainbow Vial
+17,Media/img/items/Data_17.gif,Large Rainbow Vial
+18,Media/img/items/Data_18.gif,Golden Elixir
+19,Media/img/items/Data_19.gif,Steel Blue Diamond Ring
+20,Media/img/items/Data_20.gif,Player Ear with Steel Earring
+21,Media/img/items/Data_21.gif,Player Ear
+22,Media/img/items/Data_22.gif,Player Ear with Gold Earring
+23,Media/img/items/Data_23.gif,Hellraiser Orb
+24,Media/img/items/Data_24.gif,Hellraiser Box
+25,Media/img/items/Data_25.gif,Hellraiser Pyramid
+26,Media/img/items/Data_26.gif,Large Ruby
+27,Media/img/items/Data_27.gif,Red Ruby Sphere
+28,Media/img/items/Data_28.gif,Blue Sapphire Cube
+29,Media/img/items/Data_29.gif,Orange Jewel Pyramid
+30,Media/img/items/Data_30.gif,Thin Black Vial
+31,Media/img/items/Data_31.gif,Large Black Vial
+32,Media/img/items/Data_32.gif,Elixir of Vitality
+33,Media/img/items/Data_33.gif,Potion of Healing
+34,Media/img/items/Data_34.gif,Potion of Full Rejuvenation
+35,Media/img/items/Data_35.gif,Elixir of Magic
+36,Media/img/items/Data_36.gif,Potion of Full Healing
+37,Media/img/items/Data_37.gif,Elixir of Dexterity
+38,Media/img/items/Data_38.gif,Potion of Rejuvenation
+39,Media/img/items/Data_39.gif,Elixir of Strength
+40,Media/img/items/Data_40.gif,Potion of Mana
+41,Media/img/items/Data_41.gif,Brain
+42,Media/img/items/Data_42.gif,Drake's Claw
+43,Media/img/items/Data_43.gif,Drake's Tooth
+44,Media/img/items/Data_44.gif,Brush
+45,Media/img/items/Data_45.gif,Blue Ivory Amulet
+46,Media/img/items/Data_46.gif,Standard Amulet
+47,Media/img/items/Data_47.gif,Black Eye Amulet
+48,Media/img/items/Data_48.gif,Bug Brooch
+49,Media/img/items/Data_49.gif,Ankh Amulet
+50,Media/img/items/Data_50.gif,Pouch
+51,Media/img/items/Data_51.gif,Bastard Dagger
+52,Media/img/items/Data_52.gif,Dagger
+53,Media/img/items/Data_53.gif,A Bottle of Brew
+54,Media/img/items/Data_54.gif,Jagged Dagger
+55,Media/img/items/Data_55.gif,Black Handle Dagger
+56,Media/img/items/Data_56.gif,Snap Blade
+57,Media/img/items/Data_57.gif,Long Sword
+58,Media/img/items/Data_58.gif,Bastard Sword
+59,Media/img/items/Data_59.gif,Jagged Sword
+60,Media/img/items/Data_60.gif,Mace
+61,Media/img/items/Data_61.gif,Red Handle Sword
+62,Media/img/items/Data_62.gif,Broad Sword
+63,Media/img/items/Data_63.gif,Falchion
+64,Media/img/items/Data_64.gif,Morning Star
+65,Media/img/items/Data_65.gif,Short Sword
+66,Media/img/items/Data_66.gif,Claymore
+67,Media/img/items/Data_67.gif,Club
+68,Media/img/items/Data_68.gif,Sabre
+69,Media/img/items/Data_69.gif,Legion Sword
+70,Media/img/items/Data_70.gif,Bone Club
+71,Media/img/items/Data_71.gif,Spiked Club
+72,Media/img/items/Data_72.gif,A Board With A Nail
+73,Media/img/items/Data_73.gif,Scimitar
+74,Media/img/items/Data_74.gif,Blood Angel Sword.
+75,Media/img/items/Data_75.gif,Pain Sword
+76,Media/img/items/Data_76.gif,Full Helm
+77,Media/img/items/Data_77.gif,Magic Rock
+78,Media/img/items/Data_78.gif,Spiked Crown
+79,Media/img/items/Data_79.gif,Thanatos Crown
+80,Media/img/items/Data_80.gif,Leorics Helm
+81,Media/img/items/Data_81.gif,Jester Cap
+82,Media/img/items/Data_82.gif,Harlequin Crest
+83,Media/img/items/Data_83.gif,Helm
+84,Media/img/items/Data_84.gif,Buckler
+85,Media/img/items/Data_85.gif,Horned Helm
+86,Media/img/items/Data_86.gif,Great War Helm
+87,Media/img/items/Data_87.gif,Black Magic Book
+88,Media/img/items/Data_88.gif,Red Magic Book
+89,Media/img/items/Data_89.gif,Blue Magic Book
+90,Media/img/items/Data_90.gif,Black Mushroom
+91,Media/img/items/Data_91.gif,Skull Cap
+92,Media/img/items/Data_92.gif,Cap
+93,Media/img/items/Data_93.gif,Torn Flesh
+94,Media/img/items/Data_94.gif,Cushioned Skull Cap
+95,Media/img/items/Data_95.gif,Red Tunic
+96,Media/img/items/Data_96.gif,Crown
+97,Media/img/items/Data_97.gif,Map
+98,Media/img/items/Data_98.gif,Fungal Tome
+99,Media/img/items/Data_99.gif,Great Helm
+100,Media/img/items/Data_100.gif,Samurai Helm
+101,Media/img/items/Data_101.gif,Great Shield of Lightning
+102,Media/img/items/Data_102.gif,Battle Axe
+103,Media/img/items/Data_103.gif,Long Bow
+104,Media/img/items/Data_104.gif,Field Plate/Plate Mail
+105,Media/img/items/Data_105.gif,Hack Axe
+106,Media/img/items/Data_106.gif,Small Shield
+107,Media/img/items/Data_107.gif,Cleaver
+108,Media/img/items/Data_108.gif,Studded Leather Armor
+109,Media/img/items/Data_109.gif,Bone Bow
+110,Media/img/items/Data_110.gif,Short Staff
+111,Media/img/items/Data_111.gif,Two-Handed Sword
+112,Media/img/items/Data_112.gif,Chain Mail
+113,Media/img/items/Data_113.gif,Small Axe
+114,Media/img/items/Data_114.gif,Kite Shield
+115,Media/img/items/Data_115.gif,Chain Mail
+116,Media/img/items/Data_116.gif,Thick Shield.
+117,Media/img/items/Data_117.gif,Grinning Death Shield
+118,Media/img/items/Data_118.gif,Devils Shield
+119,Media/img/items/Data_119.gif,Short/Hunters Bow
+120,Media/img/items/Data_120.gif,Long War Bow
+121,Media/img/items/Data_121.gif,Fish Bow.
+122,Media/img/items/Data_122.gif,War Hammer
+123,Media/img/items/Data_123.gif,Maul
+124,Media/img/items/Data_124.gif,Long Staff
+125,Media/img/items/Data_125.gif,War Staff
+126,Media/img/items/Data_126.gif,Shamans Staff
+127,Media/img/items/Data_127.gif,Tavern Sign
+128,Media/img/items/Data_128.gif,Hard Leather Armor
+129,Media/img/items/Data_129.gif,Rags
+130,Media/img/items/Data_130.gif,Quilted Armor
+131,Media/img/items/Data_131.gif,Three Ball Flail
+132,Media/img/items/Data_132.gif,Flail
+133,Media/img/items/Data_133.gif,Tower Shield
+134,Media/img/items/Data_134.gif,Composite Bow
+135,Media/img/items/Data_135.gif,Great Sword
+136,Media/img/items/Data_136.gif,Leather Armor
+137,Media/img/items/Data_137.gif,Splint Mail
+138,Media/img/items/Data_138.gif,Robe
+139,Media/img/items/Data_139.gif,Dark Mage Robes
+140,Media/img/items/Data_140.gif,Leather Shirt
+141,Media/img/items/Data_141.gif,Anvil of Fury
+142,Media/img/items/Data_142.gif,Broad Axe
+143,Media/img/items/Data_143.gif,Large Axe
+144,Media/img/items/Data_144.gif,Great Axe
+145,Media/img/items/Data_145.gif,Axe
+146,Media/img/items/Data_146.gif,Ancient Cleaver
+147,Media/img/items/Data_147.gif,Lion Shield
+148,Media/img/items/Data_148.gif,Large Shield
+149,Media/img/items/Data_149.gif,Gothic Shield
+150,Media/img/items/Data_150.gif,Cloak
+151,Media/img/items/Data_151.gif,Cape
+152,Media/img/items/Data_152.gif,Full Plate Mail
+153,Media/img/items/Data_153.gif,Gothic Plate
+154,Media/img/items/Data_154.gif,Breast Plate
+155,Media/img/items/Data_155.gif,Ring Mail
+156,Media/img/items/Data_156.gif,Staff of Lazarus
+157,Media/img/items/Data_157.gif,Ripper Axe.
+158,Media/img/items/Data_158.gif,Arkaine's Valor
+159,Media/img/items/Data_159.gif,Crossbow.
+160,Media/img/items/Data_160.gif,Horned Dragon Plate Armor
+161,Media/img/items/Data_161.gif,Runed Cleaver
+162,Media/img/items/Data_162.gif,Ivory Katana
+163,Media/img/items/Data_163.gif,Spiked Baseball Bat
+164,Media/img/items/Data_164.gif,Dwarves Double-Bladed Axe
+165,Media/img/items/Data_165.gif,Harp Bow
+166,Media/img/items/Data_166.gif,Short War Bow
+167,Media/img/items/Data_167.gif,Composite Staff
+168,Media/img/items/Data_168.gif,Short Battle Bow
+169,Media/img/items/Data_169.gif,
+170,Media/img/items/Data_170.gif,
+171,Media/img/items/Data_171.gif,
+172,Media/img/items/Data_172.gif,
+173,Media/img/items/Data_173.gif,
+174,Media/img/items/Data_174.gif,
+175,Media/img/items/Data_175.gif,
+176,Media/img/items/Data_176.gif,
+177,Media/img/items/Data_177.gif,
+178,Media/img/items/Data_178.gif,
+179,Media/img/items/Data_179.gif,
+180,Media/img/items/Data_180.gif,
+181,Media/img/items/Data_181.gif,
+182,Media/img/items/Data_182.gif,
+183,Media/img/items/Data_183.gif,
+184,Media/img/items/Data_184.gif,
+185,Media/img/items/Data_185.gif,
+186,Media/img/items/Data_186.gif,
+187,Media/img/items/Data_187.gif,
+188,Media/img/items/Data_188.gif,
+189,Media/img/items/Data_189.gif,
+190,Media/img/items/Data_190.gif,
+191,Media/img/items/Data_191.gif,
+192,Media/img/items/Data_192.gif,
+193,Media/img/items/Data_193.gif,
+194,Media/img/items/Data_194.gif,
+195,Media/img/items/Data_195.gif,
+196,Media/img/items/Data_196.gif,
+197,Media/img/items/Data_197.gif,
+198,Media/img/items/Data_198.gif,
+199,Media/img/items/Data_199.gif,
+200,Media/img/items/Data_200.gif,
+201,Media/img/items/Data_201.gif,
+202,Media/img/items/Data_202.gif,
+203,Media/img/items/Data_203.gif,
+204,Media/img/items/Data_204.gif,
+205,Media/img/items/Data_205.gif,
+206,Media/img/items/Data_206.gif,
+207,Media/img/items/Data_207.gif,
+208,Media/img/items/Data_208.gif,
+209,Media/img/items/Data_209.gif,
+210,Media/img/items/Data_210.gif,
+211,Media/img/items/Data_211.gif,
+212,Media/img/items/Data_212.gif,
+213,Media/img/items/Data_213.gif,
+214,Media/img/items/Data_214.gif,
+215,Media/img/items/Data_215.gif,
+216,Media/img/items/Data_216.gif,
+217,Media/img/items/Data_217.gif,
+218,Media/img/items/Data_218.gif,
+219,Media/img/items/Data_219.gif,
+220,Media/img/items/Data_220.gif,
+221,Media/img/items/Data_221.gif,
+222,Media/img/items/Data_222.gif,
+223,Media/img/items/Data_223.gif,
+224,Media/img/items/Data_224.gif,
+225,Media/img/items/Data_225.gif,
+226,Media/img/items/Data_226.gif,
+227,Media/img/items/Data_227.gif,

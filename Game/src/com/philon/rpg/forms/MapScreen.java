@@ -20,7 +20,6 @@ import com.philon.engine.input.XBox360Controller.RealButton1;
 import com.philon.engine.util.AnimImage;
 import com.philon.engine.util.Util;
 import com.philon.engine.util.Vector;
-import com.philon.rpg.RpgData;
 import com.philon.rpg.RpgGame;
 import com.philon.rpg.RpgUser;
 import com.philon.rpg.map.RpgMap;
@@ -185,7 +184,7 @@ public class MapScreen extends GuiElement {
 
     if(currLevel==-1) {
       changeLevel(0);
-      RpgData.souMusic.play();
+      //RpgData.souMusic.play();
     }
   }
 

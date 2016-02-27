@@ -1,6 +1,5 @@
 package com.philon.engine.event;
 
-import com.philon.engine.input.AbstractController;
 import com.philon.engine.input.AbstractController.Button;
 
 public class ButtonEvent extends InputEvent<Button> {

@@ -28,8 +28,9 @@ public class RpgData extends Data {
     db = new Database("assets/data/db/Game.db");
     super.loadAll();
 
-    souMusic = Gdx.audio.newMusic(Gdx.files.internal("assets/" + "Data/Media/music/dlvla(huge).wav"));
+    souMusic = Gdx.audio.newMusic(Gdx.files.internal("assets/" + "data/Media/music/dlvla.mp3"));
     souMusic.setLooping(true);
+    souMusic.play();
 
     //with db
 

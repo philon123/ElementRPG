@@ -1,0 +1,30 @@
+ID,displayText
+0,NONE
+1,## To All Attributes
+2,## To Strength
+3,## To Magic
+4,## To Dexterity
+5,## To Vitality
+6,Hit Points ##
+7,Mana ##
+8,Hit Steals ## Life
+9,Hit Steals ## Mana
+10,## To Armor
+11,Chance to Hit ##
+12,## Damage
+13,Adds ## Points To Damage
+14,## Damage Taken
+15,Attacker Takes ## Damage
+16,Resist All ##
+17,Resist Magic ##
+18,Resist Fire ##
+19,Resist Lightning ##
+20,Attack Rate ##
+21,Hit Recovery ##
+22,## Light Radius
+23,## Fire Damage
+24,## Lightning Damage
+25,Durability ##
+26,Penetrates Target's Armor
+27,Charges Are ##
+28,Spells Are Increased # Level
